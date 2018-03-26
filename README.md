@@ -1,3 +1,2 @@
-# binance
-
-APP TRADE BINACE
+# bittrextool
+tool bittrex analysis

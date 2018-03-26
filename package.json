@@ -1,0 +1,15 @@
+{
+    "name": "BitrexToll",
+    "description": "Server Thu thap du lieu bittrex",
+    "version": "0.0.1",
+    "dependencies": {
+        "cli-color": "^1.2.0",
+        "mathjs": "^4.0.1",
+        "moment": "^2.21.0",
+        "node-binance-api": "^0.4.25",
+        "node-bittrex-api": "^0.8.3",
+        "nodemailer": "^4.6.3",
+        "promise-mysql": "^3.2.1",
+        "technicalindicators": "^1.1.8"
+    }
+}
