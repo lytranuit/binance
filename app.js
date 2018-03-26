@@ -159,7 +159,7 @@ binance.prices((error, ticker) => {
                         markets[market]['chienluoc1'].notbuyinsession = false;
                     }
 //                    var candles = results.slice(-3);
-                    markets[market]['chienluoc1'].checkban();
+                    markets[market]['chienluoc1'].checkban(last, results);
 //                    banChienLuoc1(market, last, candles);
                 }
 
@@ -191,6 +191,7 @@ function setMarket(market, last = 0) {
             priceBuy: [],
             priceBuyAvg: 0,
             checkban: function (price, candles) {
+
                 var self = this;
                 if (self.isBuy && self.priceBuyAvg > 0) {
                     var array = Object.keys(candles);
@@ -208,7 +209,7 @@ function setMarket(market, last = 0) {
                      * DK 2 tang lien tiep 2 dot.(Xu huong tang)
                      */
                     if (price > self.minPriceSell && price < self.maxPriceSell) {
-                        if (candle1.V < candle2.V && candle2.O < candle2.C)
+                        if (candle1.volume < candle2.volume && candle2.open < candle2.close)
                             return;
                     }
                     self.ban(price);
