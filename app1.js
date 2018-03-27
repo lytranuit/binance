@@ -66,6 +66,14 @@ var currentTime = null;
  * END CONFIG MAIL
  * 
  *****************/
+
+binance.websockets.prevDay(false, (error, response) => {
+    if (markets[response.symbol]) {
+        markets[response.symbol]['numTrades'] = response.numTrades;
+        markets[response.symbol]['volume'] = response.quoteVolume;
+        markets[response.symbol]['last'] = response.close;
+    }
+});
 binance.prices((error, ticker) => {
     if (error) {
         return console.error(error);
@@ -76,7 +84,7 @@ binance.prices((error, ticker) => {
         if (market.indexOf("BTC") != -1) {
             setMarket(market, last);
             // For a specific symbol:
-            binance.websockets.chart(market, "5m", (market, interval, results) => {
+            binance.websockets.chart(market, "1h", (market, interval, results) => {
                 if (Object.keys(results).length === 0)
                     return;
 //    let tick = binance.last(chart);
@@ -168,7 +176,7 @@ binance.prices((error, ticker) => {
             });
         }
     }
-    var query = pool.query("SELECT * FROM trade where is_sell IS NULL").then(function (rows, err) {
+    var query = pool.query("SELECT * FROM trade_1h where is_sell IS NULL").then(function (rows, err) {
         if (err) {
             console.log(err);
         }
@@ -200,7 +208,7 @@ function setMarket(market) {
             notbuyinsession: false,
             amountbuy: 0.005,
             countIgnoreSession: 5,
-            minGain: 1,
+            minGain: 5,
             maxGain: 10,
             isBuy: false,
             priceBuy: [],
@@ -250,8 +258,8 @@ function setMarket(market) {
                         is_sell: 1,
                         timestamp_sell: moment().format("YYYY-MM-DD HH:mm:ss.SSS")
                     };
-                    pool.query("UPDATE trade SET ? WHERE id IN(" + Math.max(self.idBuy) + " )", {price_sell: price});
-                    pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + " )", update);
+                    pool.query("UPDATE trade_1h SET ? WHERE id IN(" + Math.max(self.idBuy) + " )", {price_sell: price});
+                    pool.query("UPDATE trade_1h SET ? WHERE id IN(" + self.idBuy.join(",") + " )", update);
                 }
                 /*
                  * RESET
@@ -290,7 +298,7 @@ function setMarket(market) {
                         price_buy: price,
                         timestamp_buy: moment().format("YYYY-MM-DD HH:mm:ss.SSS")
                     };
-                    pool.query('INSERT INTO trade SET ?', row).then(function (result) {
+                    pool.query('INSERT INTO trade_1h SET ?', row).then(function (result) {
                         self['idBuy'].push(result.insertId);
                         var html = "<p>" + self.MarketName + "</p><p>Current Price: " + price + "</p><pre>" + JSON.stringify(markets[self.MarketName], undefined, 2) + "</pre>";
                         mailOptions['html'] = html;

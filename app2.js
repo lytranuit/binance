@@ -72,11 +72,12 @@ binance.prices((error, ticker) => {
     }
     for (var i in ticker) {
         var market = i;
+
         var last = ticker[i];
         if (market.indexOf("BTC") != -1) {
             setMarket(market, last);
             // For a specific symbol:
-            binance.websockets.chart(market, "5m", (market, interval, results) => {
+            binance.websockets.chart(market, "1h", (market, interval, results) => {
                 if (Object.keys(results).length === 0)
                     return;
 //    let tick = binance.last(chart);
@@ -153,22 +154,43 @@ binance.prices((error, ticker) => {
                     if (markets[market]['chienluoc1'].notbuyinsession)
                         markets[market]['chienluoc1'].countIgnoreSession--;
                     /*
-                     * MUA Lai x LUOT
+                     * MUA Lai sau x LUOT
                      */
                     if (markets[market]['chienluoc1'].countIgnoreSession == 0) {
                         markets[market]['chienluoc1'].countIgnoreSession = 5;
                         markets[market]['chienluoc1'].notbuyinsession = false;
                     }
-//                    var candles = results.slice(-3);
                     markets[market]['chienluoc1'].checkban(last, results);
-//                    banChienLuoc1(market, last, candles);
                 }
 
                 markets[market].periodTime = tick;
             });
         }
     }
-    var query = pool.query("SELECT * FROM trade where is_sell IS NULL").then(function (rows, err) {
+
+    var array_market = Object.keys(ticker);
+    binance.websockets.trades(array_market, (trades) => {
+        let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
+        if (markets[symbol]) {
+            if (maker)
+                markets[symbol].count_sell++;
+            else
+                markets[symbol].count_mua++;
+        }
+    });
+    binance.websockets.depth(array_market, (depth) => {
+        let {e: eventType, E: eventTime, s: symbol, u: updateId, b: bidDepth, a: askDepth} = depth;
+        if (markets[symbol]) {
+            var depthCache = binance.depthCache(symbol);
+            let bids = Object.values(depthCache.bids);
+            let asks = Object.values(depthCache.asks);
+            let sumbids = math.sum(bids);
+            let sumasks = math.sum(asks);
+            markets[symbol].bids_q = sumbids;
+            markets[symbol].asks_q = sumasks;
+        }
+    });
+    var query = pool.query("SELECT * FROM trade_1h where is_sell IS NULL").then(function (rows, err) {
         if (err) {
             console.log(err);
         }
@@ -192,15 +214,17 @@ function setMarket(market) {
     markets[market] = {
         MarketName: market,
         last: 0,
-        volume: 0,
-        numTrades: 0,
+        count_sell: 0,
+        count_mua: 0,
+        bids_q: 0,
+        asks_q: 0,
         chienluoc1: {
             MarketName: market,
             countbuy: 2,
             notbuyinsession: false,
             amountbuy: 0.005,
             countIgnoreSession: 5,
-            minGain: 1,
+            minGain: 5,
             maxGain: 10,
             isBuy: false,
             priceBuy: [],
@@ -250,8 +274,8 @@ function setMarket(market) {
                         is_sell: 1,
                         timestamp_sell: moment().format("YYYY-MM-DD HH:mm:ss.SSS")
                     };
-                    pool.query("UPDATE trade SET ? WHERE id IN(" + Math.max(self.idBuy) + " )", {price_sell: price});
-                    pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + " )", update);
+                    pool.query("UPDATE trade_1h SET ? WHERE id IN(" + math.max(self.idBuy) + " )", {price_sell: price});
+                    pool.query("UPDATE trade_1h SET ? WHERE id IN(" + self.idBuy.join(",") + " )", update);
                 }
                 /*
                  * RESET
@@ -290,7 +314,7 @@ function setMarket(market) {
                         price_buy: price,
                         timestamp_buy: moment().format("YYYY-MM-DD HH:mm:ss.SSS")
                     };
-                    pool.query('INSERT INTO trade SET ?', row).then(function (result) {
+                    pool.query('INSERT INTO trade_1h SET ?', row).then(function (result) {
                         self['idBuy'].push(result.insertId);
                         var html = "<p>" + self.MarketName + "</p><p>Current Price: " + price + "</p><pre>" + JSON.stringify(markets[self.MarketName], undefined, 2) + "</pre>";
                         mailOptions['html'] = html;
