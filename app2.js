@@ -150,17 +150,20 @@ binance.prices((error, ticker) => {
                     if (currentTime != tick) {
                         currentTime = tick;
                         console.log("Bắt đầu phiên:", moment.unix(tick / 1000).format());
+                        console.log("Price of BTC: ", markets['BTCUSDT']['last']);
                     }
                     if (markets[market]['chienluoc1'].notbuyinsession)
                         markets[market]['chienluoc1'].countIgnoreSession--;
                     /*
-                     * MUA Lai sau x LUOT
+                     * MUA Lai x LUOT
                      */
                     if (markets[market]['chienluoc1'].countIgnoreSession == 0) {
                         markets[market]['chienluoc1'].countIgnoreSession = 5;
                         markets[market]['chienluoc1'].notbuyinsession = false;
                     }
+//                    var candles = results.slice(-3);
                     markets[market]['chienluoc1'].checkban(last, results);
+//                    banChienLuoc1(market, last, candles);
                 }
 
                 markets[market].periodTime = tick;
@@ -300,7 +303,8 @@ function setMarket(market) {
                     return;
                 }
                 if (markets['BTCUSDT']['mfi'] < 30) {
-                    console.log(clc.black.bgYellow('Down'), " MFI:" + markets['BTCUSDT']['mfi']);
+                    if (currentTime != markets['BTCUSDT'].periodTime)
+                        console.log(clc.black.bgYellow('Down'), " MFI:" + markets['BTCUSDT']['mfi']);
                     return;
                 }
 //                if (markets[MarketName]['volume'] < 1000) {
@@ -344,3 +348,27 @@ function setMarket(market) {
         }
     };
 }
+// The only time the user data (account balances) and order execution websockets will fire, is if you create or cancel an order, or an order gets filled or partially filled
+function balance_update(data) {
+    console.log("Balance Update");
+    for (let obj of data.B) {
+        let {a: asset, f: available, l: onOrder} = obj;
+        if (available == "0.00000000")
+            continue;
+        console.log(asset + "\tavailable: " + available + " (" + onOrder + " on order)");
+    }
+}
+function execution_update(data) {
+    let {x: executionType, s: symbol, p: price, q: quantity, S: side, o: orderType, i: orderId, X: orderStatus} = data;
+    if (executionType == "NEW") {
+        if (orderStatus == "REJECTED") {
+            console.log("Order Failed! Reason: " + data.r);
+        }
+        console.log(symbol + " " + side + " " + orderType + " ORDER #" + orderId + " (" + orderStatus + ")");
+        console.log("..price: " + price + ", quantity: " + quantity);
+        return;
+    }
+    //NEW, CANCELED, REPLACED, REJECTED, TRADE, EXPIRED
+    console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);
+}
+binance.websockets.userData(balance_update, execution_update);
