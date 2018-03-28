@@ -70,62 +70,73 @@ binance.prices((error, ticker) => {
     if (error) {
         return console.error(error);
     }
+    var array_market = [];
     for (var i in ticker) {
         var market = i;
         var last = ticker[i];
         if (market.indexOf("BTC") != -1) {
-            setMarket(market, last);
-            // For a specific symbol:
-            binance.websockets.chart(market, "1h", (market, interval, results) => {
-                if (Object.keys(results).length === 0)
-                    return;
-                markets[market].setIndicator(interval, results);
-            });
-            binance.websockets.chart(market, "5m", (market, interval, results) => {
-                if (Object.keys(results).length === 0)
-                    return;
-                markets[market].setIndicator(interval, results);
-                /*
-                 * 
-                 * @type type
-                 */
-                let tick = binance.last(results);
-                var last = results[tick].close;
-//                console.log(results[tick]);
-                if (markets[market].periodTime && markets[market].periodTime == tick && !results[tick].isFinal) {
-//                    console.log(market + " last price: " + last);
-                    markets[market].last = last;
-                    markets[market]['chienluoc1'].checkmua(last);
-                    markets[market]['chienluoc1'].checkban(last, results);
-                } else {
-//                    console.log(tick);
-                    if (currentTime != tick) {
-                        currentTime = tick;
-                        console.log("Bắt đầu phiên:", moment.unix(tick / 1000).format());
-                        console.log("Price of BTC: ", markets['BTCUSDT']['last']);
-                    }
-                    if (markets[market]['chienluoc1'].notbuyinsession)
-                        markets[market]['chienluoc1'].countIgnoreSession--;
-                    /*
-                     * MUA Lai SAu x LUOT
-                     */
-                    if (markets[market]['chienluoc1'].countIgnoreSession == 0) {
-                        markets[market]['chienluoc1'].countIgnoreSession = 5;
-                        markets[market]['chienluoc1'].notbuyinsession = false;
-                    }
-                }
-//                console.log(moment().startOf("hour").valueOf());
-//                console.log(markets[market].periodTime);
-                if (markets[market].periodTime == moment().startOf("hour").valueOf()) {
-                    markets[market].count_buy = 0;
-                    markets[market].count_sell = 0;
-                }
-                markets[market].periodTime = tick;
-            });
+            setMarket(market);
+            markets[market].last = last;
+            array_market.push(market);
         }
     }
-
-    var array_market = Object.keys(ticker);
+    binance.websockets.chart(array_market, "1h", (market, interval, results) => {
+        if (Object.keys(results).length === 0)
+            return;
+        markets[market].setIndicator(interval, results);
+    });
+    binance.websockets.chart(array_market, "5m", (market, interval, results) => {
+        if (Object.keys(results).length === 0)
+            return;
+        markets[market].setIndicator(interval, results);
+        /*
+         * 
+         * @type type
+         */
+        let tick = binance.last(results);
+        var last = results[tick].close;
+//                console.log(results[tick]);
+        if (markets[market].periodTime && markets[market].periodTime == tick && !results[tick].isFinal) {
+//                    console.log(market + " last price: " + last);
+            markets[market].last = last;
+            markets[market]['chienluoc1'].checkmua(last);
+            markets[market]['chienluoc1'].checkban(last, results);
+        } else {
+//                    console.log(tick);
+            if (currentTime != tick) {
+                currentTime = tick;
+                console.log("Bắt đầu phiên:", moment.unix(tick / 1000).format());
+                console.log("Price of BTC: ", markets['BTCUSDT']['last']);
+                var sumBTC = 0;
+                for (var market in markets) {
+                    if (market != "BTCUSDT")
+                        sumBTC += markets[market].last * markets[market].available;
+                    else
+                        sumBTC += markets[market].available;
+                }
+                var sumUSDT = sumBTC * markets["BTCUSDT"].last;
+                console.log("My BTC: ", sumBTC);
+                console.log("MY USDT: ", sumUSDT);
+                console.log("BTC Available: ", markets["BTCUSDT"].available);
+            }
+            if (markets[market]['chienluoc1'].notbuyinsession)
+                markets[market]['chienluoc1'].countIgnoreSession--;
+            /*
+             * MUA Lai SAu x LUOT
+             */
+            if (markets[market]['chienluoc1'].countIgnoreSession == 0) {
+                markets[market]['chienluoc1'].countIgnoreSession = 5;
+                markets[market]['chienluoc1'].notbuyinsession = false;
+            }
+        }
+//                console.log(moment().startOf("hour").valueOf());
+//                console.log(markets[market].periodTime);
+        if (markets[market].periodTime == moment().startOf("hour").valueOf()) {
+            markets[market].count_buy = 0;
+            markets[market].count_sell = 0;
+        }
+        markets[market].periodTime = tick;
+    });
     binance.websockets.trades(array_market, (trades) => {
         let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
         if (markets[symbol]) {
@@ -177,15 +188,16 @@ function setMarket(market) {
         count_mua: 0,
         bids_q: 0,
         asks_q: 0,
+        available: 0,
         indicator_1h: {},
         indicator_5m: {},
         chienluoc1: {
             MarketName: market,
             countbuy: 2,
             notbuyinsession: false,
-            amountbuy: 0.005,
+            amountbuy: 0.002,
             countIgnoreSession: 5,
-            minGain: 5,
+            minGain: 3,
             maxGain: 10,
             isBuy: false,
             priceBuy: [],
@@ -238,6 +250,9 @@ function setMarket(market) {
                     pool.query("UPDATE trade SET ? WHERE id IN(" + math.max(self.idBuy) + " )", {price_sell: price});
                     pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + " )", update);
                 }
+                var qty = markets[market].available * price;
+                markets["BTCUSDT"].available += qty;
+                markets[market].available -= markets[market].available;
                 /*
                  * RESET
                  */
@@ -252,15 +267,20 @@ function setMarket(market) {
             checkmua: function (price) {
                 var self = this;
                 var MarketName = self.MarketName;
+
+//                if (markets[MarketName].count_mua > markets[MarketName].count_sell * 10) {
+//                    console.log(clc.green.bgYellow('UP'), MarketName);
+//                }
+//                if (markets[MarketName].count_mua < markets[MarketName].count_sell * 10) {
+//                    console.log(clc.red.bgYellow('Down'), MarketName);
+//                }
+
+
+
                 if (!markets[MarketName] || MarketName == "BTCUSDT")
                     return;
-
-                if (markets[MarketName].count_mua > markets[MarketName].count_sell * 3) {
-                    console.log(clc.green.bgYellow('UP'), MarketName);
-                }
-                if (markets[MarketName].count_mua < markets[MarketName].count_sell * 3) {
-                    console.log(clc.red.bgYellow('Down'), MarketName);
-                }
+                if (markets['BTCUSDT'].available < markets[MarketName].amountbuy)
+                    return;
 //                console.log(markets[MarketName]);
                 if (markets[MarketName]['indicator_5m']['mfi'] < 30) {
 //        console.log(clc.black.bgYellow('Down'), MarketName + " MFI:" + markets[MarketName]['mfi']);
@@ -271,10 +291,6 @@ function setMarket(market) {
                         console.log(clc.black.bgYellow('Down'), " MFI:" + markets['BTCUSDT']['indicator_5m']['mfi']);
                     return;
                 }
-//                if (markets[MarketName]['volume'] < 1000) {
-//                    return;
-//                }
-
                 if (!self.notbuyinsession && self.countbuy > 0 && markets[MarketName]['indicator_1h']['rsi'] < 30 && markets[MarketName]['indicator_1h']['bb'].lower > price) {
                     self.mua(price);
                     var row = {
@@ -301,6 +317,9 @@ function setMarket(market) {
                 self.countbuy--;
                 self.notbuyinsession = true;
                 self.isBuy = true;
+                var qty = self.amountbuy / price;
+                markets[market].available += qty;
+                markets["BTCUSDT"].available -= self.amountbuy;
                 self['priceBuy'].push(price);
                 self['priceBuyAvg'] = math.mean(self['priceBuy']);
                 self['minPriceSell'] = self['priceBuyAvg'] + (self['priceBuyAvg'] * self['minGain'] / 100);
@@ -363,6 +382,9 @@ function setMarket(market) {
             markets[market]['indicator_' + interval].bb = array_bb[array_bb.length - 1];
         }
     };
+    if (market == "BTCUSDT") {
+        markets[market].available = 0.03;
+    }
 }
 // The only time the user data (account balances) and order execution websockets will fire, is if you create or cancel an order, or an order gets filled or partially filled
 function balance_update(data) {
