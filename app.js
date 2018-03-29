@@ -6,6 +6,16 @@ const moment = require('moment');
 const math = require('mathjs');
 const technical = require('technicalindicators');
 const clc = require('cli-color');
+
+var createError = require('http-errors');
+var express = require('express');
+var path = require('path');
+var cookieParser = require('cookie-parser');
+var logger = require('morgan');
+
+var http = require('http');
+
+
 /******************
  * 
  * CONFIG MYSQL
@@ -51,6 +61,54 @@ const mailOptions = {
  * 
  *****************/
 
+/******************
+ * 
+ * SERVER
+ * 
+ *****************/
+var indexRouter = require('./routes/index');
+var usersRouter = require('./routes/users');
+
+var app = express();
+
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({extended: false}));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
+    next(createError(404));
+});
+
+// error handler
+app.use(function (err, req, res, next) {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
+});
+
+module.exports = app;
+
+
+/******************
+ * 
+ * END CONFIG SERVER
+ * 
+ *****************/
+
 
 /******************
  * 
@@ -58,14 +116,13 @@ const mailOptions = {
  * 
  *****************/
 binance.options(key);
-const markets = {
-};
 var currentTime = null;
 /******************
  * 
  * END CONFIG MAIL
  * 
  *****************/
+var markets = require('./models/market');
 binance.prices((error, ticker) => {
     if (error) {
         return console.error(error);
@@ -75,20 +132,20 @@ binance.prices((error, ticker) => {
         var market = i;
         var last = ticker[i];
         if (market.indexOf("BTC") != -1) {
-            setMarket(market);
-            markets[market].last = last;
+            markets.create(market);
+            markets.update(market, {last: last});
             array_market.push(market);
         }
     }
     binance.websockets.chart(array_market, "1h", (market, interval, results) => {
         if (Object.keys(results).length === 0)
             return;
-        markets[market].setIndicator(interval, results);
+        markets.read(market).setIndicator(interval, results);
     });
     binance.websockets.chart(array_market, "5m", (market, interval, results) => {
         if (Object.keys(results).length === 0)
             return;
-        markets[market].setIndicator(interval, results);
+        markets.read(market).setIndicator(interval, results);
         /*
          * 
          * @type type
@@ -96,56 +153,55 @@ binance.prices((error, ticker) => {
         let tick = binance.last(results);
         var last = results[tick].close;
 //                console.log(results[tick]);
-        if (markets[market].periodTime && markets[market].periodTime == tick && !results[tick].isFinal) {
+        if (markets.read(market).periodTime && markets.read(market).periodTime == tick && !results[tick].isFinal) {
 //                    console.log(market + " last price: " + last);
-            markets[market].last = last;
-            markets[market]['chienluoc1'].checkmua(last);
-            markets[market]['chienluoc1'].checkban(last, results);
+            markets.update(market, {last: last});
+            markets.read(market).chienluoc1.checkmua(last);
+            markets.read(market).chienluoc1.checkban(last, results);
         } else {
 //                    console.log(tick);
             if (currentTime != tick) {
                 currentTime = tick;
                 console.log("Bắt đầu phiên:", moment.unix(tick / 1000).format());
-                console.log("Price of BTC: ", markets['BTCUSDT']['last']);
+                console.log("Price of BTC: ", markets.read('BTCUSDT').last);
                 var sumBTC = 0;
-                for (var market in markets) {
+                var allMarkets = markets.all();
+                for (var market in allMarkets) {
                     if (market != "BTCUSDT")
-                        sumBTC += markets[market].last * markets[market].available;
+                        sumBTC += allMarkets[market].last * allMarkets[market].available;
                     else
-                        sumBTC += markets[market].available;
+                        sumBTC += allMarkets[market].available;
                 }
-                var sumUSDT = sumBTC * markets["BTCUSDT"].last;
+                var sumUSDT = sumBTC * markets.read("BTCUSDT").last;
                 console.log("My BTC: ", sumBTC);
                 console.log("MY USDT: ", sumUSDT);
-                console.log("BTC Available: ", markets["BTCUSDT"].available);
+                console.log("BTC Available: ", markets.read("BTCUSDT").available);
             }
-            if (markets[market]['chienluoc1'].notbuyinsession)
-                markets[market]['chienluoc1'].countIgnoreSession--;
+            if (markets.read(market).chienluoc1.notbuyinsession)
+                markets.updatechienluoc1(market, {countIgnoreSession: markets.read(market).chienluoc1.countIgnoreSession - 1});
             /*
              * MUA Lai SAu x LUOT
              */
-            if (markets[market]['chienluoc1'].countIgnoreSession == 0) {
-                markets[market]['chienluoc1'].countIgnoreSession = 5;
-                markets[market]['chienluoc1'].notbuyinsession = false;
+            if (markets.read(market).chienluoc1.countIgnoreSession == 0) {
+                markets.updatechienluoc1(market, {countIgnoreSession: 5, notbuyinsession: false});
             }
         }
 //                console.log(moment().startOf("hour").valueOf());
 //                console.log(markets[market].periodTime);
-        if (markets[market].periodTime == moment().startOf("hour").valueOf()) {
-            markets[market].count_buy = 0;
-            markets[market].count_sell = 0;
+        if (markets.read(market).periodTime == moment().startOf("hour").valueOf()) {
+            markets.update(market, {count_buy: 0, count_sell: 0});
         }
-        markets[market].periodTime = tick;
+        markets.read(market).periodTime = tick;
     });
-    binance.websockets.trades(array_market, (trades) => {
-        let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
-        if (markets[symbol]) {
-            if (maker)
-                markets[symbol].count_sell++;
-            else
-                markets[symbol].count_mua++;
-        }
-    });
+//    binance.websockets.trades(array_market, (trades) => {
+//        let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
+//        if (markets[symbol]) {
+//            if (maker)
+//                markets[symbol].count_sell++;
+//            else
+//                markets[symbol].count_mua++;
+//        }
+//    });
 //    binance.websockets.depthCache(array_market, (depth) => {
 //        console.log(depth);
 //        return;
@@ -170,8 +226,11 @@ binance.prices((error, ticker) => {
             var market = rows[i].MarketName;
             var price_buy = rows[i].price_buy;
             var id = rows[i].id;
-            markets[market]['chienluoc1']['idBuy'].push(id);
-            markets[market]['chienluoc1'].mua(price_buy);
+            var obj = markets.read(market);
+            console.log(obj)
+            var idBuy = obj.chienluoc1.idBuy;
+            markets.updatechienluoc1(market, {idBuy: idBuy});
+            markets.read(market).chienluoc1.mua(price_buy);
         }
     });
     console.log("Price of BTC: ", ticker.BTCUSDT);
@@ -180,212 +239,6 @@ binance.prices((error, ticker) => {
 //    console.log("balances()", balances);
 ////    console.log("ETH balance: ", balances.ETH.available);
 //});
-function setMarket(market) {
-    markets[market] = {
-        MarketName: market,
-        last: 0,
-        count_sell: 0,
-        count_mua: 0,
-        bids_q: 0,
-        asks_q: 0,
-        available: 0,
-        indicator_1h: {},
-        indicator_5m: {},
-        chienluoc1: {
-            MarketName: market,
-            countbuy: 2,
-            notbuyinsession: false,
-            amountbuy: 0.002,
-            countIgnoreSession: 5,
-            minGain: 3,
-            maxGain: 10,
-            isBuy: false,
-            priceBuy: [],
-            idBuy: [],
-            priceBuyAvg: 0,
-            checkban: function (price, candles) {
-
-                var self = this;
-                if (self.isBuy && self.priceBuyAvg > 0) {
-                    var percent = (price - self.priceBuyAvg) / self.priceBuyAvg * 100;
-                    if (percent > 0) {
-                        var textpercent = clc.green(percent.toFixed(2));
-                    } else {
-                        var textpercent = clc.red(percent.toFixed(2));
-                    }
-                    console.log(clc.black.bgWhite(self.MarketName), " price:" + price + " - " + textpercent + "%");
-                    var array = Object.keys(candles);
-                    var key1 = array[array.length - 3];
-                    var key2 = array[array.length - 2];
-                    var candle1 = candles[key1];
-                    var candle2 = candles[key2];
-                    /*
-                     * price <min
-                     */
-                    if (price < self.minPriceSell)
-                        return;
-                    /*
-                     * DK 1 min < price < max
-                     * DK 2 tang lien tiep 2 dot.(Xu huong tang)
-                     */
-                    console.log(moment.unix(key1 / 1000).format());
-                    console.log(candle1);
-                    console.log(moment.unix(key2 / 1000).format());
-                    console.log(candle2);
-                    if (price > self.minPriceSell && price < self.maxPriceSell) {
-                        if (candle1.volume < candle2.volume && candle2.open < candle2.close)
-                            return;
-                    }
-                    self.ban(price);
-                }
-            },
-            ban: function (price) {
-                var self = this;
-                console.log(clc.bgRed('Sell'), self.MarketName + " price:" + price);
-                if (self.idBuy.length) {
-                    var update = {
-                        is_sell: 1,
-                        timestamp_sell: moment().format("YYYY-MM-DD HH:mm:ss.SSS")
-                    };
-                    pool.query("UPDATE trade SET ? WHERE id IN(" + math.max(self.idBuy) + " )", {price_sell: price});
-                    pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + " )", update);
-                }
-                var qty = markets[market].available * price;
-                markets["BTCUSDT"].available += qty;
-                markets[market].available -= markets[market].available;
-                /*
-                 * RESET
-                 */
-                self.isBuy = false;
-                self.countbuy = 2;
-                self.notbuyinsession = false;
-                self.countIgnoreSession = 5;
-                self.priceBuy = [];
-                self.idBuy = [];
-                self.priceBuyAvg = 0;
-            },
-            checkmua: function (price) {
-                var self = this;
-                var MarketName = self.MarketName;
-
-//                if (markets[MarketName].count_mua > markets[MarketName].count_sell * 10) {
-//                    console.log(clc.green.bgYellow('UP'), MarketName);
-//                }
-//                if (markets[MarketName].count_mua < markets[MarketName].count_sell * 10) {
-//                    console.log(clc.red.bgYellow('Down'), MarketName);
-//                }
-
-
-
-                if (!markets[MarketName] || MarketName == "BTCUSDT")
-                    return;
-                if (markets['BTCUSDT'].available < markets[MarketName].amountbuy)
-                    return;
-//                console.log(markets[MarketName]);
-                if (markets[MarketName]['indicator_5m']['mfi'] < 30) {
-//        console.log(clc.black.bgYellow('Down'), MarketName + " MFI:" + markets[MarketName]['mfi']);
-                    return;
-                }
-                if (markets['BTCUSDT']['indicator_5m']['mfi'] < 30) {
-                    if (currentTime != markets['BTCUSDT'].periodTime)
-                        console.log(clc.black.bgYellow('Down'), " MFI:" + markets['BTCUSDT']['indicator_5m']['mfi']);
-                    return;
-                }
-                if (!self.notbuyinsession && self.countbuy > 0 && markets[MarketName]['indicator_1h']['rsi'] < 30 && markets[MarketName]['indicator_1h']['bb'].lower > price) {
-                    self.mua(price);
-                    var row = {
-                        MarketName: self.MarketName,
-                        price_buy: price,
-                        timestamp_buy: moment().format("YYYY-MM-DD HH:mm:ss.SSS")
-                    };
-                    pool.query('INSERT INTO trade SET ?', row).then(function (result) {
-                        self['idBuy'].push(result.insertId);
-                        var html = "<p>" + self.MarketName + "</p><p>Current Price: " + price + "</p><pre>" + JSON.stringify(markets[self.MarketName], undefined, 2) + "</pre>";
-                        mailOptions['html'] = html;
-//                        transporter.sendMail(mailOptions, function (error, info) {
-//                            if (error) {
-//                                console.log(error);
-//                            } else {
-//                                console.log('Email sent: ' + info.response);
-//                            }
-//                        });
-                    });
-                }
-            },
-            mua: function (price) {
-                var self = this;
-                self.countbuy--;
-                self.notbuyinsession = true;
-                self.isBuy = true;
-                var qty = self.amountbuy / price;
-                markets[market].available += qty;
-                markets["BTCUSDT"].available -= self.amountbuy;
-                self['priceBuy'].push(price);
-                self['priceBuyAvg'] = math.mean(self['priceBuy']);
-                self['minPriceSell'] = self['priceBuyAvg'] + (self['priceBuyAvg'] * self['minGain'] / 100);
-                self['maxPriceSell'] = self['priceBuyAvg'] + (self['priceBuyAvg'] * self['maxGain'] / 100);
-                console.log(clc.bgGreen('Buy'), self.MarketName + " price:" + price);
-                console.log(markets[self.MarketName]);
-            }
-        },
-        setIndicator: function (interval, results) {
-
-            var argh = [];
-            var argl = [];
-            var argv = [];
-            var argc = [];
-//                console.log(markets[market]);
-            for (var key in results) {
-                argh.push(parseFloat(results[key]['high']));
-                argl.push(parseFloat(results[key]['low']));
-                argv.push(parseFloat(results[key]['volume']));
-                argc.push(parseFloat(results[key]['close']));
-            }
-
-            /*
-             * RSI
-             */
-            var rsi = technical.RSI;
-            var input = {
-                values: argc,
-                period: 14
-            };
-            var array_rsi = rsi.calculate(input);
-            markets[market]['indicator_' + interval].rsi = array_rsi[array_rsi.length - 1];
-            /*
-             * MFI
-             */
-            var mfi = technical.MFI;
-            var input = {
-                high: argh,
-                low: argl,
-                close: argc,
-                volume: argv,
-                period: 14
-            };
-            var array_mfi = mfi.calculate(input);
-            markets[market]['indicator_' + interval].mfi = array_mfi[array_mfi.length - 1];
-            /*
-             * BOLLINGER BAND 
-             */
-            var bb = technical.BollingerBands;
-            var arg = [];
-            for (var key in results) {
-                arg.push(results[key]['close']);
-            }
-            var input = {
-                values: argc,
-                period: 20,
-                stdDev: 2
-            };
-            var array_bb = bb.calculate(input);
-            markets[market]['indicator_' + interval].bb = array_bb[array_bb.length - 1];
-        }
-    };
-    if (market == "BTCUSDT") {
-        markets[market].available = 0.03;
-    }
-}
 // The only time the user data (account balances) and order execution websockets will fire, is if you create or cancel an order, or an order gets filled or partially filled
 function balance_update(data) {
     console.log("Balance Update");
@@ -410,3 +263,71 @@ function execution_update(data) {
     console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);
 }
 binance.websockets.userData(balance_update, execution_update);
+
+
+
+
+
+
+
+/******************
+ * 
+ * CONFIG APACHE
+ * 
+ *****************/
+
+
+var port = process.env.PORT || 3000;
+app.set('port', port);
+var server = http.createServer(app);
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+    if (error.syscall !== 'listen') {
+        throw error;
+    }
+
+    var bind = typeof port === 'string'
+            ? 'Pipe ' + port
+            : 'Port ' + port;
+
+    // handle specific listen errors with friendly messages
+    switch (error.code) {
+        case 'EACCES':
+            console.error(bind + ' requires elevated privileges');
+            process.exit(1);
+            break;
+        case 'EADDRINUSE':
+            console.error(bind + ' is already in use');
+            process.exit(1);
+            break;
+        default:
+            throw error;
+    }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+    var addr = server.address();
+    var bind = typeof addr === 'string'
+            ? 'pipe ' + addr
+            : 'port ' + addr.port;
+    console.log('Listening on ' + bind);
+}
+/******************
+ * 
+ * END CONFIG APACHE
+ * 
+ *****************/
