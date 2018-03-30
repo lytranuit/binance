@@ -21,7 +21,7 @@ var http = require('http');
  * CONFIG MYSQL
  * 
  *****************/
-const  pool = mysql.createPool({
+global.pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
     password: '',
@@ -116,13 +116,16 @@ module.exports = app;
  * 
  *****************/
 binance.options(key);
-var currentTime = null;
+global.currentTime = null;
 /******************
  * 
  * END CONFIG MAIL
  * 
  *****************/
-var markets = require('./models/market');
+var MarketModel = require('./models/market');
+var ChienLuocModel = require('./models/chienluoc');
+var ChisoModel = require('./models/chiso');
+global.markets = {};
 binance.prices((error, ticker) => {
     if (error) {
         return console.error(error);
@@ -132,20 +135,42 @@ binance.prices((error, ticker) => {
         var market = i;
         var last = ticker[i];
         if (market.indexOf("BTC") != -1) {
-            markets.create(market);
-            markets.update(market, {last: last});
+            var chiso1h = new ChisoModel();
+            var chiso5m = new ChisoModel();
+            var chiso1m = new ChisoModel();
+            var chienluoc1 = new ChienLuocModel({MarketName: market});
+            var obj = {
+                MarketName: market,
+                last: last,
+                chienluoc1: chienluoc1,
+                indicator_1h: chiso1h,
+                indicator_5m: chiso5m,
+                indicator_1m: chiso1m
+            };
+            if (market == "BTCUSDT")
+                obj.available = 0.03;
+            markets[market] = new MarketModel(obj);
             array_market.push(market);
         }
     }
+//    console.log(markets);
     binance.websockets.chart(array_market, "1h", (market, interval, results) => {
         if (Object.keys(results).length === 0)
             return;
-        markets.read(market).setIndicator(interval, results);
+        let tick = binance.last(results);
+        var last = results[tick].close;
+        if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
+
+        } else {
+            markets[market]['indicator_' + interval].count_buy = 0;
+            markets[market]['indicator_' + interval].count_sell = 0;
+            markets[market]['indicator_' + interval].setIndicator(results);
+        }
+        markets[market]['indicator_' + interval].periodTime = tick;
     });
     binance.websockets.chart(array_market, "5m", (market, interval, results) => {
         if (Object.keys(results).length === 0)
             return;
-        markets.read(market).setIndicator(interval, results);
         /*
          * 
          * @type type
@@ -153,55 +178,44 @@ binance.prices((error, ticker) => {
         let tick = binance.last(results);
         var last = results[tick].close;
 //                console.log(results[tick]);
-        if (markets.read(market).periodTime && markets.read(market).periodTime == tick && !results[tick].isFinal) {
+        if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
 //                    console.log(market + " last price: " + last);
-            markets.update(market, {last: last});
-            markets.read(market).chienluoc1.checkmua(last);
-            markets.read(market).chienluoc1.checkban(last, results);
+            markets[market].last = last;
+            markets[market].chienluoc1.checkmua(last);
+            markets[market].chienluoc1.checkban(last, results);
         } else {
-//                    console.log(tick);
             if (currentTime != tick) {
-                currentTime = tick;
+                global.currentTime = tick;
                 console.log("Bắt đầu phiên:", moment.unix(tick / 1000).format());
-                console.log("Price of BTC: ", markets.read('BTCUSDT').last);
-                var sumBTC = 0;
-                var allMarkets = markets.all();
-                for (var market in allMarkets) {
-                    if (market != "BTCUSDT")
-                        sumBTC += allMarkets[market].last * allMarkets[market].available;
-                    else
-                        sumBTC += allMarkets[market].available;
-                }
-                var sumUSDT = sumBTC * markets.read("BTCUSDT").last;
-                console.log("My BTC: ", sumBTC);
-                console.log("MY USDT: ", sumUSDT);
-                console.log("BTC Available: ", markets.read("BTCUSDT").available);
             }
-            if (markets.read(market).chienluoc1.notbuyinsession)
-                markets.updatechienluoc1(market, {countIgnoreSession: markets.read(market).chienluoc1.countIgnoreSession - 1});
+            markets[market]['indicator_' + interval].setIndicator(results);
+            markets[market]['indicator_' + interval].count_buy = 0;
+            markets[market]['indicator_' + interval].count_sell = 0;
+
+            if (markets[market].chienluoc1.notbuyinsession)
+                markets[market].countIgnoreSession--;
             /*
              * MUA Lai SAu x LUOT
              */
-            if (markets.read(market).chienluoc1.countIgnoreSession == 0) {
-                markets.updatechienluoc1(market, {countIgnoreSession: 5, notbuyinsession: false});
+            if (markets[market].chienluoc1.countIgnoreSession == 0) {
+                markets[market].countIgnoreSession = 5;
+                markets[market].notbuyinsession = false;
             }
         }
-//                console.log(moment().startOf("hour").valueOf());
-//                console.log(markets[market].periodTime);
-        if (markets.read(market).periodTime == moment().startOf("hour").valueOf()) {
-            markets.update(market, {count_buy: 0, count_sell: 0});
-        }
-        markets.read(market).periodTime = tick;
+        markets[market]['indicator_' + interval].periodTime = tick;
     });
-//    binance.websockets.trades(array_market, (trades) => {
-//        let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
-//        if (markets[symbol]) {
-//            if (maker)
-//                markets[symbol].count_sell++;
-//            else
-//                markets[symbol].count_mua++;
-//        }
-//    });
+    binance.websockets.trades(array_market, (trades) => {
+        let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
+        if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
+            if (maker) {
+                markets[symbol]['indicator_1h'].count_sell++;
+                markets[symbol]['indicator_5m'].count_sell++;
+            } else {
+                markets[symbol]['indicator_1h'].count_buy++;
+                markets[symbol]['indicator_5m'].count_buy++;
+            }
+        }
+    });
 //    binance.websockets.depthCache(array_market, (depth) => {
 //        console.log(depth);
 //        return;
@@ -218,19 +232,21 @@ binance.prices((error, ticker) => {
 //            markets[symbol].asks_q = sumasks;
 //        }
 //    });
-    var query = pool.query("SELECT * FROM trade where is_sell IS NULL").then(function (rows, err) {
+    var query = pool.query("SELECT * FROM trade").then(function (rows, err) {
         if (err) {
             console.log(err);
         }
         for (var i in rows) {
             var market = rows[i].MarketName;
             var price_buy = rows[i].price_buy;
+            var price_sell = rows[i].price_sell;
             var id = rows[i].id;
-            var obj = markets.read(market);
-            console.log(obj)
-            var idBuy = obj.chienluoc1.idBuy;
-            markets.updatechienluoc1(market, {idBuy: idBuy});
-            markets.read(market).chienluoc1.mua(price_buy);
+            markets[market].chienluoc1.idBuy.push(id);
+
+            console.log(markets[market]);
+            markets[market].chienluoc1.mua(price_buy);
+            if (price_sell)
+                markets[market].chienluoc1.ban(price_sell);
         }
     });
     console.log("Price of BTC: ", ticker.BTCUSDT);
