@@ -10,7 +10,7 @@ var NotEmptyString = {type: String, minLength: 1};
 var numberType = {type: Number, default: 0};
 var ChienLuoc = new SchemaObject({
     MarketName: NotEmptyString,
-    countbuy: {type: Number, default: 1},
+    countbuy: {type: Number, default: 5},
     notbuyinsession: {type: Boolean, default: false},
     amountbuy: {type: Number, default: 0.002},
     countIgnoreSession: {type: Number, default: 5},
@@ -40,6 +40,7 @@ var ChienLuoc = new SchemaObject({
                 var key2 = array[array.length - 2];
                 var candle1 = candles[key1];
                 var candle2 = candles[key2];
+
                 /*
                  * price <min
                  */
@@ -57,6 +58,7 @@ var ChienLuoc = new SchemaObject({
                     if (candle1.volume < candle2.volume && candle2.open < candle2.close)
                         return;
                 }
+
                 self.ban(price);
             }
         },
@@ -112,7 +114,7 @@ var ChienLuoc = new SchemaObject({
                     console.log(clc.black.bgYellow('Down'), " MFI:" + markets['BTCUSDT']['indicator_5m']['mfi']);
                 return;
             }
-            if (!self.notbuyinsession && self.countbuy > 0 && markets[MarketName]['indicator_1h']['rsi'] < 30 && markets[MarketName]['indicator_1h']['bb'].lower > price) {
+            if (!self.notbuyinsession && self.countbuy > 0 && !markets[MarketName]['indicator_1h'].td && markets[MarketName]['indicator_1h']['rsi'] < 30 && markets[MarketName]['indicator_1h']['bb'].lower > price) {
                 self.mua(price);
                 var row = {
                     MarketName: self.MarketName,

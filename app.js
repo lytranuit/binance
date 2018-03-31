@@ -148,7 +148,7 @@ binance.prices((error, ticker) => {
                 indicator_1m: chiso1m
             };
             if (market == "BTCUSDT")
-                obj.available = 0.03;
+                obj.available = 1;
             markets[market] = new MarketModel(obj);
             array_market.push(market);
         }

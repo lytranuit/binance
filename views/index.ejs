@@ -34,7 +34,14 @@
                             <div class="col-12 grid-margin">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h5 class="card-title mb-4">Manage Tickets</h5>
+                                        <div class="form-group row">
+                                            <h5 class="col-9 card-title">Coin đã mua</h5>
+                                            <div class="col-3">
+                                                <input type="email" class="form-control search" placeholder="Search">
+                                            </div>
+                                        </div>
+
+
                                         <div class="fluid-container" id="tickets">
                                             <div class="row">
                                                 <% for(market in marketBuy) { %>
@@ -87,7 +94,18 @@
                                                 <% } %>
                                             </div>
                                         </div>
-                                        <h5 class="card-title mb-4 mt-4">Chêch lệch coin</h5>
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="form-group row">
+                                            <h5 class="col-9 card-title">Coin Tiềm Năng</h5>
+                                            <div class="col-3">
+                                                <input type="email" class="form-control search" placeholder="Search">
+                                            </div>
+                                        </div>
+
                                         <div class="fluid-container" id="volumn">
                                             <div class="row">
                                                 <% for(market in marketGood) { %>
@@ -176,8 +194,8 @@
                     var symbol = $(this).attr("data");
                     new TradingView.widget(
                             {
-                                "width": 980,
-                                "height": 610,
+                                "width": 1024,
+                                "height": 550,
                                 "symbol": "BINANCE:" + symbol,
                                 "interval": "60",
                                 "timezone": "Asia/Bangkok",
@@ -186,17 +204,32 @@
                                 "locale": "vi_VN",
                                 "toolbar_bg": "#f1f3f6",
                                 "enable_publishing": false,
+                                "hide_side_toolbar":false,
                                 "studies": [
                                     "BB@tv-basicstudies",
                                     "RSI@tv-basicstudies",
                                     "MACD@tv-basicstudies"
                                 ],
-                                "show_popup_button": true,
-                                "popup_width": "1000",
-                                "popup_height": "650",
+                                "allow_symbol_change": true,
                                 "container_id": "tradingview"
                             }
                     );
+                });
+                $(".search").keyup(function () {
+                    var search = $(this).val().toUpperCase();
+                    var parents = $(this).parents(".card");
+                    if (search == '') {
+                        $(".ticket-card", parents).show();
+                        return
+                    }
+                    $(".ticket-card", parents).hide();
+                    $(".ticket-card", parents).each(function () {
+                        var text = $(this).text().toUpperCase();
+                        console.log(text);
+                        if (text.indexOf(search) != -1) {
+                            $(this).show();
+                        }
+                    })
                 });
             });
         </script>
