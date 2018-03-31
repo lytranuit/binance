@@ -28,12 +28,8 @@ router.get('/', function (req, res, next) {
     res.render('index', {title: 'Express', sumBTC: sumBTC, sumUSDT: sumUSDT, available: available, marketBuy: marketBuy, marketGood: marketGood});
 });
 router.get('/market', function (req, res, next) {
-    var tu = [];
-    for (var market in markets) {
-        if (!markets[market].indicator_1h.td)
-            tu.push(markets[market]);
-    }
-    res.json(tu);
+    var symbol = req.query.symbol || "BTCUSDT";
+    res.json(markets[symbol]);
 });
 
 module.exports = router;

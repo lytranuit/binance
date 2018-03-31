@@ -18,6 +18,7 @@ var ChienLuoc = new SchemaObject({
     maxGain: {type: Number, default: 5},
     isBuy: {type: Boolean, default: false},
     priceBuy: {type: Array, default: []},
+    timeBuy: {type: Array, default: []},
     idBuy: {type: Array, default: []},
     priceBuyAvg: {type: Number, default: 0},
     minPriceSell: numberType,
@@ -41,6 +42,11 @@ var ChienLuoc = new SchemaObject({
                 var candle1 = candles[key1];
                 var candle2 = candles[key2];
 
+                /*
+                 * MACD < 0
+                 */
+                if (markets[self.MarketName]['indicator_5m'].MACD.histogram > 0.1)
+                    return;
                 /*
                  * price <min
                  */
@@ -84,6 +90,7 @@ var ChienLuoc = new SchemaObject({
             self.notbuyinsession = false;
             self.countIgnoreSession = 5;
             self.priceBuy = [];
+            self.timeBuy = [];
             self.idBuy = [];
             self.priceBuyAvg = 0;
         },
@@ -105,10 +112,10 @@ var ChienLuoc = new SchemaObject({
             if (markets['BTCUSDT'].available < markets[MarketName].amountbuy)
                 return;
 //                console.log(markets[MarketName]);
-            if (markets[MarketName]['indicator_5m']['mfi'] < 30) {
+//            if (markets[MarketName]['indicator_5m']['mfi'] < 30) {
 //        console.log(clc.black.bgYellow('Down'), MarketName + " MFI:" + markets[MarketName]['mfi']);
-                return;
-            }
+//                return;
+//            }
             if (markets['BTCUSDT']['indicator_5m']['mfi'] < 35) {
                 if (currentTime != markets['BTCUSDT'].periodTime)
                     console.log(clc.black.bgYellow('Down'), " MFI:" + markets['BTCUSDT']['indicator_5m']['mfi']);
@@ -135,7 +142,8 @@ var ChienLuoc = new SchemaObject({
                 });
             }
         },
-        mua: function (price) {
+        mua: function (price, time) {
+            var time = time || moment().format("MM-DD HH:mm");
             var self = this;
             self.countbuy--;
             self.notbuyinsession = true;
@@ -144,6 +152,7 @@ var ChienLuoc = new SchemaObject({
             markets[self.MarketName].available += qty;
             markets["BTCUSDT"].available -= self.amountbuy;
             self['priceBuy'].push(price);
+            self['timeBuy'].push(time);
             self['priceBuyAvg'] = math.mean(self['priceBuy']);
             self['minPriceSell'] = self['priceBuyAvg'] + (self['priceBuyAvg'] * self['minGain'] / 100);
             self['maxPriceSell'] = self['priceBuyAvg'] + (self['priceBuyAvg'] * self['maxGain'] / 100);

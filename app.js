@@ -240,11 +240,12 @@ binance.prices((error, ticker) => {
             var market = rows[i].MarketName;
             var price_buy = rows[i].price_buy;
             var price_sell = rows[i].price_sell;
+            var time_buy = moment(rows[i].timestamp_buy).format("MM-DD HH:mm");
             var id = rows[i].id;
             markets[market].chienluoc1.idBuy.push(id);
 
             console.log(markets[market]);
-            markets[market].chienluoc1.mua(price_buy);
+            markets[market].chienluoc1.mua(price_buy, time_buy);
             if (price_sell)
                 markets[market].chienluoc1.ban(price_sell);
         }

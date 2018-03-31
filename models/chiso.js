@@ -23,6 +23,7 @@ var Chiso = new SchemaObject({
     td: booleanType,
     rsi: Number,
     mfi: Number,
+    MACD: Object,
     bb: Object
 }, {
     methods: {
@@ -61,6 +62,20 @@ var Chiso = new SchemaObject({
                 self.tu = tu;
                 self.td = td;
             }
+            /*
+             * MACD
+             */
+            var MACD = technical.MACD;
+            var input = {
+                values: argc,
+                fastPeriod: 12,
+                slowPeriod: 26,
+                signalPeriod: 9,
+                SimpleMAOscillator: false,
+                SimpleMASignal: false
+            }
+            var array_MACD = MACD.calculate(input);
+            self.MACD = array_MACD[array_MACD.length - 1];
             /*
              * RSI
              */
