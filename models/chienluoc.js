@@ -1,25 +1,23 @@
-
+const binance = require('node-binance-api');
 const math = require('mathjs');
 const clc = require('cli-color');
 var SchemaObject = require('node-schema-object');
 
 const moment = require('moment');
 
-
 var NotEmptyString = {type: String, minLength: 1};
 var numberType = {type: Number, default: 0};
 var ChienLuoc = new SchemaObject({
     MarketName: NotEmptyString,
     countbuy: {type: Number, default: 5},
-    notbuyinsession: {type: Boolean, default: false},
     amountbuy: {type: Number, default: 0.002},
-    countIgnoreSession: {type: Number, default: 5},
-    minGain: {type: Number, default: 3},
-    maxGain: {type: Number, default: 5},
+    minGain: {type: Number, default: 1},
+    maxGain: {type: Number, default: 50},
     isBuy: {type: Boolean, default: false},
-    priceBuy: {type: Array, default: []},
-    timeBuy: {type: Array, default: []},
-    idBuy: {type: Array, default: []},
+    priceBuy: Array,
+    timeBuy: Array,
+    timeBuyNext: String,
+    idBuy: Array,
     priceBuyAvg: {type: Number, default: 0},
     minPriceSell: numberType,
     maxPriceSell: numberType
@@ -45,7 +43,7 @@ var ChienLuoc = new SchemaObject({
                 /*
                  * MACD < 0
                  */
-                if (markets[self.MarketName]['indicator_5m'].MACD.histogram > 0.1)
+                if (markets[self.MarketName]['indicator_5m'].MACD.histogram > 0)
                     return;
                 /*
                  * price <min
@@ -60,9 +58,36 @@ var ChienLuoc = new SchemaObject({
                 console.log(candle1);
                 console.log(moment.unix(key2 / 1000).format());
                 console.log(candle2);
-                if (price > self.minPriceSell && price < self.maxPriceSell) {
+                if (price > self.minPriceSell) {
                     if (candle1.volume < candle2.volume && candle2.open < candle2.close)
                         return;
+                }
+                var time = moment();
+                if (self.idBuy.length > 1) {
+                    var update = {
+                        is_sell: 1,
+                        timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                        deleted: 1
+                    };
+                    pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + ")", update);
+
+                    var insert = {
+                        is_sell: 1,
+                        timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                        price_sell: price,
+                        timestamp_buy: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                        price_buy: self.priceBuyAvg,
+                        MarketName: self.MarketName,
+                        amount: self.amountbuy * self.idBuy.length
+                    }
+                    pool.query("INSERT INTO trade SET ? ", insert);
+                } else {
+                    var update = {
+                        is_sell: 1,
+                        timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                        price_sell: price
+                    };
+                    pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + ")", update);
                 }
 
                 self.ban(price);
@@ -71,14 +96,6 @@ var ChienLuoc = new SchemaObject({
         ban: function (price) {
             var self = this;
             console.log(clc.bgRed('Sell'), self.MarketName + " price:" + price);
-            if (self.idBuy.length) {
-                var update = {
-                    is_sell: 1,
-                    timestamp_sell: moment().format("YYYY-MM-DD HH:mm:ss.SSS")
-                };
-                pool.query("UPDATE trade SET ? WHERE id IN(" + math.max(self.idBuy) + " )", {price_sell: price});
-                pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + " )", update);
-            }
             var qty = markets[self.MarketName].available * price;
             markets["BTCUSDT"].available += qty;
             markets[self.MarketName].available -= markets[self.MarketName].available;
@@ -86,9 +103,7 @@ var ChienLuoc = new SchemaObject({
              * RESET
              */
             self.isBuy = false;
-            self.countbuy = 2;
-            self.notbuyinsession = false;
-            self.countIgnoreSession = 5;
+            self.countbuy = 5;
             self.priceBuy = [];
             self.timeBuy = [];
             self.idBuy = [];
@@ -121,16 +136,36 @@ var ChienLuoc = new SchemaObject({
                     console.log(clc.black.bgYellow('Down'), " MFI:" + markets['BTCUSDT']['indicator_5m']['mfi']);
                 return;
             }
-            if (!self.notbuyinsession && self.countbuy > 0 && !markets[MarketName]['indicator_1h'].td && markets[MarketName]['indicator_1h']['rsi'] < 30 && markets[MarketName]['indicator_1h']['bb'].lower > price) {
-                self.mua(price);
-                var row = {
-                    MarketName: self.MarketName,
-                    price_buy: price,
-                    timestamp_buy: moment().format("YYYY-MM-DD HH:mm:ss.SSS")
-                };
-                pool.query('INSERT INTO trade SET ?', row).then(function (result) {
-                    self['idBuy'].push(result.insertId);
-                    var html = "<p>" + self.MarketName + "</p><p>Current Price: " + price + "</p><pre>" + JSON.stringify(markets[self.MarketName], undefined, 2) + "</pre>";
+            if (markets[MarketName]['indicator_1h'].td) {
+                return;
+            }
+            if (markets[MarketName]['indicator_5m'].rsi > 30) {
+                return;
+            }
+            if (markets[MarketName]['indicator_5m']['bb'].lower < price) {
+                return;
+            }
+            if (self.countbuy <= 0) {
+                return;
+            }
+            if (self.timeBuyNext && moment(self.timeBuyNext).valueOf() > moment().valueOf()) {
+                return;
+            }
+            binance.marketBuy(self.MarketName, self.amountbuy, (error, response) => {
+                console.log("Market Buy response", response);
+                console.log("order id: " + response.orderId);
+                // Now you can limit sell with a stop loss, etc.
+            });
+            self.mua(price);
+            var row = {
+                MarketName: self.MarketName,
+                price_buy: price,
+                amount: self.amountbuy,
+                timestamp_buy: moment().format("YYYY-MM-DD HH:mm:ss.SSS")
+            };
+            pool.query('INSERT INTO trade SET ?', row).then(function (result) {
+                self['idBuy'].push(result.insertId);
+                var html = "<p>" + self.MarketName + "</p><p>Current Price: " + price + "</p><pre>" + JSON.stringify(markets[self.MarketName], undefined, 2) + "</pre>";
 //                    mailOptions['html'] = html;
 //                        transporter.sendMail(mailOptions, function (error, info) {
 //                            if (error) {
@@ -139,20 +174,21 @@ var ChienLuoc = new SchemaObject({
 //                                console.log('Email sent: ' + info.response);
 //                            }
 //                        });
-                });
-            }
+            });
+
         },
-        mua: function (price, time) {
-            var time = time || moment().format("MM-DD HH:mm");
+        mua: function (price, amount, time) {
             var self = this;
+            var time = time || moment();
+            var amount = amount || self.amountbuy;
             self.countbuy--;
-            self.notbuyinsession = true;
             self.isBuy = true;
-            var qty = self.amountbuy / price;
+            var qty = amount / price;
             markets[self.MarketName].available += qty;
-            markets["BTCUSDT"].available -= self.amountbuy;
+            markets["BTCUSDT"].available -= amount;
             self['priceBuy'].push(price);
-            self['timeBuy'].push(time);
+            self['timeBuy'].push(time.format("MM-DD HH:mm"));
+            self['timeBuyNext'] = time.add(1, "h").format("YYYY-MM-DD HH:mm:ss.SSS");
             self['priceBuyAvg'] = math.mean(self['priceBuy']);
             self['minPriceSell'] = self['priceBuyAvg'] + (self['priceBuyAvg'] * self['minGain'] / 100);
             self['maxPriceSell'] = self['priceBuyAvg'] + (self['priceBuyAvg'] * self['maxGain'] / 100);

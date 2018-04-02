@@ -148,7 +148,7 @@ binance.prices((error, ticker) => {
                 indicator_1m: chiso1m
             };
             if (market == "BTCUSDT")
-                obj.available = 1;
+                obj.available = 0.5;
             markets[market] = new MarketModel(obj);
             array_market.push(market);
         }
@@ -191,16 +191,6 @@ binance.prices((error, ticker) => {
             markets[market]['indicator_' + interval].setIndicator(results);
             markets[market]['indicator_' + interval].count_buy = 0;
             markets[market]['indicator_' + interval].count_sell = 0;
-
-            if (markets[market].chienluoc1.notbuyinsession)
-                markets[market].countIgnoreSession--;
-            /*
-             * MUA Lai SAu x LUOT
-             */
-            if (markets[market].chienluoc1.countIgnoreSession == 0) {
-                markets[market].countIgnoreSession = 5;
-                markets[market].notbuyinsession = false;
-            }
         }
         markets[market]['indicator_' + interval].periodTime = tick;
     });
@@ -232,7 +222,7 @@ binance.prices((error, ticker) => {
 //            markets[symbol].asks_q = sumasks;
 //        }
 //    });
-    var query = pool.query("SELECT * FROM trade").then(function (rows, err) {
+    var query = pool.query("SELECT * FROM trade where deleted = 0").then(function (rows, err) {
         if (err) {
             console.log(err);
         }
@@ -240,12 +230,13 @@ binance.prices((error, ticker) => {
             var market = rows[i].MarketName;
             var price_buy = rows[i].price_buy;
             var price_sell = rows[i].price_sell;
-            var time_buy = moment(rows[i].timestamp_buy).format("MM-DD HH:mm");
+            var time_buy = moment(rows[i].timestamp_buy);
+            var amount = rows[i].amount;
             var id = rows[i].id;
             markets[market].chienluoc1.idBuy.push(id);
 
             console.log(markets[market]);
-            markets[market].chienluoc1.mua(price_buy, time_buy);
+            markets[market].chienluoc1.mua(price_buy, amount, time_buy);
             if (price_sell)
                 markets[market].chienluoc1.ban(price_sell);
         }

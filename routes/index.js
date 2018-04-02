@@ -1,4 +1,5 @@
 var express = require('express');
+const binance = require('node-binance-api');
 var router = express.Router();
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -25,7 +26,7 @@ router.get('/', function (req, res, next) {
     }
     var sumUSDT = sumBTC * lastBTC;
 
-    res.render('index', {title: 'Express', sumBTC: sumBTC, sumUSDT: sumUSDT, available: available, marketBuy: marketBuy, marketGood: marketGood});
+    res.render('index', {title: 'Express', sumBTC: sumBTC, sumUSDT: sumUSDT, available: available, marketBuy: marketBuy, marketGood: marketGood, binance: binance});
 });
 router.get('/market', function (req, res, next) {
     var symbol = req.query.symbol || "BTCUSDT";
