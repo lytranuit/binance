@@ -4,25 +4,28 @@ const binance = require('node-binance-api');
 var router = express.Router();
 /* GET home page. */
 router.get('/', async function (req, res, next) {
-    var sumBTC = 0;
-    var lastBTC = 0;
-    var available = 0;
+    var lastBTC = markets['BTCUSDT'].last;
     var marketBuy = {};
     var marketGood = {"BTCUSDT": markets['BTCUSDT']};
     for (var market in markets) {
-        if (market != "BTCUSDT")
-            sumBTC += markets[market].last * markets[market].available;
-        else {
-            lastBTC = markets[market].last;
-            available = markets[market].available;
-            sumBTC += available;
-        }
-
         if (markets[market].chienluoc1.isBuy) {
             marketBuy[market] = markets[market];
         }
         if (!markets[market].indicator_1h.td && !markets[market].indicator_5m.td) {
             marketGood[market] = markets[market];
+        }
+    }
+    var available = myBalances["BTC"].available;
+    var sumBTC = 0;
+    for (var coin in myBalances) {
+        var ava = myBalances[coin].available;
+        var order = myBalances[coin].onOrder;
+        var sumCoin = parseFloat(ava) + parseFloat(order);
+        if (markets[coin + "BTC"]) {
+            var btcCoin = sumCoin * markets[coin + "BTC"].last;
+            sumBTC += btcCoin;
+        } else if (coin == "BTC") {
+            sumBTC += sumCoin;
         }
     }
     var sumUSDT = sumBTC * lastBTC;
@@ -39,7 +42,7 @@ router.get('/', async function (req, res, next) {
             var price_buy = rows[i].price_buy;
             var price_sell = rows[i].price_sell;
             var time_buy = moment(rows[i].timestamp_buy).format("YYYY-MM-DD HH:mm:ss");
-            var time_sell = moment(rows[i].timestamp_buy).format("YYYY-MM-DD HH:mm:ss");
+            var time_sell = moment(rows[i].timestamp_sell).format("YYYY-MM-DD HH:mm:ss");
             var amount = rows[i].amount;
             var id = rows[i].id;
             var percent = rows[i].percent;
@@ -62,5 +65,8 @@ router.get('/market', function (req, res, next) {
     var symbol = req.query.symbol || "BTCUSDT";
     res.json(markets[symbol]);
 });
-
+router.get('/balances', function (req, res, next) {
+    var coin = req.query.coin || "BTC";
+    res.json(myBalances[coin]);
+});
 module.exports = router;

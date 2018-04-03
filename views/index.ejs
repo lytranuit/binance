@@ -210,7 +210,9 @@
                                 <% var percent = rows[i].percent; %>
                                 <tr>
                                     <td><%= i %></td>
-                                    <td><%= market %></td>
+                                    <td> 
+                                        <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>'><%= market %></a>
+                                    </td>
                                     <td class="text-success"><%= price_buy %></td>
                                     <td class="text-danger"><%= price_sell %></td>
                                     <td><%= amount %></td>
@@ -245,29 +247,29 @@
             $(document).ready(function () {
                 $(".fancybox").click(function (e) {
                     e.preventDefault();
+                    $('#historyModel').modal('hide');
                     var symbol = $(this).attr("data");
-                    var widget = new TradingView.widget(
-                            {
-                                "width": 1024,
-                                "height": 550,
-                                "symbol": "BINANCE:" + symbol,
-                                "interval": "60",
-                                "timezone": "Asia/Bangkok",
-                                "theme": "Dark",
-                                "style": "1",
-                                "locale": "vi_VN",
-                                "toolbar_bg": "#f1f3f6",
-                                "enable_publishing": false,
-                                "hide_side_toolbar": false,
-                                "studies": [
-                                    "BB@tv-basicstudies",
-                                    "RSI@tv-basicstudies",
-                                    "MACD@tv-basicstudies"
-                                ],
-                                "allow_symbol_change": true,
-                                "container_id": "tradingview"
-                            }
-                    );
+                    var widget = new TradingView.widget({
+                        "width": 1024,
+                        "height": 550,
+                        "symbol": "BINANCE:" + symbol,
+                        "interval": "60",
+                        "timezone": "Asia/Bangkok",
+                        "theme": "Dark",
+                        "style": "1",
+                        "locale": "vi_VN",
+                        "toolbar_bg": "#f1f3f6",
+                        "enable_publishing": false,
+                        "hide_side_toolbar": false,
+                        "studies": [
+                            "BB@tv-basicstudies",
+                            "RSI@tv-basicstudies",
+                            "MACD@tv-basicstudies"
+                        ],
+                        "allow_symbol_change": true,
+                        "container_id": "tradingview"
+                    });
+                    console.log(widget);
                     widget.onChartReady(function () {
                         console.log("ok");
                     });
@@ -281,7 +283,7 @@
                     }
                     $(".ticket-card", parents).hide();
                     $(".ticket-card", parents).each(function () {
-                        var text = $(this).text().toUpperCase();
+                        var text = $(this).text().replace(/\s/ig, "").toUpperCase();
                         console.log(text);
                         if (text.indexOf(search) != -1) {
                             $(this).show();

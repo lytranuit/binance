@@ -29,7 +29,6 @@ var Chiso = new SchemaObject({
     methods: {
         setIndicator: async function (results) {
             var self = this;
-            var market = this.MarketName;
             var argh = [];
             var argl = [];
             var argv = [];

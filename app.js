@@ -117,6 +117,8 @@ module.exports = app;
  *****************/
 binance.options(key);
 global.currentTime = null;
+global.primaryCoin = "BTC";
+global.myBalances = {};
 /******************
  * 
  * END CONFIG MAIL
@@ -126,6 +128,13 @@ var MarketModel = require('./models/market');
 var ChienLuocModel = require('./models/chienluoc');
 var ChisoModel = require('./models/chiso');
 global.markets = {};
+
+binance.websockets.userData(balance_update, execution_update);
+
+binance.trades("KNCBTC", (error, trades, symbol) => {
+    console.log(symbol + " trade history", trades);
+});
+
 binance.prices((error, ticker) => {
     if (error) {
         return console.error(error);
@@ -134,7 +143,7 @@ binance.prices((error, ticker) => {
     for (var i in ticker) {
         var market = i;
         var last = ticker[i];
-        if (market.indexOf("BTC") != -1) {
+        if (market.indexOf(primaryCoin) != -1) {
             var chiso1h = new ChisoModel();
             var chiso5m = new ChisoModel();
             var chiso1m = new ChisoModel();
@@ -147,12 +156,16 @@ binance.prices((error, ticker) => {
                 indicator_5m: chiso5m,
                 indicator_1m: chiso1m
             };
-            if (market == "BTCUSDT")
-                obj.available = 0.5;
+//            if (market == "BTCUSDT")
+//                obj.available = 0.5;
             markets[market] = new MarketModel(obj);
             array_market.push(market);
         }
     }
+
+    binance.balance((error, balances) => {
+        myBalances = balances;
+    });
 //    console.log(markets);
     binance.websockets.chart(array_market, "1h", (market, interval, results) => {
         if (Object.keys(results).length === 0)
@@ -222,36 +235,34 @@ binance.prices((error, ticker) => {
 //            markets[symbol].asks_q = sumasks;
 //        }
 //    });
-    var query = pool.query("SELECT * FROM trade where deleted = 0").then(function (rows, err) {
-        if (err) {
-            console.log(err);
-        }
-        for (var i in rows) {
-            var market = rows[i].MarketName;
-            var price_buy = rows[i].price_buy;
-            var price_sell = rows[i].price_sell;
-            var time_buy = moment(rows[i].timestamp_buy);
-            var amount = rows[i].amount;
-            var id = rows[i].id;
-            markets[market].chienluoc1.idBuy.push(id);
-
-            console.log(markets[market]);
-            markets[market].chienluoc1.mua(price_buy, amount, time_buy);
-            if (price_sell)
-                markets[market].chienluoc1.ban(price_sell);
-        }
-    });
+//    var query = pool.query("SELECT * FROM trade where deleted = 0").then(function (rows, err) {
+//        if (err) {
+//            console.log(err);
+//        }
+//        for (var i in rows) {
+//            var market = rows[i].MarketName;
+//            var price_buy = rows[i].price_buy;
+//            var price_sell = rows[i].price_sell;
+//            var time_buy = moment(rows[i].timestamp_buy);
+//            var amount = rows[i].amount;
+//            var id = rows[i].id;
+//            markets[market].chienluoc1.idBuy.push(id);
+//
+//            console.log(markets[market]);
+//            markets[market].chienluoc1.mua(price_buy, amount, time_buy);
+//            if (price_sell)
+//                markets[market].chienluoc1.ban(price_sell);
+//        }
+//    });
     console.log("Price of BTC: ", ticker.BTCUSDT);
 });
-//binance.balance((error, balances) => {
-//    console.log("balances()", balances);
-////    console.log("ETH balance: ", balances.ETH.available);
-//});
 // The only time the user data (account balances) and order execution websockets will fire, is if you create or cancel an order, or an order gets filled or partially filled
 function balance_update(data) {
     console.log("Balance Update");
     for (let obj of data.B) {
         let {a: asset, f: available, l: onOrder} = obj;
+        myBalances[asset].available = available;
+        myBalances[asset].onOrder = onOrder;
         if (available == "0.00000000")
             continue;
         console.log(asset + "\tavailable: " + available + " (" + onOrder + " on order)");
@@ -270,9 +281,6 @@ function execution_update(data) {
 //NEW, CANCELED, REPLACED, REJECTED, TRADE, EXPIRED
     console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);
 }
-binance.websockets.userData(balance_update, execution_update);
-
-
 
 
 
