@@ -11,7 +11,7 @@ var ChienLuoc = new SchemaObject({
     MarketName: NotEmptyString,
     countbuy: {type: Number, default: 5},
     amountbuy: {type: Number, default: 0.001},
-    minGain: {type: Number, default: 1},
+    minGain: {type: Number, default: 2},
     maxGain: {type: Number, default: 50},
     isBuy: {type: Boolean, default: false},
     priceBuy: Array,
@@ -62,53 +62,57 @@ var ChienLuoc = new SchemaObject({
                     if (candle1.volume < candle2.volume && candle2.open < candle2.close)
                         return;
                 }
+
+                /*
+                 * BAN
+                 */
+                var coin = self.MarketName.replace(primaryCoin, "");
+                binance.marketSell(self.MarketName, myBalances[coin].available, (error, response) => {
+                    console.log(error);
+                    console.log(response);
+                    var time = moment();
+                    if (self.idBuy.length > 1) {
+                        var update = {
+                            is_sell: 1,
+                            timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                            deleted: 1
+                        };
+                        pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + ")", update);
+
+                        var insert = {
+                            is_sell: 1,
+                            timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                            price_sell: price,
+                            timestamp_buy: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                            price_buy: self.priceBuyAvg,
+                            MarketName: self.MarketName,
+                            amount: self.amountbuy * self.idBuy.length
+                        }
+                        pool.query("INSERT INTO trade SET ? ", insert);
+                    } else {
+                        var update = {
+                            is_sell: 1,
+                            timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                            price_sell: price
+                        };
+                        pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + ")", update);
+                    }
+                });
                 self.ban(price);
             }
         },
         ban: function (price) {
             var self = this;
             console.log(clc.bgRed('Sell'), self.MarketName + " price:" + price);
-            var coin = self.MarketName.replace(primaryCoin, "");
-            binance.marketSell(self.MarketName, myBalances[coin].available, (error, response) => {
-                console.log(error);
-                console.log(response);
-                var time = moment();
-                if (self.idBuy.length > 1) {
-                    var update = {
-                        is_sell: 1,
-                        timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
-                        deleted: 1
-                    };
-                    pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + ")", update);
-
-                    var insert = {
-                        is_sell: 1,
-                        timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
-                        price_sell: price,
-                        timestamp_buy: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
-                        price_buy: self.priceBuyAvg,
-                        MarketName: self.MarketName,
-                        amount: self.amountbuy * self.idBuy.length
-                    }
-                    pool.query("INSERT INTO trade SET ? ", insert);
-                } else {
-                    var update = {
-                        is_sell: 1,
-                        timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
-                        price_sell: price
-                    };
-                    pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + ")", update);
-                }
-                /*
-                 * RESET
-                 */
-                self.isBuy = false;
-                self.countbuy = 5;
-                self.priceBuy = [];
-                self.timeBuy = [];
-                self.idBuy = [];
-                self.priceBuyAvg = 0;
-            });
+            /*
+             * RESET
+             */
+            self.isBuy = false;
+            self.countbuy = 5;
+            self.priceBuy = [];
+            self.timeBuy = [];
+            self.idBuy = [];
+            self.priceBuyAvg = 0;
         },
         checkmua: function (price) {
             var self = this;
@@ -147,20 +151,6 @@ var ChienLuoc = new SchemaObject({
             }
             self.mua(price);
 
-        },
-        mua: function (price, amount, time) {
-            var self = this;
-            console.log(clc.bgGreen('Buy'), self.MarketName + " price:" + price);
-            var time = time || moment();
-            var amount = amount || self.amountbuy;
-            self['countbuy']--;
-            self['isBuy'] = true;
-            self['priceBuy'].push(price);
-            self['timeBuy'].push(time.format("MM-DD HH:mm"));
-            self['timeBuyNext'] = time.add(1, "h").format("YYYY-MM-DD HH:mm:ss.SSS");
-            self['priceBuyAvg'] = math.mean(self['priceBuy']);
-            self['minPriceSell'] = self['priceBuyAvg'] + (self['priceBuyAvg'] * self['minGain'] / 100);
-            self['maxPriceSell'] = self['priceBuyAvg'] + (self['priceBuyAvg'] * self['maxGain'] / 100);
             binance.marketBuy(self.MarketName, Math.round(self.amountbuy / price), (error, response) => {
                 console.log(error);
                 console.log(response);
@@ -183,7 +173,19 @@ var ChienLuoc = new SchemaObject({
 //                        });
                 });
             });
-
+        },
+        mua: function (price, time) {
+            var self = this;
+            console.log(clc.bgGreen('Buy'), self.MarketName + " price:" + price);
+            var time = time || moment();
+            self['countbuy']--;
+            self['isBuy'] = true;
+            self['priceBuy'].push(price);
+            self['timeBuy'].push(time.format("MM-DD HH:mm"));
+            self['timeBuyNext'] = time.add(1, "h").format("YYYY-MM-DD HH:mm:ss.SSS");
+            self['priceBuyAvg'] = math.mean(self['priceBuy']);
+            self['minPriceSell'] = self['priceBuyAvg'] + (self['priceBuyAvg'] * self['minGain'] / 100);
+            self['maxPriceSell'] = self['priceBuyAvg'] + (self['priceBuyAvg'] * self['maxGain'] / 100);
         }
     }
 });
