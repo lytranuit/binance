@@ -11,7 +11,7 @@ var ChienLuoc = new SchemaObject({
     MarketName: NotEmptyString,
     countbuy: {type: Number, default: 5},
     amountbuy: {type: Number, default: 0.001},
-    minGain: {type: Number, default: 2},
+    minGain: {type: Number, default: 1},
     maxGain: {type: Number, default: 50},
     isBuy: {type: Boolean, default: false},
     priceBuy: Array,
@@ -20,9 +20,10 @@ var ChienLuoc = new SchemaObject({
     idBuy: Array,
     priceBuyAvg: {type: Number, default: 0},
     minPriceSell: numberType,
-    maxPriceSell: numberType
+    maxPriceSell: numberType,
+    onOrder: {type: Boolean, default: false}
 }, {
-    // Add methods to User prototype
+// Add methods to User prototype
     methods: {
         checkban: function (price, candles) {
             var self = this;
@@ -34,72 +35,87 @@ var ChienLuoc = new SchemaObject({
                     var textpercent = clc.red(percent.toFixed(2));
                 }
                 console.log(clc.black.bgWhite(self.MarketName), " price:" + price + " - " + textpercent + "%");
-                var array = Object.keys(candles);
-                var key1 = array[array.length - 3];
-                var key2 = array[array.length - 2];
-                var candle1 = candles[key1];
-                var candle2 = candles[key2];
+                if (markets[self.MarketName]['indicator_5m'].rsi < 80) {
 
-                /*
-                 * MACD < 0
-                 */
-                if (markets[self.MarketName]['indicator_5m'].MACD.histogram > 0)
-                    return;
-                /*
-                 * price <min
-                 */
-                if (price < self.minPriceSell)
-                    return;
-                /*
-                 * DK 1 min < price < max
-                 * DK 2 tang lien tiep 2 dot.(Xu huong tang)
-                 */
-                console.log(moment.unix(key1 / 1000).format());
-                console.log(candle1);
-                console.log(moment.unix(key2 / 1000).format());
-                console.log(candle2);
-                if (price > self.minPriceSell) {
-                    if (candle1.volume < candle2.volume && candle2.open < candle2.close)
+                    /*
+                     * MACD < 0
+                     */
+                    if (markets[self.MarketName]['indicator_5m'].MACD.histogram > 0)
                         return;
-                }
-
-                /*
-                 * BAN
-                 */
-                var coin = self.MarketName.replace(primaryCoin, "");
-                binance.marketSell(self.MarketName, myBalances[coin].available, (error, response) => {
-                    console.log(error);
-                    console.log(response);
-                    var time = moment();
-                    if (self.idBuy.length > 1) {
-                        var update = {
-                            is_sell: 1,
-                            timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
-                            deleted: 1
-                        };
-                        pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + ")", update);
-
-                        var insert = {
-                            is_sell: 1,
-                            timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
-                            price_sell: price,
-                            timestamp_buy: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
-                            price_buy: self.priceBuyAvg,
-                            MarketName: self.MarketName,
-                            amount: self.amountbuy * self.idBuy.length
-                        }
-                        pool.query("INSERT INTO trade SET ? ", insert);
-                    } else {
-                        var update = {
-                            is_sell: 1,
-                            timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
-                            price_sell: price
-                        };
-                        pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + ")", update);
+                    /*
+                     * price <min
+                     */
+                    if (price < self.minPriceSell)
+                        return;
+                    /*
+                     * DK 1 min < price < max
+                     * DK 2 tang lien tiep 2 dot.(Xu huong tang)
+                     */
+                    var array = Object.keys(candles);
+                    var key1 = array[array.length - 3];
+                    var key2 = array[array.length - 2];
+                    var candle1 = candles[key1];
+                    var candle2 = candles[key2];
+                    console.log(moment.unix(key1 / 1000).format());
+                    console.log(candle1);
+                    console.log(moment.unix(key2 / 1000).format());
+                    console.log(candle2);
+                    if (price > self.minPriceSell) {
+                        if (candle1.volume < candle2.volume && candle2.open < candle2.close)
+                            return;
                     }
-                });
-                self.ban(price);
+                }
+                if (self.onOrder)
+                    return;
+                /*
+                 * VAO LENH
+                 */
+                if (!test) {
+                    self.onOrder = true;
+                    var coin = self.MarketName.replace(primaryCoin, "");
+                    binance.sell(self.MarketName, myBalances[coin].available, price, (error, response) => {
+                        console.log("Market Buy response", response);
+                        console.log("order id: " + response.orderId);
+                        setTimeout(function () {
+                            self.onOrder = false;
+                        }, 60000);
+                    });
+                } else {
+                    self.save_db_ban(price);
+                }
             }
+        },
+        save_db_ban: function (price) {
+            var time = moment();
+            var self = this;
+            if (self.idBuy.length > 1) {
+                var update = {
+                    is_sell: 1,
+                    timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                    deleted: 1
+                };
+                pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + ")", update);
+                var col_test = test ? 1 : 0;
+                var insert = {
+                    is_sell: 1,
+                    timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                    price_sell: price,
+                    timestamp_buy: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                    price_buy: self.priceBuyAvg,
+                    MarketName: self.MarketName,
+                    amount: self.amountbuy * self.idBuy.length,
+                    test: col_test
+                }
+                pool.query("INSERT INTO trade SET ? ", insert);
+            } else {
+                var update = {
+                    is_sell: 1,
+                    timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                    price_sell: price
+                };
+                pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + ")", update);
+            }
+            self.ban(price);
         },
         ban: function (price) {
             var self = this;
@@ -117,10 +133,9 @@ var ChienLuoc = new SchemaObject({
         checkmua: function (price) {
             var self = this;
             var MarketName = self.MarketName;
-
             if (!markets[MarketName] || MarketName == "BTCUSDT" || MarketName == "KNCBTC" || MarketName == "BNBBTC")
                 return;
-            if (myBalances[primaryCoin].available < markets[MarketName].amountbuy)
+            if (myBalances[primaryCoin].available <= self.amountbuy)
                 return;
 //                console.log(markets[MarketName]);
 //            if (markets[MarketName]['indicator_5m']['mfi'] < 30) {
@@ -134,7 +149,7 @@ var ChienLuoc = new SchemaObject({
                     console.log(clc.black.bgYellow('Down'), " MFI:" + markets['BTCUSDT']['indicator_5m']['mfi']);
                 return;
             }
-            if (markets[MarketName]['indicator_1h'].td) {
+            if (markets[MarketName]['indicator_1h'].td || markets[MarketName]['indicator_1h'].dt) {
                 return;
             }
             if (markets[MarketName]['indicator_5m'].rsi > 30) {
@@ -149,20 +164,39 @@ var ChienLuoc = new SchemaObject({
             if (self.timeBuyNext && moment(self.timeBuyNext).valueOf() > moment().valueOf()) {
                 return;
             }
-            self.mua(price);
-
-            binance.marketBuy(self.MarketName, Math.round(self.amountbuy / price), (error, response) => {
-                console.log(error);
-                console.log(response);
-                var row = {
-                    MarketName: self.MarketName,
-                    price_buy: price,
-                    amount: self.amountbuy,
-                    timestamp_buy: moment().format("YYYY-MM-DD HH:mm:ss.SSS")
-                };
-                pool.query('INSERT INTO trade SET ?', row).then(function (result) {
-                    self['idBuy'].push(result.insertId);
-                    var html = "<p>" + self.MarketName + "</p><p>Current Price: " + price + "</p><pre>" + JSON.stringify(markets[self.MarketName], undefined, 2) + "</pre>";
+            if (self.onOrder)
+                return;
+            /*
+             * VAO LENH
+             */
+            if (!test) {
+                self.onOrder = true;
+                var amount = Math.round(self.amountbuy / price);
+                binance.buy(self.MarketName, amount, price, (error, response) => {
+                    console.log("Market Buy response", response);
+                    console.log("order id: " + response.orderId);
+                    setTimeout(function () {
+                        self.onOrder = false;
+                    }, 60000);
+                });
+            } else {
+                self.mua(price);
+                self.save_db_mua(price);
+            }
+        },
+        save_db_mua: function (price) {
+            var self = this;
+            var col_test = test ? 1 : 0;
+            var row = {
+                MarketName: self.MarketName,
+                price_buy: price,
+                amount: self.amountbuy,
+                timestamp_buy: moment().format("YYYY-MM-DD HH:mm:ss.SSS"),
+                test: col_test
+            };
+            pool.query('INSERT INTO trade SET ?', row).then(function (result) {
+                self['idBuy'].push(result.insertId);
+                var html = "<p>" + self.MarketName + "</p><p>Current Price: " + price + "</p><pre>" + JSON.stringify(markets[self.MarketName], undefined, 2) + "</pre>";
 //                    mailOptions['html'] = html;
 //                        transporter.sendMail(mailOptions, function (error, info) {
 //                            if (error) {
@@ -171,7 +205,6 @@ var ChienLuoc = new SchemaObject({
 //                                console.log('Email sent: ' + info.response);
 //                            }
 //                        });
-                });
             });
         },
         mua: function (price, time) {
@@ -186,7 +219,7 @@ var ChienLuoc = new SchemaObject({
             self['priceBuyAvg'] = math.mean(self['priceBuy']);
             self['minPriceSell'] = self['priceBuyAvg'] + (self['priceBuyAvg'] * self['minGain'] / 100);
             self['maxPriceSell'] = self['priceBuyAvg'] + (self['priceBuyAvg'] * self['maxGain'] / 100);
-        }
+        },
     }
 });
 module.exports = ChienLuoc;

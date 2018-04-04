@@ -75,7 +75,7 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-app.use(logger('dev'));
+//app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
@@ -119,6 +119,7 @@ binance.options(key);
 global.currentTime = null;
 global.primaryCoin = "BTC";
 global.myBalances = {};
+global.test = false;
 global.ignoreCoin = ["BTC", "KNC", "BNB"];
 /******************
  * 
@@ -229,7 +230,11 @@ binance.useServerTime(function () {
 //            markets[symbol].asks_q = sumasks;
 //        }
 //    });
-        var query = pool.query("SELECT * FROM trade where deleted = 0").then(function (rows, err) {
+        var where = "where 1=1 and deleted = 0";
+        if (test) {
+            where += " and test = 1";
+        }
+        var query = pool.query("SELECT * FROM trade " + where).then(function (rows, err) {
             if (err) {
                 console.log(err);
             }
@@ -260,12 +265,13 @@ function balance_update(data) {
         let {a: asset, f: available, l: onOrder} = obj;
         myBalances[asset].available = available;
         myBalances[asset].onOrder = onOrder;
-        if (available == "0.00000000")
+        if (available == "0.00000000" && onOrder == "0.00000000")
             continue;
         console.log(asset + "\tavailable: " + available + " (" + onOrder + " on order)");
     }
 }
 function execution_update(data) {
+    console.log(data);
     let {x: executionType, s: symbol, p: price, q: quantity, S: side, o: orderType, i: orderId, X: orderStatus} = data;
     if (executionType == "NEW") {
         if (orderStatus == "REJECTED") {
@@ -276,9 +282,15 @@ function execution_update(data) {
         return;
     }
 //NEW, CANCELED, REPLACED, REJECTED, TRADE, EXPIRED
+    if (side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
+        markets[symbol].chienluoc1.mua(price);
+        markets[symbol].chienluoc1.save_db_mua(price);
+    } else if (side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
+        markets[symbol].chienluoc1.save_db_ban(price);
+    }
+
     console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);
 }
-
 
 
 

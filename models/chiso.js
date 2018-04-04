@@ -60,6 +60,8 @@ var Chiso = new SchemaObject({
                 self.dt = dt;
                 self.tu = tu;
                 self.td = td;
+            } else {
+                self.td = true;
             }
             /*
              * MACD
