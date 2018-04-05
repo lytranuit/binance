@@ -21,11 +21,13 @@ var ChienLuoc = new SchemaObject({
     priceBuyAvg: {type: Number, default: 0},
     minPriceSell: numberType,
     maxPriceSell: numberType,
+    chienLuocMua: {type: Array, default: ["chienLuocMuaDay"]},
+    chienLuocBan: {type: Array, default: ["chienLuocBanRSI","chienLuocBanMACD",]},
     onOrder: {type: Boolean, default: false}
 }, {
 // Add methods to User prototype
     methods: {
-        checkban: function (price, candles) {
+        checkban: function (price) {
             var self = this;
             if (self.isBuy && self.priceBuyAvg > 0) {
                 var percent = (price - self.priceBuyAvg) / self.priceBuyAvg * 100;
@@ -35,35 +37,11 @@ var ChienLuoc = new SchemaObject({
                     var textpercent = clc.red(percent.toFixed(2));
                 }
                 console.log(clc.black.bgWhite(self.MarketName), " price:" + price + " - " + textpercent + "%");
-                if (markets[self.MarketName]['indicator_5m'].rsi < 80) {
+                if (!self.chienLuocBanRSI() && !self[self.chienLuocBan]()) {
+                    return;
 
-                    /*
-                     * MACD < 0
-                     */
-                    if (markets[self.MarketName]['indicator_5m'].MACD.histogram > 0)
-                        return;
-                    /*
-                     * price <min
-                     */
-                    if (price < self.minPriceSell)
-                        return;
-                    /*
-                     * DK 1 min < price < max
-                     * DK 2 tang lien tiep 2 dot.(Xu huong tang)
-                     */
-                    var array = Object.keys(candles);
-                    var key1 = array[array.length - 3];
-                    var key2 = array[array.length - 2];
-                    var candle1 = candles[key1];
-                    var candle2 = candles[key2];
-                    console.log(moment.unix(key1 / 1000).format());
-                    console.log(candle1);
-                    console.log(moment.unix(key2 / 1000).format());
-                    console.log(candle2);
-                    if (price > self.minPriceSell) {
-                        if (candle1.volume < candle2.volume && candle2.open < candle2.close)
-                            return;
-                    }
+
+
                 }
                 if (self.onOrder)
                     return;
@@ -77,6 +55,7 @@ var ChienLuoc = new SchemaObject({
                         console.log("Market Buy response", response);
                         console.log("order id: " + response.orderId);
                         setTimeout(function () {
+                            binance.cancel(self.MarketName, response.orderId);
                             self.onOrder = false;
                         }, 60000);
                     });
@@ -84,6 +63,42 @@ var ChienLuoc = new SchemaObject({
                     self.save_db_ban(price);
                 }
             }
+        },
+        chienLuocBanRSI: function () {
+            var self = this;
+            /*
+             * RSI > 80
+             */
+            if (markets[self.MarketName]['indicator_5m'].rsi < 80)
+                return false;
+            return true;
+        },
+        chienLuocBanMACD: function () {
+            var self = this;
+            /*
+             * MACD < 0
+             */
+            if (markets[self.MarketName]['indicator_5m'].MACD.histogram > 0)
+                return false;
+            return true;
+        },
+        chienLuocBanMin: function (price) {
+            var self = this;
+            /*
+             * price < min
+             */
+            if (price < self.minPriceSell)
+                return false;
+            return true;
+        },
+        chienLuocBanMoc: function (price) {
+            var self = this;
+            /*
+             * price < moc
+             */
+            if (price < self.mocPriceSell)
+                return;
+            return true;
         },
         save_db_ban: function (price) {
             var time = moment();
@@ -176,6 +191,7 @@ var ChienLuoc = new SchemaObject({
                     console.log("Market Buy response", response);
                     console.log("order id: " + response.orderId);
                     setTimeout(function () {
+                        binance.cancel(self.MarketName, response.orderId);
                         self.onOrder = false;
                     }, 60000);
                 });

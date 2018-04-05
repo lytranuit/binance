@@ -7,12 +7,16 @@ router.get('/', async function (req, res, next) {
     var lastBTC = markets['BTCUSDT'].last;
     var marketBuy = {};
     var marketGood = {"BTCUSDT": markets['BTCUSDT']};
+    var marketHot = {"BTCUSDT": markets['BTCUSDT']};
     for (var market in markets) {
-        if (markets[market].chienluoc1.isBuy) {
+        if (markets[market].isBuy) {
             marketBuy[market] = markets[market];
         }
         if (!markets[market].indicator_1h.td && !markets[market].indicator_5m.td) {
             marketGood[market] = markets[market];
+        }
+        if (markets[market].isHotMarket) {
+            marketHot[market] = markets[market];
         }
     }
     var available = myBalances["BTC"].available;
@@ -59,7 +63,7 @@ router.get('/', async function (req, res, next) {
         }
         return data;
     });
-    res.render('index', {title: 'Express', sumBTC: sumBTC, sumUSDT: sumUSDT, available: available, marketBuy: marketBuy, marketGood: marketGood, binance: binance, rows: rows});
+    res.render('index', {title: 'Express', sumBTC: sumBTC, sumUSDT: sumUSDT, available: available, marketHot: marketHot, marketBuy: marketBuy, marketGood: marketGood, binance: binance, rows: rows});
 });
 router.get('/market', function (req, res, next) {
     var symbol = req.query.symbol || "BTCUSDT";

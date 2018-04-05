@@ -39,24 +39,6 @@ global.pool = mysql.createPool({
 
 /******************
  * 
- * CONFIG MAIL
- * 
- *****************/
-var nodemailer = require('nodemailer');
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'lytranuit@gmail.com',
-        pass: 'vohinhcaAsd123'
-    }
-});
-const mailOptions = {
-    from: 'lytranuit@gmail.com',
-    to: 'lytranuit@gmail.com',
-    subject: 'Báo cáo giá Binance'
-};
-/******************
- * 
  * END CONFIG MAIL
  * 
  *****************/
@@ -127,7 +109,6 @@ global.ignoreCoin = ["BTC", "KNC", "BNB"];
  * 
  *****************/
 var MarketModel = require('./models/market');
-var ChienLuocModel = require('./models/chienluoc');
 var ChisoModel = require('./models/chiso');
 global.markets = {};
 binance.useServerTime(function () {
@@ -146,11 +127,9 @@ binance.useServerTime(function () {
                 var chiso1h = new ChisoModel();
                 var chiso5m = new ChisoModel();
                 var chiso1m = new ChisoModel();
-                var chienluoc1 = new ChienLuocModel({MarketName: market});
                 var obj = {
                     MarketName: market,
                     last: last,
-                    chienluoc1: chienluoc1,
                     indicator_1h: chiso1h,
                     indicator_5m: chiso5m,
                     indicator_1m: chiso1m
@@ -189,8 +168,9 @@ binance.useServerTime(function () {
             if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
 //                    console.log(market + " last price: " + last);
                 markets[market].last = last;
-                markets[market].chienluoc1.checkmua(last);
-                markets[market].chienluoc1.checkban(last, results);
+                markets[market].checkmua(last);
+                markets[market].checkban(last, results);
+                markets[market].checkHotMarket();
             } else {
                 if (currentTime != tick) {
                     global.currentTime = tick;
@@ -200,6 +180,13 @@ binance.useServerTime(function () {
                 markets[market]['indicator_' + interval].count_buy = 0;
                 markets[market]['indicator_' + interval].count_sell = 0;
             }
+            /*
+             * RESET 1 m
+             */
+            if (moment().format("ss") < 10) {
+                markets[market]['indicator_1m'].count_buy = 0;
+                markets[market]['indicator_1m'].count_sell = 0;
+            }
             markets[market]['indicator_' + interval].periodTime = tick;
         });
         binance.websockets.trades(array_market, (trades) => {
@@ -208,9 +195,11 @@ binance.useServerTime(function () {
                 if (maker) {
                     markets[symbol]['indicator_1h'].count_sell++;
                     markets[symbol]['indicator_5m'].count_sell++;
+                    markets[symbol]['indicator_1m'].count_sell++;
                 } else {
                     markets[symbol]['indicator_1h'].count_buy++;
                     markets[symbol]['indicator_5m'].count_buy++;
+                    markets[symbol]['indicator_1m'].count_buy++;
                 }
             }
         });
@@ -245,11 +234,11 @@ binance.useServerTime(function () {
                 var time_buy = moment(rows[i].timestamp_buy);
                 var amount = rows[i].amount;
                 var id = rows[i].id;
-                markets[market].chienluoc1.idBuy.push(id);
+                markets[market].idBuy.push(id);
 
-                markets[market].chienluoc1.mua(price_buy, time_buy);
+                markets[market].mua(price_buy, time_buy);
                 if (price_sell)
-                    markets[market].chienluoc1.ban(price_sell);
+                    markets[market].ban(price_sell);
             }
         });
         console.log("Price of BTC: ", ticker.BTCUSDT);
@@ -283,10 +272,10 @@ function execution_update(data) {
     }
 //NEW, CANCELED, REPLACED, REJECTED, TRADE, EXPIRED
     if (side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
-        markets[symbol].chienluoc1.mua(price);
-        markets[symbol].chienluoc1.save_db_mua(price);
+        markets[symbol].mua(price);
+        markets[symbol].save_db_mua(price);
     } else if (side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
-        markets[symbol].chienluoc1.save_db_ban(price);
+        markets[symbol].save_db_ban(price);
     }
 
     console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);
