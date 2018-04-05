@@ -23,7 +23,7 @@ var Market = new SchemaObject({
     minGain: {type: Number, default: 1},
     maxGain: {type: Number, default: 50},
     isBuy: {type: Boolean, default: false},
-    isCheckMACDBan: {type: Boolean, default: false},
+    isCheckMACDBan: {type: Boolean, default: true},
     isCheckRsiBan: {type: Boolean, default: true},
     isHotMarket: {type: Boolean, default: false},
     priceBuy: Array,

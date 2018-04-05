@@ -49,7 +49,7 @@ global.pool = mysql.createPool({
  * 
  *****************/
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+var apiRouter = require('./routes/api');
 
 var app = express();
 
@@ -64,7 +64,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/api', apiRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -101,7 +101,7 @@ binance.options(key);
 global.currentTime = null;
 global.primaryCoin = "BTC";
 global.myBalances = {};
-global.test = false;
+global.test = true;
 global.ignoreCoin = ["BTC", "KNC", "BNB"];
 /******************
  * 
@@ -243,6 +243,7 @@ binance.useServerTime(function () {
         });
         console.log("Price of BTC: ", ticker.BTCUSDT);
     });
+
 });
 binance.websockets.userData(balance_update, execution_update);
 
@@ -271,13 +272,14 @@ function execution_update(data) {
         return;
     }
 //NEW, CANCELED, REPLACED, REJECTED, TRADE, EXPIRED
-    if (side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
-        markets[symbol].mua(price);
-        markets[symbol].save_db_mua(price);
-    } else if (side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
-        markets[symbol].save_db_ban(price);
+    if (!test) {
+        if (side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
+            markets[symbol].mua(price);
+            markets[symbol].save_db_mua(price);
+        } else if (side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
+            markets[symbol].save_db_ban(price);
+        }
     }
-
     console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);
 }
 

@@ -132,6 +132,7 @@
                                                 <div class='col-4 ticket-card mt-3 pb-2 border-bottom'>
                                                     <div class="col-12">
                                                         <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>'><%= market %></a>
+                                                        <a class="setting icon-settings" data-toggle="modal" data-target="#settingModal"  href='#' data='<%= market %>'></a>
                                                     </div>
                                                     <div class="ticket-details col-10">
                                                         <div class="d-flex">
@@ -185,6 +186,7 @@
                                                 <div class='col-4 ticket-card mt-3 pb-2 border-bottom'>
                                                     <div class="col-12">
                                                         <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>'><%= market %></a>
+                                                        <a class="setting icon-settings" data-toggle="modal" data-target="#settingModal"  href='#' data='<%= market %>'></a>
                                                     </div>
                                                     <div class="ticket-details col-10">
                                                         <div class="d-flex">
@@ -243,34 +245,28 @@
                     <!-- Modal body -->
                     <div class="modal-body">
                         <div class="container-fluid">
-                            <div class="row">
+                            <form class="row" id="formSetting">
+                                <input type="hidden" name="MarketName" value=""/>
                                 <div class='col-6' id="settingMua">
                                     <div class='col-12'>
                                         <span class='badge badge-success'>Mua</span>
                                     </div>
                                     <div class='col-12 m-3'>
-                                        <input class="form-check-input" type="checkbox" value="1" id="isCheckRsiMua" name='isCheckRsiMua'>
-                                        <label class="form-check-label" for="isCheckRsiMua">
-                                            Kiểm tra RSI < 30
-                                        </label>
-                                    </div>
-
-                                    <div class='col-12 m-3'>
                                         <input class="form-check-input" type="radio" name="chienLuocMua" id='chienLuocMuaDay' value="chienLuocMuaDay" checked>
                                         <label class="form-check-label" for="chienLuocMuaDay">
-                                            Mua Đáy
+                                            Mua BB & RSI
                                         </label>
                                     </div>
 
                                     <div class='col-12  m-3'>
-                                        <div data-toggle="collapse" data-target="#muaMoc" aria-expanded="false" aria-controls="muaMoc">
+                                        <div data-toggle="collapse" data-target="#mocPriceBuy" aria-expanded="false" aria-controls="mocPriceBuy">
                                             <input class="form-check-input" type="radio" name="chienLuocMua" id='chienLuocMuaMoc' value="chienLuocMuaMoc">
                                             <label class="form-check-label" for="chienLuocMuaMoc">
                                                 Mua Mốc
                                             </label>
                                         </div>
-                                        <div id="muaMoc" class="collapse" data-parent="#settingMua">
-                                            <input class='form-control w-75 d-inline-block is-valid' type='number' name='mocPriceBuy' />
+                                        <div id="mocPriceBuy" class="collapse" data-parent="#settingMua">
+                                            <input class='form-control w-75 d-inline-block is-valid' type='number' name='mocPriceBuy' value='0'/>
                                         </div>
                                     </div>
                                 </div>
@@ -279,7 +275,7 @@
                                         <span class='badge badge-danger'>Bán</span>
                                     </div>
                                     <div class='col-12 m-3'>
-                                        <input class="form-check-input" type="checkbox" value="" id="isCheckRsiBan" name='isCheckRsiBan' >
+                                        <input class="form-check-input" type="checkbox" value="1" id="isCheckRsiBan" name='isCheckRsiBan' >
                                         <label class="form-check-label" for="isCheckRsiBan">
                                             Kiểm tra RSI > 80
                                         </label>
@@ -287,14 +283,14 @@
 
                                     <div class='col-12 m-3'>
                                         <div data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                            <input class="form-check-input" type="radio" name="chienLuocBan" id='chienLuocBan1' value="chienLuocBan1" checked>
-                                            <label class="form-check-label" for="chienLuocBan1">
+                                            <input class="form-check-input" type="radio" name="chienLuocBan" id='chienLuocBanMin' value="chienLuocBanMin" checked>
+                                            <label class="form-check-label" for="chienLuocBanMin">
                                                 Bán min
                                             </label>
                                         </div>
                                         <div id="collapseOne" class="collapse show ml-4" aria-labelledby="headingOne" data-parent="#settingBan">
-                                            <input class="form-check-input" type="checkbox" value="" id="isCheckMACD" name='isCheckMACD'>
-                                            <label class="form-check-label" for="isCheckMACD">
+                                            <input class="form-check-input" type="checkbox" value="1" id="isCheckMACDBan" name='isCheckMACDBan'>
+                                            <label class="form-check-label" for="isCheckMACDBan">
                                                 Kiểm tra MACD
                                             </label>
                                         </div>
@@ -302,8 +298,8 @@
 
                                     <div class='col-12  m-3'>
                                         <div data-toggle="collapse" data-target="#mocPriceSell" aria-expanded="false" aria-controls="mocPriceSell">
-                                            <input class="form-check-input" type="radio" name="chienLuocBan" id='chienLuocBan2' value="chienLuocBan2">
-                                            <label class="form-check-label" for="chienLuocBan2">
+                                            <input class="form-check-input" type="radio" name="chienLuocBan" id='chienLuocBanMoc' value="chienLuocBanMoc">
+                                            <label class="form-check-label" for="chienLuocBanMoc">
                                                 Bán mốc
                                             </label>
                                         </div>
@@ -313,11 +309,11 @@
                                     </div>
                                 </div>
                                 <div class="col-12 text-center">
-                                    <button class="btn btn-success">
+                                    <button class="btn btn-success" id='saveMarket'>
                                         Save
                                     </button>
                                 </div>
-                            </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -388,6 +384,32 @@
 
         <script type='text/javascript'>
             $(document).ready(function () {
+                $(".setting").click(function (e) {
+                    e.preventDefault();
+                    var symbol = $(this).attr("data");
+                    $.ajax({
+                        url: "http://localhost:3000/api/market?symbol=" + symbol,
+                        dataType: "JSON",
+                        success: function (data) {
+                            applyForm($("#formSetting"), data);
+                            console.log(data);
+                        }
+                    });
+                });
+                $("#saveMarket").click(function (e) {
+                    e.preventDefault();
+                    var data = $("#formSetting").serialize();
+                    $.ajax({
+                        url: "http://localhost:3000/api/market",
+                        dataType: "JSON",
+                        data: data,
+                        type: "POST",
+                        success: function (data) {
+                            $('#settingModal').modal('hide');
+                        }
+                    });
+                    console.log(data);
+                })
                 $(".fancybox").click(function (e) {
                     e.preventDefault();
                     $('#historyModel').modal('hide');
@@ -430,10 +452,41 @@
                     })
                 });
             });
+            function applyForm(form, data) {
+                $('input, select, textarea', form).each(function () {
+                    var type = $(this).attr('type');
+                    var value = "";
+                    if (data[$(this).attr('name')])
+                        value = data[$(this).attr('name')];
+                    switch (type) {
+                        case 'checkbox':
+                            $(this).prop('checked', false);
+                            if (value == true || value == 'true' || value == 1) {
+                                $(this).prop('checked', true);
+                            }
+                            break;
+                        case 'text':
+                        case 'number':
+                        case 'email':
+                        case 'email':
+                            $(this).val(value);
+                            break;
+                        case 'radio':
+                            $(this).removeAttr('checked', 'checked');
+                            var rdvalue = $(this).val();
+                            if (rdvalue == value) {
+                                $(this).prop('checked', true);
+                            }
+                            break;
+                        default:
+                            $(this).val(value);
+                            break;
+                    }
+                });
+            }
         </script>
         <!-- endinject -->
         <!-- Custom js for this page-->
         <!-- End custom js for this page-->
     </body>
-
 </html>
