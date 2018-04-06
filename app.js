@@ -138,69 +138,68 @@ binance.useServerTime(function () {
                 array_market.push(market);
             }
         }
-//    console.log(markets);
-        binance.websockets.chart(array_market, "1h", (market, interval, results) => {
-            if (Object.keys(results).length === 0)
-                return;
-            let tick = binance.last(results);
-            var last = results[tick].close;
-            if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
-
-            } else {
-                markets[market]['indicator_' + interval].count_buy = 0;
-                markets[market]['indicator_' + interval].count_sell = 0;
-                markets[market]['indicator_' + interval].setIndicator(results);
-            }
-            markets[market]['indicator_' + interval].periodTime = tick;
-        });
-        binance.websockets.chart(array_market, "5m", (market, interval, results) => {
-            if (Object.keys(results).length === 0)
-                return;
-            /*
-             * 
-             * @type type
-             */
-            let tick = binance.last(results);
-            var last = results[tick].close;
-//                console.log(results[tick]);
-            if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
-//                    console.log(market + " last price: " + last);
-                markets[market].last = last;
-                markets[market].checkmua(last);
-                markets[market].checkban(last, results);
-                markets[market].checkHotMarket();
-            } else {
-                if (currentTime != tick) {
-                    global.currentTime = tick;
-                    console.log("Bắt đầu phiên:", moment.unix(tick / 1000).format());
-                }
-                markets[market]['indicator_' + interval].setIndicator(results);
-                markets[market]['indicator_' + interval].count_buy = 0;
-                markets[market]['indicator_' + interval].count_sell = 0;
-            }
-            /*
-             * RESET 1 m
-             */
-            if (moment().format("ss") < 10) {
-                markets[market]['indicator_1m'].count_buy = 0;
-                markets[market]['indicator_1m'].count_sell = 0;
-            }
-            markets[market]['indicator_' + interval].periodTime = tick;
-        });
-        binance.websockets.trades(array_market, (trades) => {
-            let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
-            if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
-                if (maker) {
-                    markets[symbol]['indicator_1h'].count_sell++;
-                    markets[symbol]['indicator_5m'].count_sell++;
-                    markets[symbol]['indicator_1m'].count_sell++;
-                } else {
-                    markets[symbol]['indicator_1h'].count_buy++;
-                    markets[symbol]['indicator_5m'].count_buy++;
-                    markets[symbol]['indicator_1m'].count_buy++;
-                }
-            }
-        });
+//        binance.websockets.chart(array_market, "1h", (market, interval, results) => {
+//            if (Object.keys(results).length === 0)
+//                return;
+//            let tick = binance.last(results);
+//            var last = results[tick].close;
+//            if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
+//
+//            } else {
+//                markets[market]['indicator_' + interval].count_buy = 0;
+//                markets[market]['indicator_' + interval].count_sell = 0;
+//                markets[market]['indicator_' + interval].setIndicator(results);
+//            }
+//            markets[market]['indicator_' + interval].periodTime = tick;
+//        });
+//        binance.websockets.chart(array_market, "5m", (market, interval, results) => {
+//            if (Object.keys(results).length === 0)
+//                return;
+//            /*
+//             * 
+//             * @type type
+//             */
+//            let tick = binance.last(results);
+//            var last = results[tick].close;
+////                console.log(results[tick]);
+//            if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
+////                    console.log(market + " last price: " + last);
+//                markets[market].last = last;
+//                markets[market].checkmua(last);
+//                markets[market].checkban(last, results);
+//                markets[market].checkHotMarket();
+//            } else {
+//                if (currentTime != tick) {
+//                    global.currentTime = tick;
+//                    console.log("Bắt đầu phiên:", moment.unix(tick / 1000).format());
+//                }
+//                markets[market]['indicator_' + interval].setIndicator(results);
+//                markets[market]['indicator_' + interval].count_buy = 0;
+//                markets[market]['indicator_' + interval].count_sell = 0;
+//            }
+//            /*
+//             * RESET 1 m
+//             */
+//            if (moment().format("ss") < 10) {
+//                markets[market]['indicator_1m'].count_buy = 0;
+//                markets[market]['indicator_1m'].count_sell = 0;
+//            }
+//            markets[market]['indicator_' + interval].periodTime = tick;
+//        });
+//        binance.websockets.trades(array_market, (trades) => {
+//            let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
+//            if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
+//                if (maker) {
+//                    markets[symbol]['indicator_1h'].count_sell++;
+//                    markets[symbol]['indicator_5m'].count_sell++;
+//                    markets[symbol]['indicator_1m'].count_sell++;
+//                } else {
+//                    markets[symbol]['indicator_1h'].count_buy++;
+//                    markets[symbol]['indicator_5m'].count_buy++;
+//                    markets[symbol]['indicator_1m'].count_buy++;
+//                }
+//            }
+//        });
 //    binance.websockets.depthCache(array_market, (depth) => {
 //        console.log(depth);
 //        return;
@@ -243,7 +242,7 @@ binance.useServerTime(function () {
     });
 
 });
-binance.websockets.userData(balance_update, execution_update);
+//binance.websockets.userData(balance_update, execution_update);
 
 
 // The only time the user data (account balances) and order execution websockets will fire, is if you create or cancel an order, or an order gets filled or partially filled
