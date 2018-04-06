@@ -98,11 +98,13 @@ var Market = new SchemaObject({
                 self.onOrder = true;
                 var coin = self.MarketName.replace(primaryCoin, "");
                 binance.sell(self.MarketName, myBalances[coin].available, price, (error, response) => {
-                    console.log("Market Buy response", response);
+                    if (error) {
+                        self.onOrder = false;
+                    }
                     console.log("order id: " + response.orderId);
                     setTimeout(function () {
-                        binance.cancel(self.MarketName, response.orderId);
                         self.onOrder = false;
+                        binance.cancel(self.MarketName, response.orderId);
                     }, 60000);
                 });
             } else {
@@ -244,11 +246,13 @@ var Market = new SchemaObject({
                 self.onOrder = true;
                 var amount = Math.round(self.amountbuy / price);
                 binance.buy(self.MarketName, amount, price, (error, response) => {
-                    console.log("Market Buy response", response);
+                    if (error) {
+                        self.onOrder = false;
+                    }
                     console.log("order id: " + response.orderId);
                     setTimeout(function () {
-                        binance.cancel(self.MarketName, response.orderId);
                         self.onOrder = false;
+                        binance.cancel(self.MarketName, response.orderId);
                     }, 60000);
                 });
             } else {

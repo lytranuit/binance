@@ -36,7 +36,7 @@ router.get('/', async function (req, res, next) {
     /*
      * HISTORY
      */
-    var rows = await pool.query("SELECT *,ROUND(100 * (price_sell-price_buy) / price_buy,2) as percent FROM trade where is_sell = 1 and deleted = 0").then(function (rows, err) {
+    var rows = await pool.query("SELECT *,ROUND(100 * (price_sell-price_buy) / price_buy,2) as percent FROM trade where is_sell = 1 and deleted = 0 ORDER BY timestamp_sell desc").then(function (rows, err) {
         if (err) {
             console.log(err);
         }

@@ -225,21 +225,34 @@
             </div>
             <!-- page-body-wrapper ends -->
         </div>
-        <div id='myModal' class='modal fade'>
+        <div id='myModal' class='modal fade' role="dialog">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <!-- Modal body -->
                     <div class="modal-body">
                         <div class="container-fluid">
                             <div class="row">
-                                <div id="tradingview" class="col-12"></div>
+                                <div class="col-9">
+                                    <div class="col-12">
+                                        <div class="btn-group" id="interval" role="group" data-toggle="button" aria-label="Basic example">
+                                            <button type="button" class="btn">5m</button>
+                                            <button type="button" class="btn active">1h</button>
+                                            <button type="button" class="btn">1d</button>
+                                        </div>
+                                        <button type="button" class="btn" id="tradingview-buton">Tradingview</button>
+                                    </div>
+                                    <div id="tradingview" class="col-12" style="height: 500px;"></div>
+                                </div>
+                                <div class="col-3">
+
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div id='settingModal' class='modal fade'>
+        <div id='settingModal' class='modal fade' role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <!-- Modal body -->
@@ -319,7 +332,7 @@
                 </div>
             </div>
         </div>
-        <div id='historyModel' class='modal fade'>
+        <div id='historyModel' class='modal fade' role="dialog">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <!-- Modal body -->
@@ -373,6 +386,7 @@
         <script src="../others/popper.js/dist/umd/popper.min.js"></script>
         <script src="../others/bootstrap/dist/js/bootstrap.min.js"></script>
         <script src="../others/fancybox/jquery.fancybox.min.js"></script>
+        <script type="text/javascript" src="../js/moment.js"></script>
         <!-- endinject -->
         <!-- Plugin js for this page-->
         <!-- End plugin js for this page-->
@@ -382,8 +396,56 @@
         <script src="../js/misc.js"></script>
         <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 
+        <link rel="stylesheet" href="../iguanachart/dependencies/uikit/css/uikit.min.css" media="all">
+        <script type="text/javascript" src="../iguanachart/dependencies/uikit/js/uikit.min.js"></script>
+
+        <script type="text/javascript" src="../iguanachart/dependencies/jquery.event.move.js"></script>
+        <script type="text/javascript" src="../iguanachart/dependencies/jquery.mousewheel.min.js"></script>
+        <script type="text/javascript" src="../iguanachart/dependencies/hammer.min.js"></script>
+        <script type="text/javascript" src="../iguanachart/dependencies/jquery.hammer.js"></script>
+        <script type="text/javascript" src="../iguanachart/dependencies/jsrender.min.js"></script>
+
+        <link rel="stylesheet" href="../iguanachart/dependencies/jquery.qtip.min.css" media="all">
+        <script type="text/javascript" src="../iguanachart/dependencies/jquery.qtip.min.js"></script>
+
+        <link rel="stylesheet" href="../iguanachart/dependencies/jquery-minicolors/jquery.minicolors.css" media="all">
+        <script type="text/javascript" src="../iguanachart/dependencies/jquery-minicolors/jquery.minicolors.min.js"></script>
+
+        <link rel="stylesheet" type="text/css" href="../iguanachart/iguanachart.min.css" media="all"/>
+
+        <script type="text/javascript" src="../others/jpcandle/i18n.js"></script>
+        <script type="text/javascript" src="../iguanachart/iguanachart.js"></script>
         <script type='text/javascript'>
             $(document).ready(function () {
+                $("#interval button").click(function (e) {
+                    var symbol = $("#myModal").data("symbol");
+                    var interval = $(this).text();
+                    drawChart(symbol, interval);
+                });
+                $("#tradingview-buton").click(function (e) {
+                    var symbol = $("#myModal").data("symbol");
+                    $("#tradingview").show().empty();
+                    $("#tradingview1").remove();
+                    var widget = new TradingView.widget({
+                        autosize: true,
+                        "symbol": "BINANCE:" + symbol,
+                        "interval": "5",
+                        "timezone": "Asia/Bangkok",
+                        "theme": "Dark",
+                        "style": "1",
+                        "locale": "vi_VN",
+                        "toolbar_bg": "#f1f3f6",
+                        "enable_publishing": false,
+                        "hide_side_toolbar": false,
+                        "studies": [
+                            "BB@tv-basicstudies",
+                            "RSI@tv-basicstudies",
+                            "MACD@tv-basicstudies"
+                        ],
+                        "allow_symbol_change": true,
+                        "container_id": "tradingview"
+                    });
+                })
                 $(".setting").click(function (e) {
                     e.preventDefault();
                     var symbol = $(this).attr("data");
@@ -412,28 +474,11 @@
                 })
                 $(".fancybox").click(function (e) {
                     e.preventDefault();
-                    $('#historyModel').modal('hide');
+//                    if ($('#historyModel').hasClass('show'))
+//                        $('#historyModel').modal('hide');
                     var symbol = $(this).attr("data");
-                    var widget = new TradingView.widget({
-                        "width": 1024,
-                        "height": 550,
-                        "symbol": "BINANCE:" + symbol,
-                        "interval": "5",
-                        "timezone": "Asia/Bangkok",
-                        "theme": "Dark",
-                        "style": "1",
-                        "locale": "vi_VN",
-                        "toolbar_bg": "#f1f3f6",
-                        "enable_publishing": false,
-                        "hide_side_toolbar": false,
-                        "studies": [
-                            "BB@tv-basicstudies",
-                            "RSI@tv-basicstudies",
-                            "MACD@tv-basicstudies"
-                        ],
-                        "allow_symbol_change": true,
-                        "container_id": "tradingview"
-                    });
+                    $("#myModal").data("symbol", symbol);
+                    drawChart(symbol, "1h");
                 });
                 $(".search").keyup(function () {
                     var search = $(this).val().toUpperCase();
@@ -452,6 +497,60 @@
                     })
                 });
             });
+            function drawChart(symbol, interval) {
+                var interval1 = "D1";
+                var sub = 30;
+                if (interval == "5m") {
+                    interval1 = "M5";
+                    sub = 1;
+                } else if (interval == "1h") {
+                    interval1 = "H1";
+                    sub = 4;
+                } else if (interval == "1d") {
+                    interval1 = "D1";
+                    sub = 30;
+                }
+                $("#tradingview").hide().empty();
+                $("#tradingview1").remove();
+                $.ajax({
+                    url: "http://localhost:3000/api/candle?interval=" + interval + "&symbol=" + symbol,
+                    dataType: "JSON",
+                    success: function (data) {
+                        var pointFormatter = function () {
+                            return "<div>Price: " + this.y + "</div>";
+                        }
+                        for (var i in data.events) {
+                            data.events[i].pointFormatter = pointFormatter;
+                        }
+                        $('#tradingview').after("<div id='tradingview1' class='col-12' style='height:500px;'/>");
+                        $("#tradingview1").on("iguanaChartEvents", function (e, name, data) {
+                            if (name == "chartDataReady") {
+                                $("#tradingview1").data("iguanaChart").TA.BBANDS(1, 1, {TimePeriod: 20});
+                            }
+                        }).iguanaChart({
+                            ticker: "AAPL.US",
+                            events: data.events,
+                            chartOptions: {
+                                minHeight: $("#tradingview1").height(),
+                                futureAmount: 1
+                            },
+                            dataSource: {
+                                data: data.data,
+                                dataSettings: {
+                                    useHash: false,
+                                    date_from: moment().subtract(sub, "d").format("DD.MM.YYYY HH:mm:ss"),
+                                    date_to: moment().format("DD.MM.YYYY HH:mm:ss"),
+                                    start: moment().subtract(sub, "d").format("DD.MM.YYYY HH:mm:ss"),
+                                    end: moment().format("DD.MM.YYYY HH:mm:ss"),
+                                    hash: "",
+                                    id: "LKOH",
+                                    interval: interval1
+                                }
+                            }
+                        }).iguanaChart("setTheme", "Dark");
+                    }
+                });
+            }
             function applyForm(form, data) {
                 $('input, select, textarea', form).each(function () {
                     var type = $(this).attr('type');
@@ -483,6 +582,14 @@
                             break;
                     }
                 });
+            }
+            var pointFormatter = function () {
+                return "<div>" +
+                        "<div>" +
+                        this.text +
+                        "</div>" +
+                        this.y +
+                        "</div>";
             }
         </script>
         <!-- endinject -->

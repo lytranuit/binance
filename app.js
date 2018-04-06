@@ -101,7 +101,7 @@ binance.options(key);
 global.currentTime = null;
 global.primaryCoin = "BTC";
 global.myBalances = {};
-global.test = true;
+global.test = false;
 global.ignoreCoin = ["BTC", "KNC", "BNB"];
 /******************
  * 

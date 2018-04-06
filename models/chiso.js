@@ -15,6 +15,7 @@ var Chiso = new SchemaObject({
     count_sell: numberType,
     periodTime: numberType,
     pattern: Object,
+    candle: Array,
     hs: booleanType,
     ihs: booleanType,
     db: booleanType,
