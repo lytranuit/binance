@@ -134,8 +134,6 @@ binance.useServerTime(function () {
                     indicator_5m: chiso5m,
                     indicator_1m: chiso1m
                 };
-//            if (market == "BTCUSDT")
-//                obj.available = 0.5;
                 markets[market] = new MarketModel(obj);
                 array_market.push(market);
             }
@@ -219,7 +217,7 @@ binance.useServerTime(function () {
 //            markets[symbol].asks_q = sumasks;
 //        }
 //    });
-        var where = "where 1=1 and deleted = 0";
+        var where = "where 1=1 and is_sell IS NULL and deleted = 0";
         if (test) {
             where += " and test = 1";
         }

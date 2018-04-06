@@ -14,7 +14,6 @@ var Market = new SchemaObject({
     bids_q: numberType,
     asks_q: numberType,
     periodTime: numberType,
-    available: numberType,
     indicator_1h: Object,
     indicator_5m: Object,
     indicator_1m: Object,
