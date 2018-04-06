@@ -1,3 +1,5 @@
 {
-    "pg_db": "postgres://iqprdfwjrpyjqq:3331df6d84beede35bcd4532989fa1f3747d63f35e5c31c8cbc8f7de7a4eb207@ec2-107-22-168-211.compute-1.amazonaws.com:5432/degephg7h67a75"
+    "test": true,
+    "ignoreCoin": ["BTC", "KNC", "BNB"],
+    "primaryCoin": "BTC",
 }

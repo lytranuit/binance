@@ -99,10 +99,10 @@ module.exports = app;
  *****************/
 binance.options(key);
 global.currentTime = null;
-global.primaryCoin = "BTC";
+global.primaryCoin = config.primaryCoin;
 global.myBalances = {};
-global.test = false;
-global.ignoreCoin = ["BTC", "KNC", "BNB"];
+global.test = config.test;
+global.ignoreCoin = config.ignoreCoin;
 /******************
  * 
  * END CONFIG MAIL
