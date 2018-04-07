@@ -415,9 +415,27 @@
 
     <script type="text/javascript" src="../iguanachart/i18n.js"></script>
     <script type="text/javascript" src="../iguanachart/iguanachart.js"></script>
+    <script type="text/javascript" src="../js/socket.io.js"></script>
     <script type='text/javascript'>
+
+        var socket = io();
+        socket.on("kline",function(data){
+            if(!$("#tradingview1").length)
+                return
+            var point = $("#tradingview1").data("iguanaChart").getLastPoint();
+            var time = data.time;
+            var open = data.data.open;
+            var close = data.data.close;
+            var high = data.data.high;
+            var low = data.data.low;
+            var volume = data.data.volume;
+            point.xSeries.LKOH[0] = time;
+            point.vl.LKOH[0] = volume;
+            point.hloc.LKOH[0] = [parseFloat(high), parseFloat(low), parseFloat(open), parseFloat(close)];
+            $("#tradingview1").iguanaChart("addPoint", point);
+        })
         $(document).ready(function () {
-            subscription();
+            //
             $("#interval button").click(function (e) {
                 var symbol = $("#myModal").data("symbol");
                 var interval = $(this).text();
@@ -498,31 +516,9 @@
                 })
             });
         });
-        function subscription(){
-            var  socket = new WebSocket("wss://stream.binance.com:9443/ws/BTCUSDT@kline_5m");
-            // Connection opened
-            socket.addEventListener('open', function (event) {
-                console.log("hello");
-            });
-            socket.addEventListener('pong', function (event) {
-                console.log("pong");
-            });
-            socket.addEventListener('error', function (event) {
-                console.log("error");
-            });
-            socket.addEventListener('close',function (event) {
-                console.log("colose");
-            });
-            // Listen for messages
-            socket.addEventListener('message', function (data) {
-                try {
-                    callback(JSON.parse(data).data);
-                } catch (error) {
-                    options.log('CombinedStream: Parse error: ' + error.message);
-                }
-            });
-        }
+
         function drawChart(symbol, interval) {
+            socket.emit("leaveall");
             var interval1 = "D1";
             var sub = 30;
             if (interval == "5m") {
@@ -550,6 +546,7 @@
                     $('#tradingview').after("<div id='tradingview1' class='col-12' style='height:500px;'/>");
                     $("#tradingview1").on("iguanaChartEvents", function (e, name, data) {
                         if (name == "chartDataReady") {
+                            socket.emit("join",{room:"kline_"+symbol+"_"+interval});
                             $("#tradingview1").data("iguanaChart").TA.BBANDS(1, 1, {TimePeriod: 20});
                         }
                     }).iguanaChart({

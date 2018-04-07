@@ -151,6 +151,7 @@ module.exports = app;
  				markets[market]['indicator_' + interval].setIndicator(results);
  			}
  			markets[market]['indicator_' + interval].periodTime = tick;
+ 			io.to("kline_" +market + "_" + interval).emit("kline",{symbol:market,time:tick,data:results[tick]});
  		});
  		binance.websockets.chart(array_market, "5m", (market, interval, results) => {
  			if (Object.keys(results).length === 0)
@@ -183,6 +184,7 @@ module.exports = app;
             	markets[market]['indicator_1m'].count_sell = 0;
             }
             markets[market]['indicator_' + interval].periodTime = tick;
+            io.to("kline_" +market + "_" + interval).emit("kline",{symbol:market,time:tick,data:results[tick]});
         });
  		binance.websockets.trades(array_market, (trades) => {
  			let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
@@ -265,16 +267,16 @@ function execution_update(data) {
 		console.log("..price: " + price + ", quantity: " + quantity);
 		return;
 	}
-//NEW, CANCELED, REPLACED, REJECTED, TRADE, EXPIRED
-if (!test) {
-	if (side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
-		markets[symbol].mua(price);
-		markets[symbol].save_db_mua(price);
-	} else if (side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
-		markets[symbol].save_db_ban(price);
+	//NEW, CANCELED, REPLACED, REJECTED, TRADE, EXPIRED
+	if (!test) {
+		if (side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
+			markets[symbol].mua(price);
+			markets[symbol].save_db_mua(price);
+		} else if (side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
+			markets[symbol].save_db_ban(price);
+		}
 	}
-}
-console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);
+	console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);
 }
 
 
@@ -285,11 +287,27 @@ console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORD
  * CONFIG APACHE
  * 
  *****************/
-
-
  var port = process.env.PORT || 3000;
  app.set('port', port);
  var server = http.createServer(app);
+ var io = require('socket.io')(server);
+ io.on('connection', function(socket){
+ 	console.log('a user connected');
+ 	socket.on("join",function(data){
+ 		var room = data.room;
+ 		socket.join(room);
+ 	});
+ 	socket.on("leave",function(data){
+ 		var room = data.room;
+ 		socket.leave(room);
+ 	});
+ 	socket.on("leaveall",function(){
+ 		var rooms = io.sockets.adapter.sids[socket.id];
+ 		for (var room in rooms) {
+ 			socket.leave(room);
+ 		}
+ 	})
+ });
 /**
  * Listen on provided port, on all network interfaces.
  */
@@ -297,7 +315,7 @@ console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORD
  server.listen(port);
  server.on('error', onError);
  server.on('listening', onListening);
-/**
+/*
  * Event listener for HTTP server "error" event.
  */
 

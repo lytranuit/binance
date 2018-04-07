@@ -16,6 +16,7 @@
         "node-schema-object": "^3.3.4",
         "nodemailer": "^4.6.3",
         "promise-mysql": "^3.2.1",
+        "socket.io": "^2.1.0",
         "technicalindicators": "^1.1.8"
     }
 }

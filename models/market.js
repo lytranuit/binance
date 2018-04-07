@@ -97,12 +97,11 @@ var Market = new SchemaObject({
                     if (error) {
                         self.onOrder = false;
                     }
-                    console.log("order id: " + response.orderId);
-                    setTimeout(function () {
-                        self.onOrder = false;
-                        binance.cancel(self.MarketName, response.orderId);
-                    }, 60000);
                 });
+                setTimeout(function () {
+                    self.onOrder = false;
+                    binance.cancelOrders(self.MarketName);
+                }, 60000);
             } else {
                 self.save_db_ban(price);
             }
@@ -240,12 +239,12 @@ var Market = new SchemaObject({
                     if (error) {
                         self.onOrder = false;
                     }
-                    console.log("order id: " + response.orderId);
-                    setTimeout(function () {
-                        self.onOrder = false;
-                        binance.cancel(self.MarketName, response.orderId);
-                    }, 60000);
                 });
+
+                setTimeout(function () {
+                    self.onOrder = false;
+                    binance.cancelOrders(self.MarketName);
+                }, 60000);
             } else {
                 self.mua(price);
                 self.save_db_mua(price);
