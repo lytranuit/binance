@@ -15,7 +15,7 @@ var logger = require('morgan');
 
 var http = require('http');
 
-var Mail = require("./mail");
+var Mail = require("./models/mail");
 
 	/******************
  * 
