@@ -38,7 +38,6 @@ var Market = new SchemaObject({
     chienLuocBan: {type: String, default: "chienLuocBanMin"}, /// chienLuocBanMoc
     onOrder: {type: Boolean, default: false}
 }, {
-// Add methods to User prototype
     methods: {
         checkHotMarket: function () {
             var self = this;
@@ -63,37 +62,35 @@ var Market = new SchemaObject({
                     var textpercent = clc.red(percent.toFixed(2));
                 }
                 console.log(clc.black.bgWhite(self.MarketName), " price:" + price + " - " + textpercent + "%");
-                /*
-                 * CO CHI SO HAY KO
-                 */
                 if (!self.hasDataChiso())
                     return;
                 if (self.onOrder)
                     return;
-                /*
-                 * CHECK CHIEN LUOC 
-                 */
-                if (self.chienLuocBanRSI()) {
-                    self.orderBan(price);
-                } else {
-                    if (self.chienLuocBan == "chienLuocBanMin") {
-                        if (self.isBanMin() && self.isBanMACD())
-                            self.orderBan(price);
-                    } else if (self.chienLuocBan == "chienLuocBanMoc") {
-                        if (self.isBanMoc())
-                            self.orderBan(price);
-                    }
-                }
+            /*
+            * CHeck chien luoc
+            */
 
+            if (self.chienLuocBanRSI()) {
+                self.orderBan(price);
+            } else {
+                if (self.chienLuocBan == "chienLuocBanMin") {
+                    if (self.isBanMin() && self.isBanMACD())
+                        self.orderBan(price);
+                } else if (self.chienLuocBan == "chienLuocBanMoc") {
+                    if (self.isBanMoc())
+                        self.orderBan(price);
+                }
             }
-        },
-        orderBan: function (price) {
+
+        }
+    },
+    orderBan: function (price) {
             /*
              * VAO LENH
              */
-            var self = this;
-            console.log(clc.red('Order'), self.MarketName + " price:" + price);
-            if (!test) {
+             var self = this;
+             console.log(clc.red('Order'), self.MarketName + " price:" + price);
+             if (!test) {
                 self.onOrder = true;
                 var coin = self.MarketName.replace(primaryCoin, "");
                 binance.sell(self.MarketName, myBalances[coin].available, price, (error, response) => {
@@ -115,7 +112,7 @@ var Market = new SchemaObject({
             /*
              * RSI > 80
              */
-            if (!self.isCheckRsiBan || self.indicator_5m.rsi < 80)
+             if (!self.isCheckRsiBan || self.indicator_5m.rsi < 80)
                 return false;
             return true;
         },
@@ -124,7 +121,7 @@ var Market = new SchemaObject({
             /*
              * MACD < 0
              */
-            if (self.isCheckMACDBan && self.indicator_5m.MACD.histogram > 0)
+             if (self.isCheckMACDBan && self.indicator_5m.MACD.histogram > 0)
                 return false;
             return true;
         },
@@ -133,7 +130,7 @@ var Market = new SchemaObject({
             /*
              * price < min
              */
-            if (self.last < self.minPriceSell)
+             if (self.last < self.minPriceSell)
                 return false;
             return true;
         },
@@ -142,7 +139,7 @@ var Market = new SchemaObject({
             /*
              * price < moc
              */
-            if (self.last < self.mocPriceSell)
+             if (self.last < self.mocPriceSell)
                 return false;
             return true;
         },
@@ -184,25 +181,20 @@ var Market = new SchemaObject({
             /*
              * RESET
              */
-            self.isBuy = false;
-            self.countbuy = 5;
-            self.priceBuy = [];
-            self.timeBuy = [];
-            self.idBuy = [];
-            self.priceBuyAvg = 0;
-        },
-        checkmua: function (price) {
+             self.isBuy = false;
+             self.countbuy = 5;
+             self.priceBuy = [];
+             self.timeBuy = [];
+             self.idBuy = [];
+             self.priceBuyAvg = 0;
+         },
+         checkmua: function (price) {
             var self = this;
             var MarketName = self.MarketName;
             if (MarketName == "BTCUSDT" || MarketName == "KNCBTC" || MarketName == "BNBBTC")
                 return;
             if (myBalances[primaryCoin].available <= self.amountbuy)
                 return;
-//                console.log(markets[MarketName]);
-//            if (markets[MarketName]['indicator_5m']['mfi'] < 30) {
-//        console.log(clc.black.bgYellow('Down'), MarketName + " MFI:" + markets[MarketName]['mfi']);
-//                return;
-//            }
             if (!self.hasDataChiso())
                 return;
             if (markets['BTCUSDT']['indicator_5m']['mfi'] < 35) {
@@ -241,9 +233,9 @@ var Market = new SchemaObject({
             /*
              * VAO LENH
              */
-            if (!test) {
+             if (!test) {
                 self.onOrder = true;
-                var amount = Math.round(self.amountbuy / price);
+                var amount = Math.ceil(self.amountbuy / price);
                 binance.buy(self.MarketName, amount, price, (error, response) => {
                     if (error) {
                         self.onOrder = false;
@@ -291,7 +283,7 @@ var Market = new SchemaObject({
             /*
              * price < moc
              */
-            if (self.last > self.mocPriceBuy)
+             if (self.last > self.mocPriceBuy)
                 return false;
             return true;
         },

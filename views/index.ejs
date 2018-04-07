@@ -1,599 +1,624 @@
 <!DOCTYPE html>
 <html lang="en">
 
-    <head>
-        <!-- Required meta tags -->
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <title>Trade Coin Tool</title>
-        <!-- plugins:css -->
-        <link rel="stylesheet" href="../others/mdi/css/materialdesignicons.min.css">
-        <link rel="stylesheet" href="../others/simple-line-icons/css/simple-line-icons.css">
-        <link rel="stylesheet" href="../others/fancybox/jquery.fancybox.css">
-        <!-- endinject -->
-        <!-- plugin css for this page -->
-        <!-- End plugin css for this page -->
-        <!-- inject:css -->
-        <link rel="stylesheet" href="../css/style.css">
-        <!-- endinject -->
-        <link rel="shortcut icon" href="../images/favicon.png" />
-    </head>
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Trade Coin Tool</title>
+    <!-- plugins:css -->
+    <link rel="stylesheet" href="../others/mdi/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="../others/simple-line-icons/css/simple-line-icons.css">
+    <link rel="stylesheet" href="../others/fancybox/jquery.fancybox.css">
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- endinject -->
+    <link rel="shortcut icon" href="../images/favicon.png" />
+</head>
 
-    <body>
-        <div class="container-scroller">
-            <!-- partial:partials/_navbar.html -->
-            <% include ../views/partials/navbar %>
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        <% include ../views/partials/navbar %>
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            <% include ../views/partials/sidebar %>
             <!-- partial -->
-            <div class="container-fluid page-body-wrapper">
-                <!-- partial:partials/_sidebar.html -->
-                <% include ../views/partials/sidebar %>
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <div class="row">
+                        <div class="col-12 grid-margin">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="form-group row">
+                                        <h5 class="col-9 card-title">Coin đã mua</h5>
+                                        <div class="col-3">
+                                            <input type="email" class="form-control search" placeholder="Search">
+                                        </div>
+                                    </div>
+
+
+                                    <div class="fluid-container" id="tickets">
+                                        <div class="row">
+                                            <% for(market in marketBuy) { %>
+                                            <% var self = markets[market]; %> 
+                                            <% var i_1h = markets[market].indicator_1h; %>
+                                            <% var i_5m = markets[market].indicator_5m; %>
+                                            <% var pattern_1h = i_1h.pattern.pattern; %>
+                                            <% var probability_1h = Math.round(i_1h.pattern.probability); %>
+                                            <% var pattern_5m = i_5m.pattern.pattern; %>
+                                            <% var probability_5m = Math.round(i_5m.pattern.probability); %>
+                                            <% var count_buy_1h = i_1h.count_buy; %>
+                                            <% var count_sell_1h = i_1h.count_sell; %>
+                                            <% var count_buy_5m = i_5m.count_buy; %>
+                                            <% var count_sell_5m = i_5m.count_sell; %>
+                                            <% var price_buy = self.priceBuyAvg; %>
+                                            <% var priceBuy = self.priceBuy; %>
+                                            <% var timeBuy = self.timeBuy; %>
+                                            <% var percent = (markets[market].last - price_buy) / price_buy * 100; %>
+                                            <% var classess = ''; %>
+                                            <% if(percent > 0){ %> 
+                                            <% classess = 'text-success'; %> 
+                                            <% }else{ %> 
+                                            <% classess = 'text-danger'; %> 
+                                            <% } %> 
+                                            <div class='col-4 ticket-card mt-3 pb-2 border-bottom'>
+                                                <div class="col-12">
+                                                    <a class="fancybox" data-toggle="modal" data-target="#myModal"  href='#' data='<%= market %>'><%= market %></a>
+                                                    <a class="setting icon-settings" data-toggle="modal" data-target="#settingModal"  href='#' data='<%= market %>'></a>
+                                                </div>
+                                                <div class="ticket-details col-10">
+                                                    <div class="d-flex">
+                                                        <p>Current price: <%= markets[market].last %><span class="<%= classess %>">(<%= percent.toFixed(2) %>%)</span></p>
+                                                    </div>
+                                                    <div class="d-flex">
+                                                        <p>Price Buy: <%= priceBuy.join(" , ") %></p>
+                                                    </div>
+                                                    <div class="d-flex">
+                                                        <p>Time Buy: <%= timeBuy.join(" , ") %></p>
+                                                    </div>
+                                                    <div class="row text-muted d-flex">
+                                                        <div class="col-12 d-flex">
+                                                            <p class="mb-0 mr-2">1h:</p>
+                                                            <p class="mr-2 mb-0 text-primary"><%= pattern_1h %>(<%= probability_1h %>)</p>
+                                                            <p class="mr-2 mb-0 text-danger"><%= count_sell_1h %></p>
+                                                            <p class="mr-2 mb-0 text-success"><%= count_buy_1h %></p> 
+                                                        </div>
+                                                        <div class="col-12 d-flex">
+                                                            <p class="mb-0 mr-2">5m:</p>
+                                                            <p class="mr-2 mb-0 text-primary"><%= pattern_5m %>(<%= probability_5m %>)</p>
+                                                            <p class="mr-2 mb-0 text-danger"><%= count_sell_5m %></p>
+                                                            <p class="mr-2 mb-0 text-success"><%= count_buy_5m %></p> 
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <a href='#' data-toggle="modal" data-target='#historyModel'>Lịch sử</a>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="form-group row">
+                                        <h5 class="col-9 card-title">HOT Market</h5>
+                                        <div class="col-3">
+                                            <input type="email" class="form-control search" placeholder="Search">
+                                        </div>
+                                    </div>
+
+                                    <div class="fluid-container" id="volumn">
+                                        <div class="row">
+                                            <% for(market in marketHot) { %>
+                                            <% var self = markets[market]; %> 
+                                            <% var i_1h = markets[market].indicator_1h; %>
+                                            <% var i_5m = markets[market].indicator_5m; %>
+                                            <% var pattern_1h = i_1h.pattern.pattern; %>
+                                            <% var probability_1h = Math.round(i_1h.pattern.probability); %>
+                                            <% var pattern_5m = i_5m.pattern.pattern; %>
+                                            <% var probability_5m = Math.round(i_5m.pattern.probability); %>
+                                            <% var count_buy_1h = i_1h.count_buy; %>
+                                            <% var count_sell_1h = i_1h.count_sell; %>
+                                            <% var count_buy_5m = i_5m.count_buy; %>
+                                            <% var count_sell_5m = i_5m.count_sell; %>
+                                            <% var classess = ''; %>
+                                            <div class='col-4 ticket-card mt-3 pb-2 border-bottom'>
+                                                <div class="col-12">
+                                                    <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>'><%= market %></a>
+                                                    <a class="setting icon-settings" data-toggle="modal" data-target="#settingModal"  href='#' data='<%= market %>'></a>
+                                                </div>
+                                                <div class="ticket-details col-10">
+                                                    <div class="d-flex">
+                                                        <p>Current price: <%= markets[market].last %></p>
+                                                    </div>
+                                                    <div class="row text-muted d-flex">
+                                                        <div class="col-12 d-flex">
+                                                            <p class="mb-0 mr-2">1h:</p>
+                                                            <p class="mr-2 mb-0 text-primary"><%= pattern_1h %>(<%= probability_1h %>)</p>
+                                                            <p class="mr-2 mb-0 text-danger"><%= count_sell_1h %></p>
+                                                            <p class="mr-2 mb-0 text-success"><%= count_buy_1h %></p> 
+                                                        </div>
+                                                        <div class="col-12 d-flex">
+                                                            <p class="mb-0 mr-2">5m:</p>
+                                                            <p class="mr-2 mb-0 text-primary"><%= pattern_5m %>(<%= probability_5m %>)</p>
+                                                            <p class="mr-2 mb-0 text-danger"><%= count_sell_5m %></p>
+                                                            <p class="mr-2 mb-0 text-success"><%= count_buy_5m %></p> 
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="form-group row">
+                                        <h5 class="col-9 card-title">Coin Tiềm Năng</h5>
+                                        <div class="col-3">
+                                            <input type="email" class="form-control search" placeholder="Search">
+                                        </div>
+                                    </div>
+
+                                    <div class="fluid-container" id="volumn">
+                                        <div class="row">
+                                            <% for(market in marketGood) { %>
+                                            <% var self = markets[market]; %> 
+                                            <% var i_1h = markets[market].indicator_1h; %>
+                                            <% var i_5m = markets[market].indicator_5m; %>
+                                            <% var pattern_1h = i_1h.pattern.pattern; %>
+                                            <% var probability_1h = Math.round(i_1h.pattern.probability); %>
+                                            <% var pattern_5m = i_5m.pattern.pattern; %>
+                                            <% var probability_5m = Math.round(i_5m.pattern.probability); %>
+                                            <% var count_buy_1h = i_1h.count_buy; %>
+                                            <% var count_sell_1h = i_1h.count_sell; %>
+                                            <% var count_buy_5m = i_5m.count_buy; %>
+                                            <% var count_sell_5m = i_5m.count_sell; %>
+                                            <% var classess = ''; %>
+                                            <div class='col-4 ticket-card mt-3 pb-2 border-bottom'>
+                                                <div class="col-12">
+                                                    <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>'><%= market %></a>
+                                                    <a class="setting icon-settings" data-toggle="modal" data-target="#settingModal"  href='#' data='<%= market %>'></a>
+                                                </div>
+                                                <div class="ticket-details col-10">
+                                                    <div class="d-flex">
+                                                        <p>Current price: <%= markets[market].last %></p>
+                                                    </div>
+                                                    <div class="row text-muted d-flex">
+                                                        <div class="col-12 d-flex">
+                                                            <p class="mb-0 mr-2">1h:</p>
+                                                            <p class="mr-2 mb-0 text-primary"><%= pattern_1h %>(<%= probability_1h %>)</p>
+                                                            <p class="mr-2 mb-0 text-danger"><%= count_sell_1h %></p>
+                                                            <p class="mr-2 mb-0 text-success"><%= count_buy_1h %></p> 
+                                                        </div>
+                                                        <div class="col-12 d-flex">
+                                                            <p class="mb-0 mr-2">5m:</p>
+                                                            <p class="mr-2 mb-0 text-primary"><%= pattern_5m %>(<%= probability_5m %>)</p>
+                                                            <p class="mr-2 mb-0 text-danger"><%= count_sell_5m %></p>
+                                                            <p class="mr-2 mb-0 text-success"><%= count_buy_5m %></p> 
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                <% include ../views/partials/footer %>
                 <!-- partial -->
-                <div class="main-panel">
-                    <div class="content-wrapper">
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <div id='myModal' class='modal fade' role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <div class="container-fluid">
                         <div class="row">
-                            <div class="col-12 grid-margin">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="form-group row">
-                                            <h5 class="col-9 card-title">Coin đã mua</h5>
-                                            <div class="col-3">
-                                                <input type="email" class="form-control search" placeholder="Search">
-                                            </div>
-                                        </div>
-
-
-                                        <div class="fluid-container" id="tickets">
-                                            <div class="row">
-                                                <% for(market in marketBuy) { %>
-                                                <% var self = markets[market]; %> 
-                                                <% var i_1h = markets[market].indicator_1h; %>
-                                                <% var i_5m = markets[market].indicator_5m; %>
-                                                <% var pattern_1h = i_1h.pattern.pattern; %>
-                                                <% var probability_1h = Math.round(i_1h.pattern.probability); %>
-                                                <% var pattern_5m = i_5m.pattern.pattern; %>
-                                                <% var probability_5m = Math.round(i_5m.pattern.probability); %>
-                                                <% var count_buy_1h = i_1h.count_buy; %>
-                                                <% var count_sell_1h = i_1h.count_sell; %>
-                                                <% var count_buy_5m = i_5m.count_buy; %>
-                                                <% var count_sell_5m = i_5m.count_sell; %>
-                                                <% var price_buy = self.priceBuyAvg; %>
-                                                <% var priceBuy = self.priceBuy; %>
-                                                <% var timeBuy = self.timeBuy; %>
-                                                <% var percent = (markets[market].last - price_buy) / price_buy * 100; %>
-                                                <% var classess = ''; %>
-                                                <% if(percent > 0){ %> 
-                                                <% classess = 'text-success'; %> 
-                                                <% }else{ %> 
-                                                <% classess = 'text-danger'; %> 
-                                                <% } %> 
-                                                <div class='col-4 ticket-card mt-3 pb-2 border-bottom'>
-                                                    <div class="col-12">
-                                                        <a class="fancybox" data-toggle="modal" data-target="#myModal"  href='#' data='<%= market %>'><%= market %></a>
-                                                        <a class="setting icon-settings" data-toggle="modal" data-target="#settingModal"  href='#' data='<%= market %>'></a>
-                                                    </div>
-                                                    <div class="ticket-details col-10">
-                                                        <div class="d-flex">
-                                                            <p>Current price: <%= markets[market].last %><span class="<%= classess %>">(<%= percent.toFixed(2) %>%)</span></p>
-                                                        </div>
-                                                        <div class="d-flex">
-                                                            <p>Price Buy: <%= priceBuy.join(" , ") %></p>
-                                                        </div>
-                                                        <div class="d-flex">
-                                                            <p>Time Buy: <%= timeBuy.join(" , ") %></p>
-                                                        </div>
-                                                        <div class="row text-muted d-flex">
-                                                            <div class="col-12 d-flex">
-                                                                <p class="mb-0 mr-2">1h:</p>
-                                                                <p class="mr-2 mb-0 text-primary"><%= pattern_1h %>(<%= probability_1h %>)</p>
-                                                                <p class="mr-2 mb-0 text-danger"><%= count_sell_1h %></p>
-                                                                <p class="mr-2 mb-0 text-success"><%= count_buy_1h %></p> 
-                                                            </div>
-                                                            <div class="col-12 d-flex">
-                                                                <p class="mb-0 mr-2">5m:</p>
-                                                                <p class="mr-2 mb-0 text-primary"><%= pattern_5m %>(<%= probability_5m %>)</p>
-                                                                <p class="mr-2 mb-0 text-danger"><%= count_sell_5m %></p>
-                                                                <p class="mr-2 mb-0 text-success"><%= count_buy_5m %></p> 
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <% } %>
-                                            </div>
-                                        </div>
+                            <div class="col-9">
+                                <div class="col-12">
+                                    <div class="btn-group" id="interval" role="group" data-toggle="button" aria-label="Basic example">
+                                        <button type="button" class="btn">5m</button>
+                                        <button type="button" class="btn active">1h</button>
+                                        <button type="button" class="btn">1d</button>
                                     </div>
-                                    <div class="card-footer">
-                                        <a href='#' data-toggle="modal" data-target='#historyModel'>Lịch sử</a>
-                                    </div>
+                                    <button type="button" class="btn" id="tradingview-buton">Tradingview</button>
                                 </div>
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="form-group row">
-                                            <h5 class="col-9 card-title">HOT Market</h5>
-                                            <div class="col-3">
-                                                <input type="email" class="form-control search" placeholder="Search">
-                                            </div>
-                                        </div>
-
-                                        <div class="fluid-container" id="volumn">
-                                            <div class="row">
-                                                <% for(market in marketHot) { %>
-                                                <% var self = markets[market]; %> 
-                                                <% var i_1h = markets[market].indicator_1h; %>
-                                                <% var i_5m = markets[market].indicator_5m; %>
-                                                <% var pattern_1h = i_1h.pattern.pattern; %>
-                                                <% var probability_1h = Math.round(i_1h.pattern.probability); %>
-                                                <% var pattern_5m = i_5m.pattern.pattern; %>
-                                                <% var probability_5m = Math.round(i_5m.pattern.probability); %>
-                                                <% var count_buy_1h = i_1h.count_buy; %>
-                                                <% var count_sell_1h = i_1h.count_sell; %>
-                                                <% var count_buy_5m = i_5m.count_buy; %>
-                                                <% var count_sell_5m = i_5m.count_sell; %>
-                                                <% var classess = ''; %>
-                                                <div class='col-4 ticket-card mt-3 pb-2 border-bottom'>
-                                                    <div class="col-12">
-                                                        <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>'><%= market %></a>
-                                                        <a class="setting icon-settings" data-toggle="modal" data-target="#settingModal"  href='#' data='<%= market %>'></a>
-                                                    </div>
-                                                    <div class="ticket-details col-10">
-                                                        <div class="d-flex">
-                                                            <p>Current price: <%= markets[market].last %></p>
-                                                        </div>
-                                                        <div class="row text-muted d-flex">
-                                                            <div class="col-12 d-flex">
-                                                                <p class="mb-0 mr-2">1h:</p>
-                                                                <p class="mr-2 mb-0 text-primary"><%= pattern_1h %>(<%= probability_1h %>)</p>
-                                                                <p class="mr-2 mb-0 text-danger"><%= count_sell_1h %></p>
-                                                                <p class="mr-2 mb-0 text-success"><%= count_buy_1h %></p> 
-                                                            </div>
-                                                            <div class="col-12 d-flex">
-                                                                <p class="mb-0 mr-2">5m:</p>
-                                                                <p class="mr-2 mb-0 text-primary"><%= pattern_5m %>(<%= probability_5m %>)</p>
-                                                                <p class="mr-2 mb-0 text-danger"><%= count_sell_5m %></p>
-                                                                <p class="mr-2 mb-0 text-success"><%= count_buy_5m %></p> 
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <% } %>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="form-group row">
-                                            <h5 class="col-9 card-title">Coin Tiềm Năng</h5>
-                                            <div class="col-3">
-                                                <input type="email" class="form-control search" placeholder="Search">
-                                            </div>
-                                        </div>
-
-                                        <div class="fluid-container" id="volumn">
-                                            <div class="row">
-                                                <% for(market in marketGood) { %>
-                                                <% var self = markets[market]; %> 
-                                                <% var i_1h = markets[market].indicator_1h; %>
-                                                <% var i_5m = markets[market].indicator_5m; %>
-                                                <% var pattern_1h = i_1h.pattern.pattern; %>
-                                                <% var probability_1h = Math.round(i_1h.pattern.probability); %>
-                                                <% var pattern_5m = i_5m.pattern.pattern; %>
-                                                <% var probability_5m = Math.round(i_5m.pattern.probability); %>
-                                                <% var count_buy_1h = i_1h.count_buy; %>
-                                                <% var count_sell_1h = i_1h.count_sell; %>
-                                                <% var count_buy_5m = i_5m.count_buy; %>
-                                                <% var count_sell_5m = i_5m.count_sell; %>
-                                                <% var classess = ''; %>
-                                                <div class='col-4 ticket-card mt-3 pb-2 border-bottom'>
-                                                    <div class="col-12">
-                                                        <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>'><%= market %></a>
-                                                        <a class="setting icon-settings" data-toggle="modal" data-target="#settingModal"  href='#' data='<%= market %>'></a>
-                                                    </div>
-                                                    <div class="ticket-details col-10">
-                                                        <div class="d-flex">
-                                                            <p>Current price: <%= markets[market].last %></p>
-                                                        </div>
-                                                        <div class="row text-muted d-flex">
-                                                            <div class="col-12 d-flex">
-                                                                <p class="mb-0 mr-2">1h:</p>
-                                                                <p class="mr-2 mb-0 text-primary"><%= pattern_1h %>(<%= probability_1h %>)</p>
-                                                                <p class="mr-2 mb-0 text-danger"><%= count_sell_1h %></p>
-                                                                <p class="mr-2 mb-0 text-success"><%= count_buy_1h %></p> 
-                                                            </div>
-                                                            <div class="col-12 d-flex">
-                                                                <p class="mb-0 mr-2">5m:</p>
-                                                                <p class="mr-2 mb-0 text-primary"><%= pattern_5m %>(<%= probability_5m %>)</p>
-                                                                <p class="mr-2 mb-0 text-danger"><%= count_sell_5m %></p>
-                                                                <p class="mr-2 mb-0 text-success"><%= count_buy_5m %></p> 
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <% } %>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <div id="tradingview" class="col-12" style="height: 500px;"></div>
                             </div>
-                        </div>
-                    </div>
-                    <!-- content-wrapper ends -->
-                    <!-- partial:partials/_footer.html -->
-                    <% include ../views/partials/footer %>
-                    <!-- partial -->
-                </div>
-                <!-- main-panel ends -->
-            </div>
-            <!-- page-body-wrapper ends -->
-        </div>
-        <div id='myModal' class='modal fade' role="dialog">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <!-- Modal body -->
-                    <div class="modal-body">
-                        <div class="container-fluid">
-                            <div class="row">
-                                <div class="col-9">
-                                    <div class="col-12">
-                                        <div class="btn-group" id="interval" role="group" data-toggle="button" aria-label="Basic example">
-                                            <button type="button" class="btn">5m</button>
-                                            <button type="button" class="btn active">1h</button>
-                                            <button type="button" class="btn">1d</button>
-                                        </div>
-                                        <button type="button" class="btn" id="tradingview-buton">Tradingview</button>
-                                    </div>
-                                    <div id="tradingview" class="col-12" style="height: 500px;"></div>
-                                </div>
-                                <div class="col-3">
+                            <div class="col-3">
 
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div id='settingModal' class='modal fade' role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <!-- Modal body -->
-                    <div class="modal-body">
-                        <div class="container-fluid">
-                            <form class="row" id="formSetting">
-                                <input type="hidden" name="MarketName" value=""/>
-                                <div class='col-6' id="settingMua">
-                                    <div class='col-12'>
-                                        <span class='badge badge-success'>Mua</span>
-                                    </div>
-                                    <div class='col-12 m-3'>
-                                        <input class="form-check-input" type="radio" name="chienLuocMua" id='chienLuocMuaDay' value="chienLuocMuaDay" checked>
-                                        <label class="form-check-label" for="chienLuocMuaDay">
-                                            Mua BB & RSI
+    </div>
+    <div id='settingModal' class='modal fade' role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <form class="row" id="formSetting">
+                            <input type="hidden" name="MarketName" value=""/>
+                            <div class='col-6' id="settingMua">
+                                <div class='col-12'>
+                                    <span class='badge badge-success'>Mua</span>
+                                </div>
+                                <div class='col-12 m-3'>
+                                    <input class="form-check-input" type="radio" name="chienLuocMua" id='chienLuocMuaDay' value="chienLuocMuaDay" checked>
+                                    <label class="form-check-label" for="chienLuocMuaDay">
+                                        Mua BB & RSI
+                                    </label>
+                                </div>
+
+                                <div class='col-12  m-3'>
+                                    <div data-toggle="collapse" data-target="#mocPriceBuy" aria-expanded="false" aria-controls="mocPriceBuy">
+                                        <input class="form-check-input" type="radio" name="chienLuocMua" id='chienLuocMuaMoc' value="chienLuocMuaMoc">
+                                        <label class="form-check-label" for="chienLuocMuaMoc">
+                                            Mua Mốc
                                         </label>
                                     </div>
-
-                                    <div class='col-12  m-3'>
-                                        <div data-toggle="collapse" data-target="#mocPriceBuy" aria-expanded="false" aria-controls="mocPriceBuy">
-                                            <input class="form-check-input" type="radio" name="chienLuocMua" id='chienLuocMuaMoc' value="chienLuocMuaMoc">
-                                            <label class="form-check-label" for="chienLuocMuaMoc">
-                                                Mua Mốc
-                                            </label>
-                                        </div>
-                                        <div id="mocPriceBuy" class="collapse" data-parent="#settingMua">
-                                            <input class='form-control w-75 d-inline-block is-valid' type='number' name='mocPriceBuy' value='0'/>
-                                        </div>
+                                    <div id="mocPriceBuy" class="collapse" data-parent="#settingMua">
+                                        <input class='form-control w-75 d-inline-block is-valid' type='number' name='mocPriceBuy' value='0'/>
                                     </div>
                                 </div>
-                                <div class='col-6' id='settingBan'>
-                                    <div class='col-12'>
-                                        <span class='badge badge-danger'>Bán</span>
-                                    </div>
-                                    <div class='col-12 m-3'>
-                                        <input class="form-check-input" type="checkbox" value="1" id="isCheckRsiBan" name='isCheckRsiBan' >
-                                        <label class="form-check-label" for="isCheckRsiBan">
-                                            Kiểm tra RSI > 80
+                            </div>
+                            <div class='col-6' id='settingBan'>
+                                <div class='col-12'>
+                                    <span class='badge badge-danger'>Bán</span>
+                                </div>
+                                <div class='col-12 m-3'>
+                                    <input class="form-check-input" type="checkbox" value="1" id="isCheckRsiBan" name='isCheckRsiBan' >
+                                    <label class="form-check-label" for="isCheckRsiBan">
+                                        Kiểm tra RSI > 80
+                                    </label>
+                                </div>
+
+                                <div class='col-12 m-3'>
+                                    <div data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                        <input class="form-check-input" type="radio" name="chienLuocBan" id='chienLuocBanMin' value="chienLuocBanMin" checked>
+                                        <label class="form-check-label" for="chienLuocBanMin">
+                                            Bán min
                                         </label>
                                     </div>
-
-                                    <div class='col-12 m-3'>
-                                        <div data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                            <input class="form-check-input" type="radio" name="chienLuocBan" id='chienLuocBanMin' value="chienLuocBanMin" checked>
-                                            <label class="form-check-label" for="chienLuocBanMin">
-                                                Bán min
-                                            </label>
-                                        </div>
-                                        <div id="collapseOne" class="collapse show ml-4" aria-labelledby="headingOne" data-parent="#settingBan">
-                                            <input class="form-check-input" type="checkbox" value="1" id="isCheckMACDBan" name='isCheckMACDBan'>
-                                            <label class="form-check-label" for="isCheckMACDBan">
-                                                Kiểm tra MACD
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div class='col-12  m-3'>
-                                        <div data-toggle="collapse" data-target="#mocPriceSell" aria-expanded="false" aria-controls="mocPriceSell">
-                                            <input class="form-check-input" type="radio" name="chienLuocBan" id='chienLuocBanMoc' value="chienLuocBanMoc">
-                                            <label class="form-check-label" for="chienLuocBanMoc">
-                                                Bán mốc
-                                            </label>
-                                        </div>
-                                        <div id="mocPriceSell" class="collapse" data-parent="#settingBan">
-                                            <input class='form-control w-75 d-inline-block is-valid' type='number' name='mocPriceSell'/>
-                                        </div>
+                                    <div id="collapseOne" class="collapse show ml-4" aria-labelledby="headingOne" data-parent="#settingBan">
+                                        <input class="form-check-input" type="checkbox" value="1" id="isCheckMACDBan" name='isCheckMACDBan'>
+                                        <label class="form-check-label" for="isCheckMACDBan">
+                                            Kiểm tra MACD
+                                        </label>
                                     </div>
                                 </div>
-                                <div class="col-12 text-center">
-                                    <button class="btn btn-success" id='saveMarket'>
-                                        Save
-                                    </button>
+
+                                <div class='col-12  m-3'>
+                                    <div data-toggle="collapse" data-target="#mocPriceSell" aria-expanded="false" aria-controls="mocPriceSell">
+                                        <input class="form-check-input" type="radio" name="chienLuocBan" id='chienLuocBanMoc' value="chienLuocBanMoc">
+                                        <label class="form-check-label" for="chienLuocBanMoc">
+                                            Bán mốc
+                                        </label>
+                                    </div>
+                                    <div id="mocPriceSell" class="collapse" data-parent="#settingBan">
+                                        <input class='form-control w-75 d-inline-block is-valid' type='number' name='mocPriceSell'/>
+                                    </div>
                                 </div>
-                            </form>
-                        </div>
+                            </div>
+                            <div class="col-12 text-center">
+                                <button class="btn btn-success" id='saveMarket'>
+                                    Save
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-        <div id='historyModel' class='modal fade' role="dialog">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <!-- Modal body -->
-                    <div class="modal-body" id="history">
-                        <table class="table table-striped col-lg-12"  >
-                            <thead>
-                                <tr>
-                                    <th>STT</th>
-                                    <th>Thị trường</th>
-                                    <th>Giá mua</th>
-                                    <th>Giá bán</th>
-                                    <th>Số lượng</th>
-                                    <th>Tỉ lệ</th>
-                                    <th>Thời gian mua</th>
-                                    <th>Thời gian bán</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+    </div>
+    <div id='historyModel' class='modal fade' role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <!-- Modal body -->
+                <div class="modal-body" id="history">
+                    <table class="table table-striped col-lg-12"  >
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Thị trường</th>
+                                <th>Giá mua</th>
+                                <th>Giá bán</th>
+                                <th>Số lượng</th>
+                                <th>Tỉ lệ</th>
+                                <th>Thời gian mua</th>
+                                <th>Thời gian bán</th>
+                            </tr>
+                        </thead>
+                        <tbody>
 
-                                <% for(var i in rows) { %>
-                                <% var price_sell = rows[i].price_sell; %>
-                                <% var price_buy = rows[i].price_buy; %>
-                                <% var amount = rows[i].amount; %>
-                                <% var market = rows[i].market; %>
-                                <% var timestamp_buy = rows[i].time_buy; %>
-                                <% var timestamp_sell = rows[i].time_sell; %>
-                                <% var percent = rows[i].percent; %>
-                                <tr>
-                                    <td><%= i %></td>
-                                    <td> 
-                                        <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>'><%= market %></a>
-                                    </td>
-                                    <td class="text-success"><%= price_buy %></td>
-                                    <td class="text-danger"><%= price_sell %></td>
-                                    <td><%= amount %></td>
-                                    <td class="text-success"><%= percent %>%</td>
-                                    <td><%= timestamp_buy %></td>
-                                    <td><%= timestamp_sell %></td>
-                                </tr>
-                                <% } %>
+                            <% for(var i in rows) { %>
+                            <% var price_sell = rows[i].price_sell; %>
+                            <% var price_buy = rows[i].price_buy; %>
+                            <% var amount = rows[i].amount; %>
+                            <% var market = rows[i].market; %>
+                            <% var timestamp_buy = rows[i].time_buy; %>
+                            <% var timestamp_sell = rows[i].time_sell; %>
+                            <% var percent = rows[i].percent; %>
+                            <tr>
+                                <td><%= i %></td>
+                                <td> 
+                                    <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>'><%= market %></a>
+                                </td>
+                                <td class="text-success"><%= price_buy %></td>
+                                <td class="text-danger"><%= price_sell %></td>
+                                <td><%= amount %></td>
+                                <td class="text-success"><%= percent %>%</td>
+                                <td><%= timestamp_buy %></td>
+                                <td><%= timestamp_sell %></td>
+                            </tr>
+                            <% } %>
 
-                            </tbody>
-                        </table>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-        <!-- container-scroller -->
-        <!-- plugins:js -->
-        <script src="../others/jquery/dist/jquery.min.js"></script>
-        <script src="../others/popper.js/dist/umd/popper.min.js"></script>
-        <script src="../others/bootstrap/dist/js/bootstrap.min.js"></script>
-        <script src="../others/fancybox/jquery.fancybox.min.js"></script>
-        <script type="text/javascript" src="../js/moment.js"></script>
-        <!-- endinject -->
-        <!-- Plugin js for this page-->
-        <!-- End plugin js for this page-->
-        <!-- inject:js -->
-        <script src="../js/off-canvas.js"></script>
-        <script src="../js/color-hash.js"></script>
-        <script src="../js/misc.js"></script>
-        <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    </div>
+    <!-- container-scroller -->
+    <!-- plugins:js -->
+    <script src="../others/jquery/dist/jquery.min.js"></script>
+    <script src="../others/popper.js/dist/umd/popper.min.js"></script>
+    <script src="../others/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="../others/fancybox/jquery.fancybox.min.js"></script>
+    <script type="text/javascript" src="../js/moment.js"></script>
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    <script src="../js/off-canvas.js"></script>
+    <script src="../js/color-hash.js"></script>
+    <script src="../js/misc.js"></script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 
-        <!--<link rel="stylesheet" href="../iguanachart/dependencies/uikit/css/uikit.min.css" media="all">-->
-        <script type="text/javascript" src="../iguanachart/dependencies/uikit/js/uikit.min.js"></script>
+    <!--<link rel="stylesheet" href="../iguanachart/dependencies/uikit/css/uikit.min.css" media="all">-->
+    <script type="text/javascript" src="../iguanachart/dependencies/uikit/js/uikit.min.js"></script>
 
-        <script type="text/javascript" src="../iguanachart/dependencies/jquery.event.move.js"></script>
-        <script type="text/javascript" src="../iguanachart/dependencies/jquery.mousewheel.min.js"></script>
-        <script type="text/javascript" src="../iguanachart/dependencies/hammer.min.js"></script>
-        <script type="text/javascript" src="../iguanachart/dependencies/jquery.hammer.js"></script>
-        <script type="text/javascript" src="../iguanachart/dependencies/jsrender.min.js"></script>
+    <script type="text/javascript" src="../iguanachart/dependencies/jquery.event.move.js"></script>
+    <script type="text/javascript" src="../iguanachart/dependencies/jquery.mousewheel.min.js"></script>
+    <script type="text/javascript" src="../iguanachart/dependencies/hammer.min.js"></script>
+    <script type="text/javascript" src="../iguanachart/dependencies/jquery.hammer.js"></script>
+    <script type="text/javascript" src="../iguanachart/dependencies/jsrender.min.js"></script>
 
-        <link rel="stylesheet" href="../iguanachart/dependencies/jquery.qtip.min.css" media="all">
-        <script type="text/javascript" src="../iguanachart/dependencies/jquery.qtip.min.js"></script>
+    <link rel="stylesheet" href="../iguanachart/dependencies/jquery.qtip.min.css" media="all">
+    <script type="text/javascript" src="../iguanachart/dependencies/jquery.qtip.min.js"></script>
 
-        <link rel="stylesheet" href="../iguanachart/dependencies/jquery-minicolors/jquery.minicolors.css" media="all">
-        <script type="text/javascript" src="../iguanachart/dependencies/jquery-minicolors/jquery.minicolors.min.js"></script>
+    <link rel="stylesheet" href="../iguanachart/dependencies/jquery-minicolors/jquery.minicolors.css" media="all">
+    <script type="text/javascript" src="../iguanachart/dependencies/jquery-minicolors/jquery.minicolors.min.js"></script>
 
-        <link rel="stylesheet" type="text/css" href="../iguanachart/iguanachart.min.css" media="all"/>
+    <link rel="stylesheet" type="text/css" href="../iguanachart/iguanachart.min.css" media="all"/>
 
-        <script type="text/javascript" src="../iguanachart/i18n.js"></script>
-        <script type="text/javascript" src="../iguanachart/iguanachart.js"></script>
-        <script type='text/javascript'>
-            $(document).ready(function () {
-                $("#interval button").click(function (e) {
-                    var symbol = $("#myModal").data("symbol");
-                    var interval = $(this).text();
-                    drawChart(symbol, interval);
-                });
-                $("#tradingview-buton").click(function (e) {
-                    var symbol = $("#myModal").data("symbol");
-                    $("#tradingview").show().empty();
-                    $("#tradingview1").remove();
-                    var widget = new TradingView.widget({
-                        autosize: true,
-                        "symbol": "BINANCE:" + symbol,
-                        "interval": "5",
-                        "timezone": "Asia/Bangkok",
-                        "theme": "Dark",
-                        "style": "1",
-                        "locale": "vi_VN",
-                        "toolbar_bg": "#f1f3f6",
-                        "enable_publishing": false,
-                        "hide_side_toolbar": false,
-                        "studies": [
-                            "BB@tv-basicstudies",
-                            "RSI@tv-basicstudies",
-                            "MACD@tv-basicstudies"
-                        ],
-                        "allow_symbol_change": true,
-                        "container_id": "tradingview"
-                    });
-                })
-                $(".setting").click(function (e) {
-                    e.preventDefault();
-                    var symbol = $(this).attr("data");
-                    $.ajax({
-                        url: "http://localhost:3000/api/market?symbol=" + symbol,
-                        dataType: "JSON",
-                        success: function (data) {
-                            applyForm($("#formSetting"), data);
-                            console.log(data);
-                        }
-                    });
-                });
-                $("#saveMarket").click(function (e) {
-                    e.preventDefault();
-                    var data = $("#formSetting").serialize();
-                    $.ajax({
-                        url: "http://localhost:3000/api/market",
-                        dataType: "JSON",
-                        data: data,
-                        type: "POST",
-                        success: function (data) {
-                            $('#settingModal').modal('hide');
-                        }
-                    });
-                    console.log(data);
-                })
-                $(".fancybox").click(function (e) {
-                    e.preventDefault();
-//                    if ($('#historyModel').hasClass('show'))
-//                        $('#historyModel').modal('hide');
-                    var symbol = $(this).attr("data");
-                    $("#myModal").data("symbol", symbol);
-                    drawChart(symbol, "1h");
-                });
-                $(".search").keyup(function () {
-                    var search = $(this).val().toUpperCase();
-                    var parents = $(this).parents(".card");
-                    if (search == '') {
-                        $(".ticket-card", parents).show();
-                        return
-                    }
-                    $(".ticket-card", parents).hide();
-                    $(".ticket-card", parents).each(function () {
-                        var text = $(this).text().replace(/\s/ig, "").toUpperCase();
-                        console.log(text);
-                        if (text.indexOf(search) != -1) {
-                            $(this).show();
-                        }
-                    })
-                });
+    <script type="text/javascript" src="../iguanachart/i18n.js"></script>
+    <script type="text/javascript" src="../iguanachart/iguanachart.js"></script>
+    <script type='text/javascript'>
+        $(document).ready(function () {
+            subscription();
+            $("#interval button").click(function (e) {
+                var symbol = $("#myModal").data("symbol");
+                var interval = $(this).text();
+                drawChart(symbol, interval);
             });
-            function drawChart(symbol, interval) {
-                var interval1 = "D1";
-                var sub = 30;
-                if (interval == "5m") {
-                    interval1 = "M5";
-                    sub = 1;
-                } else if (interval == "1h") {
-                    interval1 = "H1";
-                    sub = 4;
-                } else if (interval == "1d") {
-                    interval1 = "D1";
-                    sub = 30;
-                }
-                $("#tradingview").hide().empty();
+            $("#tradingview-buton").click(function (e) {
+                var symbol = $("#myModal").data("symbol");
+                $("#tradingview").show().empty();
                 $("#tradingview1").remove();
+                var widget = new TradingView.widget({
+                    autosize: true,
+                    "symbol": "BINANCE:" + symbol,
+                    "interval": "5",
+                    "timezone": "Asia/Bangkok",
+                    "theme": "Dark",
+                    "style": "1",
+                    "locale": "vi_VN",
+                    "toolbar_bg": "#f1f3f6",
+                    "enable_publishing": false,
+                    "hide_side_toolbar": false,
+                    "studies": [
+                    "BB@tv-basicstudies",
+                    "RSI@tv-basicstudies",
+                    "MACD@tv-basicstudies"
+                    ],
+                    "allow_symbol_change": true,
+                    "container_id": "tradingview"
+                });
+            })
+            $(".setting").click(function (e) {
+                e.preventDefault();
+                var symbol = $(this).attr("data");
                 $.ajax({
-                    url: "http://localhost:3000/api/candle?interval=" + interval + "&symbol=" + symbol,
+                    url: "http://localhost:3000/api/market?symbol=" + symbol,
                     dataType: "JSON",
                     success: function (data) {
-                        var pointFormatter = function () {
-                            return "<div>Price: " + this.y + "</div>";
-                        }
-                        for (var i in data.events) {
-                            data.events[i].pointFormatter = pointFormatter;
-                        }
-                        $('#tradingview').after("<div id='tradingview1' class='col-12' style='height:500px;'/>");
-                        $("#tradingview1").on("iguanaChartEvents", function (e, name, data) {
-                            if (name == "chartDataReady") {
-                                $("#tradingview1").data("iguanaChart").TA.BBANDS(1, 1, {TimePeriod: 20});
-                            }
-                        }).iguanaChart({
-                            ticker: "AAPL.US",
-                            events: data.events,
-                            chartOptions: {
-                                minHeight: $("#tradingview1").height(),
-                                futureAmount: 1
-                            },
-                            dataSource: {
-                                data: data.data,
-                                dataSettings: {
-                                    useHash: false,
-                                    date_from: moment().subtract(sub, "d").format("DD.MM.YYYY HH:mm:ss"),
-                                    date_to: moment().format("DD.MM.YYYY HH:mm:ss"),
-                                    start: moment().subtract(sub, "d").format("DD.MM.YYYY HH:mm:ss"),
-                                    end: moment().format("DD.MM.YYYY HH:mm:ss"),
-                                    hash: "",
-                                    id: "LKOH",
-                                    interval: interval1
-                                }
-                            }
-                        }).iguanaChart("setTheme", "Dark");
+                        applyForm($("#formSetting"), data);
+                        console.log(data);
                     }
                 });
-            }
-            function applyForm(form, data) {
-                $('input, select, textarea', form).each(function () {
-                    var type = $(this).attr('type');
-                    var value = "";
-                    if (data[$(this).attr('name')])
-                        value = data[$(this).attr('name')];
-                    switch (type) {
-                        case 'checkbox':
-                            $(this).prop('checked', false);
-                            if (value == true || value == 'true' || value == 1) {
-                                $(this).prop('checked', true);
-                            }
-                            break;
-                        case 'text':
-                        case 'number':
-                        case 'email':
-                        case 'email':
-                            $(this).val(value);
-                            break;
-                        case 'radio':
-                            $(this).removeAttr('checked', 'checked');
-                            var rdvalue = $(this).val();
-                            if (rdvalue == value) {
-                                $(this).prop('checked', true);
-                            }
-                            break;
-                        default:
-                            $(this).val(value);
-                            break;
+            });
+            $("#saveMarket").click(function (e) {
+                e.preventDefault();
+                var data = $("#formSetting").serialize();
+                $.ajax({
+                    url: "http://localhost:3000/api/market",
+                    dataType: "JSON",
+                    data: data,
+                    type: "POST",
+                    success: function (data) {
+                        $('#settingModal').modal('hide');
                     }
                 });
+                console.log(data);
+            })
+            $(".fancybox").click(function (e) {
+                e.preventDefault();
+                // if ($('#historyModel').hasClass('show'))
+                //      $('#historyModel').modal('hide');
+                var symbol = $(this).attr("data");
+                $("#myModal").data("symbol", symbol);
+                drawChart(symbol, "1h");
+            });
+            $(".search").keyup(function () {
+                var search = $(this).val().toUpperCase();
+                var parents = $(this).parents(".card");
+                if (search == '') {
+                    $(".ticket-card", parents).show();
+                    return
+                }
+                $(".ticket-card", parents).hide();
+                $(".ticket-card", parents).each(function () {
+                    var text = $(this).text().replace(/\s/ig, "").toUpperCase();
+                    console.log(text);
+                    if (text.indexOf(search) != -1) {
+                        $(this).show();
+                    }
+                })
+            });
+        });
+        function subscription(){
+            var  socket = new WebSocket("wss://stream.binance.com:9443/ws/BTCUSDT@kline_5m");
+            // Connection opened
+            socket.addEventListener('open', function (event) {
+                console.log("hello");
+            });
+            socket.addEventListener('pong', function (event) {
+                console.log("pong");
+            });
+            socket.addEventListener('error', function (event) {
+                console.log("error");
+            });
+            socket.addEventListener('close',function (event) {
+                console.log("colose");
+            });
+            // Listen for messages
+            socket.addEventListener('message', function (data) {
+                try {
+                    callback(JSON.parse(data).data);
+                } catch (error) {
+                    options.log('CombinedStream: Parse error: ' + error.message);
+                }
+            });
+        }
+        function drawChart(symbol, interval) {
+            var interval1 = "D1";
+            var sub = 30;
+            if (interval == "5m") {
+                interval1 = "M5";
+                sub = 1;
+            } else if (interval == "1h") {
+                interval1 = "H1";
+                sub = 4;
+            } else if (interval == "1d") {
+                interval1 = "D1";
+                sub = 30;
             }
-            var pointFormatter = function () {
-                return "<div>" +
-                        "<div>" +
-                        this.text +
-                        "</div>" +
-                        this.y +
-                        "</div>";
-            }
-        </script>
-        <!-- endinject -->
-        <!-- Custom js for this page-->
-        <!-- End custom js for this page-->
-    </body>
+            $("#tradingview").hide().empty();
+            $("#tradingview1").remove();
+            $.ajax({
+                url: "http://localhost:3000/api/candle?interval=" + interval + "&symbol=" + symbol,
+                dataType: "JSON",
+                success: function (data) {
+                    var pointFormatter = function () {
+                        return "<div>Price: " + this.y + "</div>";
+                    }
+                    for (var i in data.events) {
+                        data.events[i].pointFormatter = pointFormatter;
+                    }
+                    $('#tradingview').after("<div id='tradingview1' class='col-12' style='height:500px;'/>");
+                    $("#tradingview1").on("iguanaChartEvents", function (e, name, data) {
+                        if (name == "chartDataReady") {
+                            $("#tradingview1").data("iguanaChart").TA.BBANDS(1, 1, {TimePeriod: 20});
+                        }
+                    }).iguanaChart({
+                        ticker: "AAPL.US",
+                        events: data.events,
+                        chartOptions: {
+                            minHeight: $("#tradingview1").height(),
+                            futureAmount: 1
+                        },
+                        dataSource: {
+                            data: data.data,
+                            dataSettings: {
+                                useHash: false,
+                                date_from: moment().subtract(sub, "d").format("DD.MM.YYYY HH:mm:ss"),
+                                date_to: moment().format("DD.MM.YYYY HH:mm:ss"),
+                                start: moment().subtract(sub, "d").format("DD.MM.YYYY HH:mm:ss"),
+                                end: moment().format("DD.MM.YYYY HH:mm:ss"),
+                                hash: "",
+                                id: "LKOH",
+                                interval: interval1
+                            }
+                        }
+                    }).iguanaChart("setTheme", "Dark");
+                }
+            });
+        }
+        function applyForm(form, data) {
+            $('input, select, textarea', form).each(function () {
+                var type = $(this).attr('type');
+                var value = "";
+                if (data[$(this).attr('name')])
+                    value = data[$(this).attr('name')];
+                switch (type) {
+                    case 'checkbox':
+                    $(this).prop('checked', false);
+                    if (value == true || value == 'true' || value == 1) {
+                        $(this).prop('checked', true);
+                    }
+                    break;
+                    case 'text':
+                    case 'number':
+                    case 'email':
+                    case 'email':
+                    $(this).val(value);
+                    break;
+                    case 'radio':
+                    $(this).removeAttr('checked', 'checked');
+                    var rdvalue = $(this).val();
+                    if (rdvalue == value) {
+                        $(this).prop('checked', true);
+                    }
+                    break;
+                    default:
+                    $(this).val(value);
+                    break;
+                }
+            });
+        }
+        var pointFormatter = function () {
+            return "<div>" +
+            "<div>" +
+            this.text +
+            "</div>" +
+            this.y +
+            "</div>";
+        }
+    </script>
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <!-- End custom js for this page-->
+</body>
 </html>
