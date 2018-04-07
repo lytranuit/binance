@@ -15,6 +15,7 @@ var logger = require('morgan');
 
 var http = require('http');
 
+var Mail = require("./mail");
 
 	/******************
  * 
@@ -272,7 +273,15 @@ function execution_update(data) {
 		if (side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
 			markets[symbol].mua(price);
 			markets[symbol].save_db_mua(price);
+			var html = "<p>" + symbol + "</p><pre>" + JSON.stringify(self, undefined, 2) + "</pre>";
+			Mail.sendmail("[Buy]" + symbol, html);
+
 		} else if (side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
+			var price_buy = markets[symbol].priceBuyAvg;
+			var profit = (price - price_buy);
+			var percent = 100 * profit/price_buy;
+			var html = "<p>" + symbol + "</p><p>Price Buy:"+price_buy+"</p><p>Price Sell:"+price + "</p><p>Profit:"+profit +"("+percent+"%)</p>";
+			Mail.sendmail("[Sell]" + symbol , html);
 			markets[symbol].save_db_ban(price);
 		}
 	}
