@@ -36,68 +36,72 @@
                                 <div class="card-body">
                                     <div class="form-group row">
                                         <h5 class="col-9 card-title">Coin đã mua</h5>
-                                        <div class="col-3">
-                                            <input type="email" class="form-control search" placeholder="Search">
-                                        </div>
                                     </div>
-
-
-                                    <div class="fluid-container" id="tickets">
+                                    <div class="fluid-container">
                                         <div class="row">
-                                            <% for(market in marketBuy) { %>
-                                            <% var self = markets[market]; %> 
-                                            <% var i_1h = markets[market].indicator_1h; %>
-                                            <% var i_5m = markets[market].indicator_5m; %>
-                                            <% var pattern_1h = i_1h.pattern.pattern; %>
-                                            <% var probability_1h = Math.round(i_1h.pattern.probability); %>
-                                            <% var pattern_5m = i_5m.pattern.pattern; %>
-                                            <% var probability_5m = Math.round(i_5m.pattern.probability); %>
-                                            <% var count_buy_1h = i_1h.count_buy; %>
-                                            <% var count_sell_1h = i_1h.count_sell; %>
-                                            <% var count_buy_5m = i_5m.count_buy; %>
-                                            <% var count_sell_5m = i_5m.count_sell; %>
-                                            <% var price_buy = self.priceBuyAvg; %>
-                                            <% var priceBuy = self.priceBuy; %>
-                                            <% var timeBuy = self.timeBuy; %>
-                                            <% var percent = (markets[market].last - price_buy) / price_buy * 100; %>
-                                            <% var classess = ''; %>
-                                            <% if(percent > 0){ %> 
-                                            <% classess = 'text-success'; %> 
-                                            <% }else{ %> 
-                                            <% classess = 'text-danger'; %> 
-                                            <% } %> 
-                                            <div class='col-4 ticket-card mt-3 pb-2 border-bottom'>
-                                                <div class="col-12">
-                                                    <a class="fancybox" data-toggle="modal" data-target="#myModal"  href='#' data='<%= market %>'><%= market %></a>
-                                                    <a class="setting icon-settings" data-toggle="modal" data-target="#settingModal"  href='#' data='<%= market %>'></a>
-                                                </div>
-                                                <div class="ticket-details col-10">
-                                                    <div class="d-flex">
-                                                        <p>Current price: <%= markets[market].last %><span class="<%= classess %>">(<%= percent.toFixed(2) %>%)</span></p>
-                                                    </div>
-                                                    <div class="d-flex">
-                                                        <p>Price Buy: <%= priceBuy.join(" , ") %></p>
-                                                    </div>
-                                                    <div class="d-flex">
-                                                        <p>Time Buy: <%= timeBuy.join(" , ") %></p>
-                                                    </div>
-                                                    <div class="row text-muted d-flex">
-                                                        <div class="col-12 d-flex">
-                                                            <p class="mb-0 mr-2">1h:</p>
-                                                            <p class="mr-2 mb-0 text-primary"><%= pattern_1h %>(<%= probability_1h %>)</p>
-                                                            <p class="mr-2 mb-0 text-danger"><%= count_sell_1h %></p>
-                                                            <p class="mr-2 mb-0 text-success"><%= count_buy_1h %></p> 
-                                                        </div>
-                                                        <div class="col-12 d-flex">
-                                                            <p class="mb-0 mr-2">5m:</p>
-                                                            <p class="mr-2 mb-0 text-primary"><%= pattern_5m %>(<%= probability_5m %>)</p>
-                                                            <p class="mr-2 mb-0 text-danger"><%= count_sell_5m %></p>
-                                                            <p class="mr-2 mb-0 text-success"><%= count_buy_5m %></p> 
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <% } %>
+                                            <table id="tickets" class="table table-hover" style="width:100%">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>STT</th>
+                                                        <th>Thị trường</th>
+                                                        <th>Thời gian mua</th>
+                                                        <th>Giá mua</th>
+                                                        <th>Giá hiện tại</th>
+                                                        <th>Chỉ số 5m</th>
+                                                        <th>Chỉ số 1h</th>
+                                                        <th>Hành động</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <% var i = 1; %>
+                                                    <% for(market in marketBuy) { %>
+                                                    <% var self = markets[market]; %> 
+                                                    <% var i_1h = markets[market].indicator_1h; %>
+                                                    <% var i_5m = markets[market].indicator_5m; %>
+                                                    <% var pattern_1h = i_1h.pattern.pattern; %>
+                                                    <% var probability_1h = Math.round(i_1h.pattern.probability); %>
+                                                    <% var pattern_5m = i_5m.pattern.pattern; %>
+                                                    <% var probability_5m = Math.round(i_5m.pattern.probability); %>
+                                                    <% var count_buy_1h = i_1h.count_buy; %>
+                                                    <% var count_sell_1h = i_1h.count_sell; %>
+                                                    <% var count_buy_5m = i_5m.count_buy; %>
+                                                    <% var count_sell_5m = i_5m.count_sell; %>
+                                                    <% var price_buy = self.priceBuyAvg; %>
+                                                    <% var priceBuy = self.priceBuy; %>
+                                                    <% var timeBuy = self.timeBuy; %>
+                                                    <% var profit = markets[market].last - price_buy; %>
+                                                    <% var percent = profit / price_buy * 100; %>
+                                                    <% var classess = ''; %>
+                                                    <% if(percent > 0){ %> 
+                                                    <% classess = 'ml-2 text-success'; %> 
+                                                    <% }else{ %> 
+                                                    <% classess = 'ml-2 text-danger'; %> 
+                                                    <% } %> 
+                                                    <tr>
+                                                        <td><%= i++ %></td>
+                                                        <td><a class="fancybox" data-toggle="modal" data-target="#myModal"  href='#' data='<%= market %>'><%= market %></a></td>
+                                                        <td><%= timeBuy.join(" , ") %></td>
+                                                        <td><%= priceBuy.join(" , ") %></td>
+                                                        <td><%= markets[market].last %><span class="<%= classess %>">(<%= percent.toFixed(2) %>%)</span></td>
+                                                        <td>
+                                                            <p class="mb-2 text-primary"><%= pattern_1h %>(<%= probability_1h %>)</p>
+                                                            <p class="mb-2 text-danger"><%= count_sell_1h %></p>
+                                                            <p class="mb-2 text-success"><%= count_buy_1h %></p> 
+                                                        </td>
+                                                        <td>
+                                                            <p class="mb-2 text-primary"><%= pattern_5m %>(<%= probability_5m %>)</p>
+                                                            <p class="mb-2 text-danger"><%= count_sell_5m %></p>
+                                                            <p class="mb-2 text-success"><%= count_buy_5m %></p> 
+                                                        </td>
+                                                        <td> 
+                                                            <span class="p-2 setting icon-settings alert alert-primary" data-toggle="modal" data-target="#settingModal" data='<%= market %>'></span>
+                                                            <span class="badge badge-danger" data='<%= market %>'>Sell</span>
+                                                        </td>
+                                                    </tr>SE
+                                                    <% } %>
+                                                </tbody>
+                                            </table>
+
                                         </div>
                                     </div>
                                 </div>
@@ -129,7 +133,7 @@
                                             <% var count_buy_5m = i_5m.count_buy; %>
                                             <% var count_sell_5m = i_5m.count_sell; %>
                                             <% var classess = ''; %>
-                                            <div class='col-4 ticket-card mt-3 pb-2 border-bottom'>
+                                            <div class='col-3 ticket-card mt-3 pb-2 border-bottom'>
                                                 <div class="col-12">
                                                     <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>'><%= market %></a>
                                                     <a class="setting icon-settings" data-toggle="modal" data-target="#settingModal"  href='#' data='<%= market %>'></a>
@@ -183,7 +187,7 @@
                                             <% var count_buy_5m = i_5m.count_buy; %>
                                             <% var count_sell_5m = i_5m.count_sell; %>
                                             <% var classess = ''; %>
-                                            <div class='col-4 ticket-card mt-3 pb-2 border-bottom'>
+                                            <div class='col-3 ticket-card mt-3 pb-2 border-bottom'>
                                                 <div class="col-12">
                                                     <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>'><%= market %></a>
                                                     <a class="setting icon-settings" data-toggle="modal" data-target="#settingModal"  href='#' data='<%= market %>'></a>
@@ -244,7 +248,16 @@
                                 <div id="tradingview" class="col-12" style="height: 500px;"></div>
                             </div>
                             <div class="col-3">
-
+                                <div class="col-12">
+                                    <span class='badge badge-primary'>Giao dịch</span>
+                                    <p class="mr-2 mb-0">Lượt mua :<span class="count_mua text-success">1</span></p>
+                                    <p class="mr-2 mb-0">Lượt bán :<span class="count_ban text-danger">1</span></p> 
+                                </div>
+                                <div class="col-12">
+                                    <span class='badge badge-primary'>Orders List</span>
+                                    <p class="mr-2 mb-0">Lượng mua:<span class="order_mua text-success">1</span></p>
+                                    <p class="mr-2 mb-0">Lượng bán:<span class="order_ban text-danger">1</span></p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -416,6 +429,9 @@
     <script type="text/javascript" src="../iguanachart/i18n.js"></script>
     <script type="text/javascript" src="../iguanachart/iguanachart.js"></script>
     <script type="text/javascript" src="../js/socket.io.js"></script>
+    <link rel="stylesheet" type="text/css" href="DataTables/datatables.min.css"/>
+
+    <script type="text/javascript" src="DataTables/datatables.min.js"></script>
     <script type='text/javascript'>
 
         var socket = io();
@@ -436,6 +452,7 @@
         })
         $(document).ready(function () {
             //
+            $('#tickets').DataTable();
             $("#interval button").click(function (e) {
                 var symbol = $("#myModal").data("symbol");
                 var interval = $(this).text();

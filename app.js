@@ -280,7 +280,7 @@ function execution_update(data) {
 			var price_buy = markets[symbol].priceBuyAvg;
 			var profit = (price - price_buy);
 			var percent = 100 * profit/price_buy;
-			var html = "<p>" + symbol + "</p><p>Price Buy:"+price_buy+"</p><p>Price Sell:"+price + "</p><p>Profit:"+profit +"("+percent+"%)</p>";
+			var html = "<p>" + symbol + "</p><p>Price Buy:"+price_buy+"</p><p>Price Sell:"+price + "</p><p style='color:green;'>Profit:"+percent.toFix(2)+"%</p>";
 			Mail.sendmail("[Sell]" + symbol , html);
 			markets[symbol].save_db_ban(price);
 		}
