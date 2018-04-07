@@ -13,6 +13,7 @@ var booleanType = {type: Boolean, default: false};
 var Chiso = new SchemaObject({
     count_buy: numberType,
     count_sell: numberType,
+    rate:numberType,
     periodTime: numberType,
     pattern: Object,
     candle: Array,

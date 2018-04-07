@@ -44,11 +44,11 @@
                                                     <tr>
                                                         <th>STT</th>
                                                         <th>Thị trường</th>
-                                                        <th>Thời gian mua</th>
                                                         <th>Giá mua</th>
                                                         <th>Giá hiện tại</th>
-                                                        <th>Chỉ số 5m</th>
+                                                        <th>Volume Rate</th>
                                                         <th>Chỉ số 1h</th>
+                                                        <th>Chỉ số 5m</th>
                                                         <th>Hành động</th>
                                                     </tr>
                                                 </thead>
@@ -64,11 +64,16 @@
                                                     <% var probability_5m = Math.round(i_5m.pattern.probability); %>
                                                     <% var count_buy_1h = i_1h.count_buy; %>
                                                     <% var count_sell_1h = i_1h.count_sell; %>
+                                                    <% var rate_1h = i_1h.rate; %>
                                                     <% var count_buy_5m = i_5m.count_buy; %>
                                                     <% var count_sell_5m = i_5m.count_sell; %>
+                                                    <% var rate_5m = i_5m.rate; %>
                                                     <% var price_buy = self.priceBuyAvg; %>
                                                     <% var priceBuy = self.priceBuy; %>
                                                     <% var timeBuy = self.timeBuy; %>
+                                                    <% var bids_q = self.bids_q; %>
+                                                    <% var asks_q = self.asks_q; %>
+                                                    <% var rate = bids_q > asks_q ? bids_q / asks_q : asks_q / bids_q; %>
                                                     <% var profit = markets[market].last - price_buy; %>
                                                     <% var percent = profit / price_buy * 100; %>
                                                     <% var classess = ''; %>
@@ -80,18 +85,23 @@
                                                     <tr>
                                                         <td><%= i++ %></td>
                                                         <td><a class="fancybox" data-toggle="modal" data-target="#myModal"  href='#' data='<%= market %>'><%= market %></a></td>
-                                                        <td><%= timeBuy.join(" , ") %></td>
                                                         <td><%= priceBuy.join(" , ") %></td>
                                                         <td><%= markets[market].last %><span class="<%= classess %>">(<%= percent.toFixed(2) %>%)</span></td>
-                                                        <td>
-                                                            <b class="m-1 text-primary"><%= pattern_1h %>(<%= probability_1h %>)</b>
-                                                            <b class="m-1 text-danger"><%= count_sell_1h %></b>
-                                                            <b class="m-1 text-success"><%= count_buy_1h %></b> 
+                                                        <td class="text-center">
+                                                            <b class="mr-2 text-success"><%= bids_q %></b>
+                                                            <b class="text-danger"><%= asks_q %></b>
+                                                            <p class='d-block badge <%= bids_q > asks_q ? "badge-success": "badge-danger"; %>'><%= rate %></p>
                                                         </td>
-                                                        <td>
-                                                            <b class="m-1 text-primary"><%= pattern_5m %>(<%= probability_5m %>)</b>
-                                                            <b class="m-1 text-danger"><%= count_sell_5m %></b>
-                                                            <b class="m-1 text-success"><%= count_buy_5m %></b> 
+                                                        <td class="text-center">
+                                                            <b class="text-danger"><%= count_sell_1h %></b>
+                                                            <b class="text-success"><%= count_buy_1h %></b> 
+                                                            <b class="d-block text-primary"><%= pattern_1h %>(<%= probability_1h %>)</b>
+                                                            
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <b class="text-danger"><%= count_sell_5m %></b>
+                                                            <b class="text-success"><%= count_buy_5m %></b> 
+                                                            <b class="d-block text-primary"><%= pattern_5m %>(<%= probability_5m %>)</b>
                                                         </td>
                                                         <td> 
                                                             <span class="p-2 setting icon-settings alert alert-primary" data-toggle="modal" data-target="#settingModal" data='<%= market %>'></span>
@@ -349,8 +359,8 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <!-- Modal body -->
-                <div class="modal-body" id="history">
-                    <table class="table table-striped col-lg-12"  >
+                <div class="modal-body">
+                    <table id="history" class="table table-striped col-lg-12"  >
                         <thead>
                             <tr>
                                 <th>STT</th>
@@ -453,6 +463,7 @@
         $(document).ready(function () {
             //
             $('#tickets').DataTable();
+            $('#history').DataTable();
             $("#interval button").click(function (e) {
                 var symbol = $("#myModal").data("symbol");
                 var interval = $(this).text();

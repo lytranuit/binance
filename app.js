@@ -157,10 +157,6 @@ module.exports = app;
  		binance.websockets.chart(array_market, "5m", (market, interval, results) => {
  			if (Object.keys(results).length === 0)
  				return;
-           /*
-            * 
-            * @type type
-            */
             let tick = binance.last(results);
             var last = results[tick].close;
             if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
@@ -187,59 +183,55 @@ module.exports = app;
             markets[market]['indicator_' + interval].periodTime = tick;
             io.to("kline_" +market + "_" + interval).emit("kline",{symbol:market,time:tick,data:results[tick]});
         });
- 		binance.websockets.trades(array_market, (trades) => {
- 			let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
- 			if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
- 				if (maker) {
- 					markets[symbol]['indicator_1h'].count_sell++;
- 					markets[symbol]['indicator_5m'].count_sell++;
- 					markets[symbol]['indicator_1m'].count_sell++;
- 				} else {
- 					markets[symbol]['indicator_1h'].count_buy++;
- 					markets[symbol]['indicator_5m'].count_buy++;
- 					markets[symbol]['indicator_1m'].count_buy++;
- 				}
- 			}
- 		});
- 		// binance.websockets.depthCache(array_market, (depth) => {
- 		// 	console.log(depth);
- 		// 	return;
- 		// 	let {e: eventType, E: eventTime, s: symbol, u: updateId, b: bidDepth, a: askDepth} = depth;
- 		// 	if (markets[symbol]) {
- 		// 		var depthCache = binance.depthCache(symbol);
- 		// 		console.log(depthCache);
- 		// 		let bids = Object.values(depthCache.bids);
- 		// 		let asks = Object.values(depthCache.asks);
- 		// 		let sumbids = math.sum(bids);
- 		// 		let sumasks = math.sum(asks);
- 		// 		markets[symbol].bids_q = sumbids;
- 		// 		markets[symbol].asks_q = sumasks;
- 		// 	}
- 		// });
- 		var where = "where 1=1 and is_sell IS NULL and deleted = 0";
- 		if (test) {
- 			where += " and test = 1";
- 		}
- 		var query = pool.query("SELECT * FROM trade " + where).then(function (rows, err) {
- 			if (err) {
- 				console.log(err);
- 			}
- 			for (var i in rows) {
- 				var market = rows[i].MarketName;
- 				var price_buy = rows[i].price_buy;
- 				var price_sell = rows[i].price_sell;
- 				var time_buy = moment(rows[i].timestamp_buy);
- 				var amount = rows[i].amount;
- 				var id = rows[i].id;
- 				markets[market].idBuy.push(id);
 
- 				markets[market].mua(price_buy, time_buy);
- 				if (price_sell)
- 					markets[market].ban(price_sell);
- 			}
- 		});
- 		console.log("Price of BTC: ", ticker.BTCUSDT);
- 	});
+        binance.websockets.trades(array_market, (trades) => {
+            let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
+            if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
+                if (maker) { 
+                    markets[symbol]['indicator_1h'].count_sell++;
+                    markets[symbol]['indicator_5m'].count_sell++;
+                    markets[symbol]['indicator_1m'].count_sell++;
+                } else {
+                    markets[symbol]['indicator_1h'].count_buy++;
+                    markets[symbol]['indicator_5m'].count_buy++;
+                    markets[symbol]['indicator_1m'].count_buy++;
+                }
+            }
+        });
+
+        binance.websockets.depthCache(array_market, (symbol, depth) => {
+            let bids = binance.sortBids(depth.bids);
+            let asks = binance.sortAsks(depth.asks);
+            let sumbids = math.sum(Object.values(bids));
+            let sumasks = math.sum(Object.values(asks));
+            markets[symbol].bids_q = sumbids;
+            markets[symbol].asks_q = sumasks;
+        });
+        var where = "where 1=1 and is_sell IS NULL and deleted = 0";
+        if (test) {
+            where += " and test = 1";
+        }
+        var query = pool.query("SELECT * FROM trade " + where).then(function (rows, err) {
+            if (err) {
+                console.log(err);
+            }
+            for (var i in rows) {
+                var market = rows[i].MarketName;
+                var price_buy = rows[i].price_buy;
+                var price_sell = rows[i].price_sell;
+                var time_buy = moment(rows[i].timestamp_buy);
+                var amount = rows[i].amount;
+                var id = rows[i].id;
+                markets[market].idBuy.push(id);
+
+                markets[market].mua(price_buy, time_buy);
+                if (price_sell){
+                    markets[market].ban(price_sell);
+                }
+            }
+        });
+        console.log("Price of BTC: ", ticker.BTCUSDT);
+    });
 
 });
 binance.websockets.userData(balance_update, execution_update);
