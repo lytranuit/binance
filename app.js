@@ -180,6 +180,16 @@ module.exports = app;
             	markets[market]['indicator_1m'].count_buy = 0;
             	markets[market]['indicator_1m'].count_sell = 0;
             }
+            /*
+            * Tinh bid ask volume
+            */
+            var depth = binance.depthCache(market);
+            let bids = binance.sortBids(depth.bids);
+            let asks = binance.sortAsks(depth.asks);
+            let sumbids = math.sum(Object.values(bids));
+            let sumasks = math.sum(Object.values(asks));
+            markets[market].bids_q = sumbids;
+            markets[market].asks_q = sumasks;
             markets[market]['indicator_' + interval].periodTime = tick;
             io.to("kline_" +market + "_" + interval).emit("kline",{symbol:market,time:tick,data:results[tick]});
         });
@@ -200,12 +210,12 @@ module.exports = app;
         });
 
         binance.websockets.depthCache(array_market, (symbol, depth) => {
-            let bids = binance.sortBids(depth.bids);
-            let asks = binance.sortAsks(depth.asks);
-            let sumbids = math.sum(Object.values(bids));
-            let sumasks = math.sum(Object.values(asks));
-            markets[symbol].bids_q = sumbids;
-            markets[symbol].asks_q = sumasks;
+            // let bids = binance.sortBids(depth.bids);
+            // let asks = binance.sortAsks(depth.asks);
+            // let sumbids = math.sum(Object.values(bids));
+            // let sumasks = math.sum(Object.values(asks));
+            // markets[symbol].bids_q = sumbids;
+            // markets[symbol].asks_q = sumasks;
         });
         var where = "where 1=1 and is_sell IS NULL and deleted = 0";
         if (test) {
@@ -272,7 +282,7 @@ function execution_update(data) {
 			var price_buy = markets[symbol].priceBuyAvg;
 			var profit = (price - price_buy);
 			var percent = 100 * profit/price_buy;
-			var html = "<p>" + symbol + "</p><p>Price Buy:"+price_buy+"</p><p>Price Sell:"+price + "</p><p style='color:green;'>Profit:"+percent.toFix(2)+"%</p>";
+			var html = "<p>" + symbol + "</p><p>Price Buy:"+price_buy+"</p><p>Price Sell:"+price + "</p><p style='color:green;'>Profit:"+percent.toFixed(2)+"%</p>";
 			Mail.sendmail("[Sell]" + symbol , html);
 			markets[symbol].save_db_ban(price);
 		}

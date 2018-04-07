@@ -90,7 +90,7 @@
                                                         <td class="text-center">
                                                             <b class="mr-2 text-success"><%= bids_q %></b>
                                                             <b class="text-danger"><%= asks_q %></b>
-                                                            <p class='d-block badge <%= bids_q > asks_q ? "badge-success": "badge-danger"; %>'><%= rate %></p>
+                                                            <p class='d-block badge <%= bids_q > asks_q ? "badge-success": "badge-danger"; %>'><%= rate.toFixed(2) %>%</p>
                                                         </td>
                                                         <td class="text-center">
                                                             <b class="text-danger"><%= count_sell_1h %></b>
