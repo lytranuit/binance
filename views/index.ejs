@@ -84,20 +84,20 @@
                                                         <td><%= priceBuy.join(" , ") %></td>
                                                         <td><%= markets[market].last %><span class="<%= classess %>">(<%= percent.toFixed(2) %>%)</span></td>
                                                         <td>
-                                                            <p class="mb-2 text-primary"><%= pattern_1h %>(<%= probability_1h %>)</p>
-                                                            <p class="mb-2 text-danger"><%= count_sell_1h %></p>
-                                                            <p class="mb-2 text-success"><%= count_buy_1h %></p> 
+                                                            <b class="m-1 text-primary"><%= pattern_1h %>(<%= probability_1h %>)</b>
+                                                            <b class="m-1 text-danger"><%= count_sell_1h %></b>
+                                                            <b class="m-1 text-success"><%= count_buy_1h %></b> 
                                                         </td>
                                                         <td>
-                                                            <p class="mb-2 text-primary"><%= pattern_5m %>(<%= probability_5m %>)</p>
-                                                            <p class="mb-2 text-danger"><%= count_sell_5m %></p>
-                                                            <p class="mb-2 text-success"><%= count_buy_5m %></p> 
+                                                            <b class="m-1 text-primary"><%= pattern_5m %>(<%= probability_5m %>)</b>
+                                                            <b class="m-1 text-danger"><%= count_sell_5m %></b>
+                                                            <b class="m-1 text-success"><%= count_buy_5m %></b> 
                                                         </td>
                                                         <td> 
                                                             <span class="p-2 setting icon-settings alert alert-primary" data-toggle="modal" data-target="#settingModal" data='<%= market %>'></span>
                                                             <span class="badge badge-danger" data='<%= market %>'>Sell</span>
                                                         </td>
-                                                    </tr>SE
+                                                    </tr>
                                                     <% } %>
                                                 </tbody>
                                             </table>
