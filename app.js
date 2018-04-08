@@ -152,8 +152,8 @@ module.exports = app;
  				markets[market]['indicator_' + interval].setIndicator(results);
  			}
  			markets[market]['indicator_' + interval].periodTime = tick;
- 			io.to("kline_" +market + "_" + interval).emit("kline",{symbol:market,time:tick,data:results[tick]});
- 		});
+            io.to("interval").emit("interval",{symbol:market,interval:interval,time:tick,data:results[tick],count_buy:markets[market]['indicator_' + interval].count_buy,count_sell:markets[market]['indicator_' + interval].count_sell});
+        });
  		binance.websockets.chart(array_market, "5m", (market, interval, results) => {
  			if (Object.keys(results).length === 0)
  				return;
@@ -186,22 +186,29 @@ module.exports = app;
             var depth = binance.depthCache(market);
             let bids = binance.sortBids(depth.bids);
             let asks = binance.sortAsks(depth.asks);
-            let sumbids = math.sum(Object.values(bids));
-            let sumasks = math.sum(Object.values(asks));
+            let sumbids = Object.keys(bids).reduce( function( sum, key ){
+                return sum + (parseFloat(key) * parseFloat(bids[key]));
+            }, 0 );
+            let sumasks = Object.keys(asks).reduce( function( sum, key ){
+                return sum + (parseFloat(key) * parseFloat(asks[key]));
+            }, 0 );
             markets[market].bids_q = sumbids;
             markets[market].asks_q = sumasks;
             markets[market]['indicator_' + interval].periodTime = tick;
-            io.to("kline_" +market + "_" + interval).emit("kline",{symbol:market,time:tick,data:results[tick]});
+            io.to("interval").emit("interval",{symbol:market,interval:interval,time:tick,data:results[tick],count_buy:markets[market]['indicator_' + interval].count_buy,count_sell:markets[market]['indicator_' + interval].count_sell});
+            io.to("market").emit("market",{symbol:market,last:last,sumbids:sumbids,sumasks:sumasks,count_sell:markets[market]['indicator_1m'].count_sell,count_buy:markets[market]['indicator_1m'].count_buy});
         });
 
         binance.websockets.trades(array_market, (trades) => {
             let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
             if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
                 if (maker) { 
+                    markets[symbol].count_sell++;
                     markets[symbol]['indicator_1h'].count_sell++;
                     markets[symbol]['indicator_5m'].count_sell++;
                     markets[symbol]['indicator_1m'].count_sell++;
                 } else {
+                    markets[symbol].count_buy++;
                     markets[symbol]['indicator_1h'].count_buy++;
                     markets[symbol]['indicator_5m'].count_buy++;
                     markets[symbol]['indicator_1m'].count_buy++;
@@ -304,21 +311,22 @@ function execution_update(data) {
  var io = require('socket.io')(server);
  io.on('connection', function(socket){
  	console.log('a user connected');
- 	socket.on("join",function(data){
- 		var room = data.room;
- 		socket.join(room);
- 	});
- 	socket.on("leave",function(data){
- 		var room = data.room;
- 		socket.leave(room);
- 	});
- 	socket.on("leaveall",function(){
- 		var rooms = io.sockets.adapter.sids[socket.id];
- 		for (var room in rooms) {
- 			socket.leave(room);
- 		}
- 	})
+    socket.emit("start");
+    socket.on("join",function(data){
+     var room = data.room;
+     socket.join(room);
  });
+    socket.on("leave",function(data){
+     var room = data.room;
+     socket.leave(room);
+ });
+    socket.on("leaveall",function(){
+     var rooms = io.sockets.adapter.sids[socket.id];
+     for (var room in rooms) {
+        socket.leave(room);
+    }
+})
+});
 /**
  * Listen on provided port, on all network interfaces.
  */

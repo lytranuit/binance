@@ -1,6 +1,5 @@
 var express = require('express');
 const moment = require('moment');
-const binance = require('node-binance-api');
 var router = express.Router();
 /* GET home page. */
 router.get('/', async function (req, res, next) {
@@ -11,9 +10,6 @@ router.get('/', async function (req, res, next) {
     for (var market in markets) {
         if (markets[market].isBuy) {
             marketBuy[market] = markets[market];
-        }
-        if (!markets[market].indicator_1h.td && !markets[market].indicator_5m.td) {
-            marketGood[market] = markets[market];
         }
         if (markets[market].isHotMarket) {
             marketHot[market] = markets[market];
@@ -63,7 +59,7 @@ router.get('/', async function (req, res, next) {
         }
         return data;
     });
-    res.render('index', {title: 'Express', sumBTC: sumBTC, sumUSDT: sumUSDT, available: available, marketHot: marketHot, marketBuy: marketBuy, marketGood: marketGood, binance: binance, rows: rows});
+    res.render('index', {title: 'Express', sumBTC: sumBTC, sumUSDT: sumUSDT, available: available, marketHot: marketHot, marketBuy: marketBuy, rows: rows});
 });
 router.get('/market', function (req, res, next) {
     var symbol = req.query.symbol || "BTCUSDT";

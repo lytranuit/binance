@@ -78,34 +78,42 @@
                                                     <% var percent = profit / price_buy * 100; %>
                                                     <% var classess = ''; %>
                                                     <% if(percent > 0){ %> 
-                                                    <% classess = 'ml-2 text-success'; %> 
+                                                    <% classess = 'text-success'; %> 
                                                     <% }else{ %> 
-                                                    <% classess = 'ml-2 text-danger'; %> 
+                                                    <% classess = 'text-danger'; %> 
                                                     <% } %> 
                                                     <tr>
-                                                        <td><%= i++ %></td>
-                                                        <td><a class="fancybox" data-toggle="modal" data-target="#myModal"  href='#' data='<%= market %>'><%= market %></a></td>
-                                                        <td><%= priceBuy.join(" , ") %></td>
-                                                        <td><%= markets[market].last %><span class="<%= classess %>">(<%= percent.toFixed(2) %>%)</span></td>
-                                                        <td class="text-center">
-                                                            <b class="mr-2 text-success"><%= bids_q %></b>
-                                                            <b class="text-danger"><%= asks_q %></b>
-                                                            <p class='d-block badge <%= bids_q > asks_q ? "badge-success": "badge-danger"; %>'><%= rate.toFixed(2) %>%</p>
+                                                        <td>
+                                                            <%= i++ %>
+                                                        </td>
+                                                        <td>
+                                                            <a class="fancybox" data-toggle="modal" data-target="#myModal"  href='#' data-symbol='<%= market %>'><%= market %>(<%= timeBuy.length %>)</a>
+                                                        </td>
+                                                        <td>
+                                                            <span class="price_buy" data-symbol='<%= market %>'><%= price_buy %></span>
+                                                        </td>
+                                                        <td>
+                                                            <span class='mr-2 price_last' data-symbol='<%= market %>'><%= markets[market].last %></span><span class="profit <%= percent > 0 ? 'text-success' : 'text-danger' %>" data-symbol='<%= market %>'>(<%= percent.toFixed(2) %>%)</span>
                                                         </td>
                                                         <td class="text-center">
-                                                            <b class="text-danger"><%= count_sell_1h %></b>
-                                                            <b class="text-success"><%= count_buy_1h %></b> 
-                                                            <b class="d-block text-primary"><%= pattern_1h %>(<%= probability_1h %>)</b>
-                                                            
+                                                            <b class="mr-2 text-success bids_q" data-symbol='<%= market %>'><%= bids_q.toFixed(5) %></b>
+                                                            <b class="text-danger asks_q" data-symbol='<%= market %>'><%= asks_q.toFixed(5) %></b>
+                                                            <p class='d-block'><span class='rate_order badge <%= bids_q > asks_q ? "badge-success" : "badge-danger" %>' data-symbol='<%= market %>'><%= rate.toFixed(2) %>%</span></p>
                                                         </td>
                                                         <td class="text-center">
-                                                            <b class="text-danger"><%= count_sell_5m %></b>
-                                                            <b class="text-success"><%= count_buy_5m %></b> 
-                                                            <b class="d-block text-primary"><%= pattern_5m %>(<%= probability_5m %>)</b>
+                                                            <b class="text-danger count_sell" data-symbol='<%= market %>' data-interval='1h'><%= count_sell_1h %></b>
+                                                            <b class="text-success count_buy" data-symbol='<%= market %>' data-interval='1h'><%= count_buy_1h %></b> 
+                                                            <b class="d-block text-primary pattern" data-symbol='<%= market %>' data-interval='1h'><%= pattern_1h %>(<%= probability_1h %>)</b>
+
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <b class="text-danger count_sell" data-symbol='<%= market %>' data-interval='5m'><%= count_sell_5m %></b>
+                                                            <b class="text-success count_buy" data-symbol='<%= market %>' data-interval='5m'><%= count_buy_5m %></b> 
+                                                            <b class="d-block text-primary pattern" data-symbol='<%= market %>' data-interval='5m'><%= pattern_5m %>(<%= probability_5m %>)</b>
                                                         </td>
                                                         <td> 
-                                                            <span class="p-2 setting icon-settings alert alert-primary" data-toggle="modal" data-target="#settingModal" data='<%= market %>'></span>
-                                                            <span class="badge badge-danger" data='<%= market %>'>Sell</span>
+                                                            <span class="p-2 setting icon-settings alert alert-primary" data-toggle="modal" data-target="#settingModal" data-symbol='<%= market %>'data-dismiss="modal"></span>
+                                                            <span class="badge badge-danger" data-symbol='<%= market %>'>Sell</span>
                                                         </td>
                                                     </tr>
                                                     <% } %>
@@ -145,8 +153,8 @@
                                             <% var classess = ''; %>
                                             <div class='col-3 ticket-card mt-3 pb-2 border-bottom'>
                                                 <div class="col-12">
-                                                    <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>'><%= market %></a>
-                                                    <a class="setting icon-settings" data-toggle="modal" data-target="#settingModal"  href='#' data='<%= market %>'></a>
+                                                    <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>' data-dismiss="modal"><%= market %></a>
+                                                    <a class="setting icon-settings" data-toggle="modal" data-target="#settingModal"  href='#' data='<%= market %>' data-dismiss="modal"></a>
                                                 </div>
                                                 <div class="ticket-details col-10">
                                                     <div class="d-flex">
@@ -176,53 +184,88 @@
                             <div class="card">
                                 <div class="card-body">
                                     <div class="form-group row">
-                                        <h5 class="col-9 card-title">Coin Tiềm Năng</h5>
-                                        <div class="col-3">
-                                            <input type="email" class="form-control search" placeholder="Search">
-                                        </div>
+                                        <h5 class="col-9 card-title">Coin</h5>
                                     </div>
 
-                                    <div class="fluid-container" id="volumn">
-                                        <div class="row">
-                                            <% for(market in marketGood) { %>
-                                            <% var self = markets[market]; %> 
-                                            <% var i_1h = markets[market].indicator_1h; %>
-                                            <% var i_5m = markets[market].indicator_5m; %>
-                                            <% var pattern_1h = i_1h.pattern.pattern; %>
-                                            <% var probability_1h = Math.round(i_1h.pattern.probability); %>
-                                            <% var pattern_5m = i_5m.pattern.pattern; %>
-                                            <% var probability_5m = Math.round(i_5m.pattern.probability); %>
-                                            <% var count_buy_1h = i_1h.count_buy; %>
-                                            <% var count_sell_1h = i_1h.count_sell; %>
-                                            <% var count_buy_5m = i_5m.count_buy; %>
-                                            <% var count_sell_5m = i_5m.count_sell; %>
-                                            <% var classess = ''; %>
-                                            <div class='col-3 ticket-card mt-3 pb-2 border-bottom'>
-                                                <div class="col-12">
-                                                    <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>'><%= market %></a>
-                                                    <a class="setting icon-settings" data-toggle="modal" data-target="#settingModal"  href='#' data='<%= market %>'></a>
-                                                </div>
-                                                <div class="ticket-details col-10">
-                                                    <div class="d-flex">
-                                                        <p>Current price: <%= markets[market].last %></p>
-                                                    </div>
-                                                    <div class="row text-muted d-flex">
-                                                        <div class="col-12 d-flex">
-                                                            <p class="mb-0 mr-2">1h:</p>
-                                                            <p class="mr-2 mb-0 text-primary"><%= pattern_1h %>(<%= probability_1h %>)</p>
-                                                            <p class="mr-2 mb-0 text-danger"><%= count_sell_1h %></p>
-                                                            <p class="mr-2 mb-0 text-success"><%= count_buy_1h %></p> 
-                                                        </div>
-                                                        <div class="col-12 d-flex">
-                                                            <p class="mb-0 mr-2">5m:</p>
-                                                            <p class="mr-2 mb-0 text-primary"><%= pattern_5m %>(<%= probability_5m %>)</p>
-                                                            <p class="mr-2 mb-0 text-danger"><%= count_sell_5m %></p>
-                                                            <p class="mr-2 mb-0 text-success"><%= count_buy_5m %></p> 
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <% } %>
+                                    <div class="fluid-container">
+                                        <div class="row" style='zoom: 0.85;'>
+                                            <table id="BTC-markets" class="table table-hover" style="width:100%;">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>STT</th>
+                                                        <th>Thị trường</th>
+                                                        <th>Giá hiện tại</th>
+                                                        <th>Volume Rate</th>
+                                                        <th>Chỉ số 1h</th>
+                                                        <th>Chỉ số 5m</th>
+                                                        <th>Hành động</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <% var i = 1; %>
+                                                    <% for(market in markets) { %>
+                                                    <% var self = markets[market]; %> 
+                                                    <% var i_1h = markets[market].indicator_1h; %>
+                                                    <% var i_5m = markets[market].indicator_5m; %>
+                                                    <% var pattern_1h = i_1h.pattern.pattern; %>
+                                                    <% var probability_1h = Math.round(i_1h.pattern.probability); %>
+                                                    <% var pattern_5m = i_5m.pattern.pattern; %>
+                                                    <% var probability_5m = Math.round(i_5m.pattern.probability); %>
+                                                    <% var count_buy_1h = i_1h.count_buy; %>
+                                                    <% var count_sell_1h = i_1h.count_sell; %>
+                                                    <% var rate_1h = i_1h.rate; %>
+                                                    <% var count_buy_5m = i_5m.count_buy; %>
+                                                    <% var count_sell_5m = i_5m.count_sell; %>
+                                                    <% var rate_5m = i_5m.rate; %>
+                                                    <% var price_buy = self.priceBuyAvg; %>
+                                                    <% var priceBuy = self.priceBuy; %>
+                                                    <% var timeBuy = self.timeBuy; %>
+                                                    <% var bids_q = self.bids_q; %>
+                                                    <% var asks_q = self.asks_q; %>
+                                                    <% var rate = bids_q > asks_q ? bids_q / asks_q : asks_q / bids_q; %>
+                                                    <% var profit = markets[market].last - price_buy; %>
+                                                    <% var percent = profit / price_buy * 100; %>
+                                                    <% var classess = ''; %>
+                                                    <% if(percent > 0){ %> 
+                                                    <% classess = 'text-success'; %> 
+                                                    <% }else{ %> 
+                                                    <% classess = 'text-danger'; %> 
+                                                    <% } %> 
+                                                    <tr>
+                                                        <td>
+                                                            <%= i++ %>
+                                                        </td>
+                                                        <td>
+                                                            <a class="fancybox" data-toggle="modal" data-target="#myModal"  href='#' data-symbol='<%= market %>'><%= market %></a>
+                                                        </td>
+                                                        <td>
+                                                            <span class='mr-2 price_last' data-symbol='<%= market %>'><%= markets[market].last %></span>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <b class="mr-2 text-success bids_q" data-symbol='<%= market %>'><%= bids_q.toFixed(5) %></b>
+                                                            <b class="text-danger asks_q" data-symbol='<%= market %>'><%= asks_q.toFixed(5) %></b>
+                                                            <p class='d-block'><span class='rate_order badge <%= bids_q > asks_q ? "badge-success" : "badge-danger" %>' data-symbol='<%= market %>'><%= rate.toFixed(2) %>%</span></p>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <b class="text-danger count_sell" data-symbol='<%= market %>' data-interval='1h'><%= count_sell_1h %></b>
+                                                            <b class="text-success count_buy" data-symbol='<%= market %>' data-interval='1h'><%= count_buy_1h %></b> 
+                                                            <b class="d-block text-primary pattern" data-symbol='<%= market %>' data-interval='1h'><%= pattern_1h %>(<%= probability_1h %>)</b>
+
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <b class="text-danger count_sell" data-symbol='<%= market %>' data-interval='5m'><%= count_sell_5m %></b>
+                                                            <b class="text-success count_buy" data-symbol='<%= market %>' data-interval='5m'><%= count_buy_5m %></b> 
+                                                            <b class="d-block text-primary pattern" data-symbol='<%= market %>' data-interval='5m'><%= pattern_5m %>(<%= probability_5m %>)</b>
+                                                        </td>
+                                                        <td> 
+                                                            <span class="p-2 setting icon-settings alert alert-primary" data-toggle="modal" data-target="#settingModal" data-symbol='<%= market %>'data-dismiss="modal"></span>
+                                                            <span class="badge badge-danger" data-symbol='<%= market %>'>Sell</span>
+                                                        </td>
+                                                    </tr>
+                                                    <% } %>
+                                                </tbody>
+                                            </table>
+
                                         </div>
                                     </div>
                                 </div>
@@ -239,7 +282,7 @@
         </div>
         <!-- page-body-wrapper ends -->
     </div>
-    <div id='myModal' class='modal fade' role="dialog">
+    <div id='myModal' class='modal fade' aria-labelledby="smallModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <!-- Modal body -->
@@ -259,14 +302,45 @@
                             </div>
                             <div class="col-3">
                                 <div class="col-12">
-                                    <span class='badge badge-primary'>Giao dịch</span>
-                                    <p class="mr-2 mb-0">Lượt mua :<span class="count_mua text-success">1</span></p>
-                                    <p class="mr-2 mb-0">Lượt bán :<span class="count_ban text-danger">1</span></p> 
+                                    <div class='col-12 text-center mb-2'>
+                                        <span class="badge badge-primary">Trades</span>
+                                    </div>
+                                    <table class="table text-center">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th scope="col">Lượt mua</th>
+                                                <th scope="col">Lượt bán</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><span class="count_buy_l text-success" data-symbol=''>0</span></td>
+                                                <td><span class="count_sell_l text-danger" data-symbol=''>0</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                                 <div class="col-12">
-                                    <span class='badge badge-primary'>Orders List</span>
-                                    <p class="mr-2 mb-0">Lượng mua:<span class="order_mua text-success">1</span></p>
-                                    <p class="mr-2 mb-0">Lượng bán:<span class="order_ban text-danger">1</span></p>
+                                    <div class='col-12 text-center mb-2'>
+                                        <span class="badge badge-primary">Orders</span>
+                                    </div>
+                                    <table class="table text-center">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th scope="col">Lượng mua</th>
+                                                <th scope="col">Lượng bán</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><span class="bids_q text-success" data-symbol=''>0</span></td>
+                                                <td><span class="asks_q text-danger" data-symbol=''>0</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2"><span class="rate_order badge badge-success" data-symbol=''></span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -275,9 +349,15 @@
             </div>
         </div>
     </div>
-    <div id='settingModal' class='modal fade' role="dialog">
+    <div id='settingModal' class='modal fade' aria-labelledby="smallModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Settings</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
                 <!-- Modal body -->
                 <div class="modal-body">
                     <div class="container-fluid">
@@ -311,24 +391,25 @@
                                     <span class='badge badge-danger'>Bán</span>
                                 </div>
                                 <div class='col-12 m-3'>
-                                    <input class="form-check-input" type="checkbox" value="1" id="isCheckRsiBan" name='isCheckRsiBan' >
-                                    <label class="form-check-label" for="isCheckRsiBan">
-                                        Kiểm tra RSI > 80
-                                    </label>
-                                </div>
-
-                                <div class='col-12 m-3'>
                                     <div data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
                                         <input class="form-check-input" type="radio" name="chienLuocBan" id='chienLuocBanMin' value="chienLuocBanMin" checked>
                                         <label class="form-check-label" for="chienLuocBanMin">
                                             Bán min
                                         </label>
                                     </div>
-                                    <div id="collapseOne" class="collapse show ml-4" aria-labelledby="headingOne" data-parent="#settingBan">
-                                        <input class="form-check-input" type="checkbox" value="1" id="isCheckMACDBan" name='isCheckMACDBan'>
-                                        <label class="form-check-label" for="isCheckMACDBan">
-                                            Kiểm tra MACD
-                                        </label>
+                                    <div id="collapseOne" class="collapse show ml-3" aria-labelledby="headingOne" data-parent="#settingBan">
+                                        <div class='col-12'>
+                                            <input class="form-check-input" type="checkbox" value="1" id="isCheckRsiBan" name='isCheckRsiBan' >
+                                            <label class="form-check-label" for="isCheckRsiBan">
+                                                Kiểm tra RSI > 80
+                                            </label>
+                                        </div>
+                                        <div class='col-12'>
+                                            <input class="form-check-input" type="checkbox" value="1" id="isCheckMACDBan" name='isCheckMACDBan'>
+                                            <label class="form-check-label" for="isCheckMACDBan">
+                                                Kiểm tra MACD
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -345,7 +426,7 @@
                                 </div>
                             </div>
                             <div class="col-12 text-center">
-                                <button class="btn btn-success" id='saveMarket'>
+                                <button class="btn btn-success" id='saveMarket' data-dismiss="modal">
                                     Save
                                 </button>
                             </div>
@@ -355,7 +436,7 @@
             </div>
         </div>
     </div>
-    <div id='historyModel' class='modal fade' role="dialog">
+    <div id='historyModel' class='modal fade' aria-labelledby="smallModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <!-- Modal body -->
@@ -386,7 +467,7 @@
                             <tr>
                                 <td><%= i %></td>
                                 <td> 
-                                    <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>'><%= market %></a>
+                                    <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data='<%= market %>'  data-dismiss="modal"><%= market %></a>
                                 </td>
                                 <td class="text-success"><%= price_buy %></td>
                                 <td class="text-danger"><%= price_sell %></td>
@@ -445,25 +526,61 @@
     <script type='text/javascript'>
 
         var socket = io();
-        socket.on("kline",function(data){
-            if(!$("#tradingview1").length)
-                return
-            var point = $("#tradingview1").data("iguanaChart").getLastPoint();
-            var time = data.time;
-            var open = data.data.open;
-            var close = data.data.close;
-            var high = data.data.high;
-            var low = data.data.low;
-            var volume = data.data.volume;
-            point.xSeries.LKOH[0] = time;
-            point.vl.LKOH[0] = volume;
-            point.hloc.LKOH[0] = [parseFloat(high), parseFloat(low), parseFloat(open), parseFloat(close)];
-            $("#tradingview1").iguanaChart("addPoint", point);
+        socket.on("start",function(){
+            socket.emit("join",{room:"market"});
+            socket.emit("join",{room:"interval"});
+        });
+        socket.on("market",function(data){
+            let {symbol:symbol,last:last,sumbids:sumbids,sumasks:sumasks,count_buy:count_buy,count_sell:count_sell} = data;
+            let price_buy = parseFloat($(".price_buy[data-symbol="+symbol+"]").text());
+            let profit = 100 * (last - price_buy) / price_buy ;
+            if(sumasks > sumbids){
+                let rate_order = sumasks / sumbids;
+                $(".rate_order[data-symbol="+symbol+"]").text(rate_order.toFixed(2)+ "%").addClass("badge-danger").removeClass("badge-success");
+            }else{
+                let rate_order = sumbids / sumasks;
+                $(".rate_order[data-symbol="+symbol+"]").text(rate_order.toFixed(2)+ "%").removeClass("badge-danger").addClass("badge-success");
+
+            }
+            if(profit > 0 ){
+                $(".profit[data-symbol="+symbol+"]").removeClass("text-danger").addClass("text-success");
+            }else{
+                $(".profit[data-symbol="+symbol+"]").addClass("text-danger").removeClass("text-success");
+            }
+            $(".profit[data-symbol="+symbol+"]").text("("+profit.toFixed(2)+"%)");
+            $(".price_last[data-symbol="+symbol+"]").text(last);
+            $(".bids_q[data-symbol="+symbol+"]").text(sumbids.toFixed(5));
+            $(".asks_q[data-symbol="+symbol+"]").text(sumasks.toFixed(5));
+            $(".count_sell_l[data-symbol="+symbol+"]").text(count_sell);
+            $(".count_buy_l[data-symbol="+symbol+"]").text(count_buy);
         })
+        socket.on("interval",function(data){
+            var symbol = data.symbol;
+            var interval = data.interval;
+            var chart = $("#tradingview1[data-interval='"+interval+"'][data-symbol='"+symbol+"']");
+            if(chart.length){
+                var point = chart.data("iguanaChart").getLastPoint();
+                var time = data.time;
+                var open = data.data.open;
+                var close = data.data.close;
+                var high = data.data.high;
+                var low = data.data.low;
+                var volume = data.data.volume;
+                point.xSeries.LKOH[0] = time;
+                point.vl.LKOH[0] = volume;
+                point.hloc.LKOH[0] = [parseFloat(high), parseFloat(low), parseFloat(open), parseFloat(close)];
+                chart.iguanaChart("addPoint", point);
+            }
+            var count_sell = data.count_sell;
+            var count_buy = data.count_buy;
+            $(".count_sell[data-symbol="+symbol+"][data-interval='"+interval+"']").text(count_sell);
+            $(".count_buy[data-symbol="+symbol+"][data-interval='"+interval+"']").text(count_buy);
+        });
         $(document).ready(function () {
             //
             $('#tickets').DataTable();
             $('#history').DataTable();
+            $('#BTC-markets').DataTable();
             $("#interval button").click(function (e) {
                 var symbol = $("#myModal").data("symbol");
                 var interval = $(this).text();
@@ -471,8 +588,7 @@
             });
             $("#tradingview-buton").click(function (e) {
                 var symbol = $("#myModal").data("symbol");
-                $("#tradingview").show().empty();
-                $("#tradingview1").remove();
+                $("#tradingview").empty();
                 var widget = new TradingView.widget({
                     autosize: true,
                     "symbol": "BINANCE:" + symbol,
@@ -495,7 +611,7 @@
             })
             $(".setting").click(function (e) {
                 e.preventDefault();
-                var symbol = $(this).attr("data");
+                var symbol = $(this).attr("data-symbol");
                 $.ajax({
                     url: "http://localhost:3000/api/market?symbol=" + symbol,
                     dataType: "JSON",
@@ -514,7 +630,6 @@
                     data: data,
                     type: "POST",
                     success: function (data) {
-                        $('#settingModal').modal('hide');
                     }
                 });
                 console.log(data);
@@ -523,8 +638,9 @@
                 e.preventDefault();
                 // if ($('#historyModel').hasClass('show'))
                 //      $('#historyModel').modal('hide');
-                var symbol = $(this).attr("data");
+                var symbol = $(this).attr("data-symbol");
                 $("#myModal").data("symbol", symbol);
+                $("#myModal [data-symbol]").attr("data-symbol",symbol);
                 drawChart(symbol, "1h");
             });
             $(".search").keyup(function () {
@@ -544,9 +660,7 @@
                 })
             });
         });
-
         function drawChart(symbol, interval) {
-            socket.emit("leaveall");
             var interval1 = "D1";
             var sub = 30;
             if (interval == "5m") {
@@ -559,8 +673,8 @@
                 interval1 = "D1";
                 sub = 30;
             }
-            $("#tradingview").hide().empty();
-            $("#tradingview1").remove();
+            $("#tradingview").empty();
+            $("#tradingview").append("<div id='tradingview1' data-symbol='"+symbol+"' data-interval='"+interval+"'/>");
             $.ajax({
                 url: "http://localhost:3000/api/candle?interval=" + interval + "&symbol=" + symbol,
                 dataType: "JSON",
@@ -571,17 +685,15 @@
                     for (var i in data.events) {
                         data.events[i].pointFormatter = pointFormatter;
                     }
-                    $('#tradingview').after("<div id='tradingview1' class='col-12' style='height:500px;'/>");
                     $("#tradingview1").on("iguanaChartEvents", function (e, name, data) {
                         if (name == "chartDataReady") {
-                            socket.emit("join",{room:"kline_"+symbol+"_"+interval});
                             $("#tradingview1").data("iguanaChart").TA.BBANDS(1, 1, {TimePeriod: 20});
                         }
                     }).iguanaChart({
                         ticker: "AAPL.US",
                         events: data.events,
                         chartOptions: {
-                            minHeight: $("#tradingview1").height(),
+                            minHeight: $("#tradingview").height(),
                             futureAmount: 1
                         },
                         dataSource: {

@@ -13,6 +13,8 @@ var Market = new SchemaObject({
     last: numberType,
     bids_q: numberType,
     asks_q: numberType,
+    count_buy: numberType,
+    count_sell: numberType,
     periodTime: numberType,
     indicator_1h: Object,
     indicator_5m: Object,
@@ -70,18 +72,13 @@ var Market = new SchemaObject({
             * CHeck chien luoc
             */
 
-            if (self.chienLuocBanRSI()) {
-                self.orderBan(price);
-            } else {
-                if (self.chienLuocBan == "chienLuocBanMin") {
-                    if (self.isBanMin() && self.isBanMACD())
-                        self.orderBan(price);
-                } else if (self.chienLuocBan == "chienLuocBanMoc") {
-                    if (self.isBanMoc())
-                        self.orderBan(price);
-                }
+            if (self.chienLuocBan == "chienLuocBanMin") {
+                if (self.isBanMin() && (self.chienLuocBanRSI() || self.isBanMACD()))
+                    self.orderBan(price);
+            } else if (self.chienLuocBan == "chienLuocBanMoc") {
+                if (self.isBanMoc())
+                    self.orderBan(price);
             }
-
         }
     },
     orderBan: function (price) {
