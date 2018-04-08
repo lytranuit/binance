@@ -184,7 +184,10 @@
                             <div class="card">
                                 <div class="card-body">
                                     <div class="form-group row">
-                                        <h5 class="col-9 card-title">Coin</h5>
+                                        <h5 class="col-8 card-title">Coin</h5>
+                                        <div class="col-4 small">
+                                            Sắp xếp theo: <a href="#" class="order_by_trade" data-interval='1h'>Lượt giao dịch 1h</a> | <a href="#" class="order_by_trade" data-interval='5m'>Lượt giao dịch 5m</a> | <a href="#" class="order_by_trade" data-interval='1m'>Lượt giao dịch 1m</a>
+                                        </div>
                                     </div>
 
                                     <div class="fluid-container">
@@ -231,7 +234,7 @@
                                                     <% }else{ %> 
                                                     <% classess = 'text-danger'; %> 
                                                     <% } %> 
-                                                    <tr>
+                                                    <tr class='tr_market' data-symbol='<%= market %>' data-volume_1m='0' data-volume_5m='0' data-volume_1h='0'>
                                                         <td>
                                                             <%= i++ %>
                                                         </td>
@@ -553,6 +556,7 @@
             $(".asks_q[data-symbol="+symbol+"]").text(sumasks.toFixed(5));
             $(".count_sell_l[data-symbol="+symbol+"]").text(count_sell);
             $(".count_buy_l[data-symbol="+symbol+"]").text(count_buy);
+            $(".tr_market[data-symbol="+symbol+"]").attr("data-volume_1m",count_sell+count_buy);
         })
         socket.on("interval",function(data){
             var symbol = data.symbol;
@@ -575,12 +579,27 @@
             var count_buy = data.count_buy;
             $(".count_sell[data-symbol="+symbol+"][data-interval='"+interval+"']").text(count_sell);
             $(".count_buy[data-symbol="+symbol+"][data-interval='"+interval+"']").text(count_buy);
+            $(".tr_market[data-symbol="+symbol+"]").attr("data-volume_"+interval,count_sell+count_buy);
         });
         $(document).ready(function () {
             //
             $('#tickets').DataTable();
             $('#history').DataTable();
-            $('#BTC-markets').DataTable();
+            $('#BTC-markets').DataTable({
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+            });
+            $(".order_by_trade").click(function(e){
+                e.preventDefault();
+                var interval = $(this).attr("data-interval");
+                var parents = $("#BTC-markets tbody");
+                parents.children(".tr_market").sort(function(a,b){
+                    var volumea = parseInt($(a).attr("data-volume_"+interval));
+                    var volumeb = parseInt($(b).attr("data-volume_"+interval));
+                    if(volumea == volumeb)
+                        return 0;
+                    return volumea < volumeb ? 1:-1;
+                }).appendTo(parents);
+            })
             $("#interval button").click(function (e) {
                 var symbol = $("#myModal").data("symbol");
                 var interval = $(this).text();
@@ -634,7 +653,7 @@
                 });
                 console.log(data);
             })
-            $(".fancybox").click(function (e) {
+            $(document).on('click',".fancybox",function (e) {
                 e.preventDefault();
                 // if ($('#historyModel').hasClass('show'))
                 //      $('#historyModel').modal('hide');
