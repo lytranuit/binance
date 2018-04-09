@@ -15,6 +15,16 @@ router.post('/market', function (req, res, next) {
     markets[data.MarketName] = Object.assign(markets[data.MarketName], data);
     res.json(markets[data.MarketName]);
 });
+router.post('/refreshorder', function (req, res, next) {
+    var symbol = req.body.symbol;
+    markets[symbol].refreshOrder();
+    res.json({success: 1});
+});
+router.post('/refreshtrade', function (req, res, next) {
+    var symbol = req.body.symbol;
+    markets[symbol].refreshTrade();
+    res.json({success: 1});
+});
 router.get('/candle', async function (req, res, next) {
     var symbol = req.query.symbol || "BTCUSDT";
     var interval = req.query.interval || "1d";
