@@ -22,7 +22,7 @@ var Mail = require("./models/mail");
  * CONFIG MYSQL
  * 
  *****************/
-global.pool = mysql.createPool({
+ global.pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
     password: '',
@@ -49,10 +49,10 @@ global.pool = mysql.createPool({
  * SERVER
  * 
  *****************/
-var indexRouter = require('./routes/index');
-var apiRouter = require('./routes/api');
+ var indexRouter = require('./routes/index');
+ var apiRouter = require('./routes/api');
 
-var app = express();
+ var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -98,21 +98,21 @@ module.exports = app;
  * CONFIG BINANCE
  * 
  *****************/
-binance.options(key);
-global.currentTime = null;
-global.primaryCoin = config.primaryCoin;
-global.myBalances = {};
-global.test = config.test;
-global.ignoreCoin = config.ignoreCoin;
+ binance.options(key);
+ global.currentTime = null;
+ global.primaryCoin = config.primaryCoin;
+ global.myBalances = {};
+ global.test = config.test;
+ global.ignoreCoin = config.ignoreCoin;
 /******************
  * 
  * END CONFIG MAIL
  * 
  *****************/
-var MarketModel = require('./models/market');
-var ChisoModel = require('./models/chiso');
-global.markets = {};
-binance.useServerTime(function () {
+ var MarketModel = require('./models/market');
+ var ChisoModel = require('./models/chiso');
+ global.markets = {};
+ binance.useServerTime(function () {
     binance.balance((error, balances) => {
         myBalances = balances;
     });
@@ -139,8 +139,10 @@ binance.useServerTime(function () {
                 };
                 markets[market] = new MarketModel(obj);
                 array_market.push(market);
+                // markets[market].syncTrade();
             }
         }
+        // return;
         binance.websockets.chart(array_market, "1h", (market, interval, results) => {
             if (Object.keys(results).length === 0)
                 return;
@@ -165,8 +167,8 @@ binance.useServerTime(function () {
             if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
                 markets[market].last = last;
                 markets[market].checkmua(last);
-                markets[market].checkban(last, results);
-                markets[market].checkHotMarket();
+                markets[market].checkban(last);
+                markets[market].checkHotMarket(results);
             } else {
                 if (currentTime != tick) {
                     global.currentTime = tick;
@@ -175,17 +177,18 @@ binance.useServerTime(function () {
                 markets[market]['indicator_' + interval].setIndicator(results);
                 markets[market]['indicator_' + interval].count_buy = 0;
                 markets[market]['indicator_' + interval].count_sell = 0;
+                markets[market].isHotMarket = false;
             }
             /*
-             * RESET 1 m
-             */
+            * RESET 1 m
+            */
             if (moment().format("ss") < 10) {
                 markets[market]['indicator_1m'].count_buy = 0;
                 markets[market]['indicator_1m'].count_sell = 0;
             }
             /*
-             * Tinh bid ask volume
-             */
+            * Tinh bid ask volume
+            */
             let orderBook = markets[market].orderBook;
             let orderBook_bids = orderBook.bids;
             let orderBook_asks = orderBook.asks;
@@ -250,26 +253,21 @@ binance.useServerTime(function () {
                 }
             }
         });
-        var where = "where 1=1 and is_sell IS NULL and deleted = 0";
-        if (test) {
-            where += " and test = 1";
-        }
+        var where = "where 1=1 and id_session IS NULL and deleted = 0";
         var query = pool.query("SELECT * FROM trade " + where).then(function (rows, err) {
             if (err) {
                 console.log(err);
             }
             for (var i in rows) {
                 var market = rows[i].MarketName;
-                var price_buy = rows[i].price_buy;
-                var price_sell = rows[i].price_sell;
-                var time_buy = moment(rows[i].timestamp_buy);
+                var price = rows[i].price;
+                var time = moment(rows[i].timestamp);
                 var amount = rows[i].amount;
-                var id = rows[i].id;
-                markets[market].idBuy.push(id);
-
-                markets[market].mua(price_buy, time_buy);
-                if (price_sell) {
-                    markets[market].ban(price_sell);
+                var isBuyer = rows[i].isBuyer;
+                if(isBuyer){
+                    markets[market].mua(price,amount, time);
+                }else {
+                    markets[market].ban(price,amount,time);
                 }
             }
         });
@@ -277,7 +275,6 @@ binance.useServerTime(function () {
     });
 
 });
-
 // The only time the user data (account balances) and order execution websockets will fire, is if you create or cancel an order, or an order gets filled or partially filled
 function balance_update(data) {
     console.log("Balance Update");
@@ -309,25 +306,35 @@ function execution_update(data) {
             var percent = 100 * profit / price_buy;
             var html = "<p>" + symbol + "</p><p>Price Buy:" + price_buy + "</p><p>Price Sell:" + priceMarket + "</p><p style='color:green;'>Profit:" + percent.toFixed(2) + "%</p>";
             Mail.sendmail("[Sell]" + symbol, html);
-            markets[symbol].save_db_ban(priceMarket);
-        } else if (orderType == "MARKET" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
-            markets[symbol].mua(priceMarket);
-            markets[symbol].save_db_mua(priceMarket);
-            var html = "<p>" + symbol + "</p><p>Price:" + priceMarket + "</p>";
-            Mail.sendmail("[Buy]" + symbol, html);
-        } else if (side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
-            markets[symbol].mua(price);
-            markets[symbol].save_db_mua(price);
-            var html = "<p>" + symbol + "</p><p>Price:" + price + "</p>";
-            Mail.sendmail("[Buy]" + symbol, html);
 
-        } else if (side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
+            markets[symbol].save_db_ban(priceMarket,quantity);
+            markets[symbol].ban(priceMarket,quantity);
+        } else if (orderType == "LIMIT" && side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
+
             var price_buy = markets[symbol].priceBuyAvg;
             var profit = (price - price_buy);
             var percent = 100 * profit / price_buy;
             var html = "<p>" + symbol + "</p><p>Price Buy:" + price_buy + "</p><p>Price Sell:" + price + "</p><p style='color:green;'>Profit:" + percent.toFixed(2) + "%</p>";
             Mail.sendmail("[Sell]" + symbol, html);
-            markets[symbol].save_db_ban(price);
+
+            markets[symbol].save_db_ban(price,quantity);
+            markets[symbol].ban(priceMarket,quantity);
+        }else if (orderType == "MARKET" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
+
+            var html = "<p>" + symbol + "</p><p>Price:" + priceMarket + "</p>";
+            Mail.sendmail("[Buy]" + symbol, html);
+
+            markets[symbol].mua(priceMarket,quantity);
+            markets[symbol].save_db_mua(priceMarket,quantity);
+        } else if (orderType == "LIMIT" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
+
+            var html = "<p>" + symbol + "</p><p>Price:" + price + "</p>";
+            Mail.sendmail("[Buy]" + symbol, html);
+
+
+            markets[symbol].mua(priceMarket,quantity);
+            markets[symbol].save_db_mua(priceMarket,quantity);
+
         }
     }
     console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);
@@ -341,11 +348,11 @@ function execution_update(data) {
  * CONFIG APACHE
  * 
  *****************/
-var port = process.env.PORT || 3000;
-app.set('port', port);
-var server = http.createServer(app);
-global.io = require('socket.io')(server);
-io.on('connection', function (socket) {
+ var port = process.env.PORT || 3000;
+ app.set('port', port);
+ var server = http.createServer(app);
+ global.io = require('socket.io')(server);
+ io.on('connection', function (socket) {
     console.log('a user connected');
     socket.emit("start");
     socket.on("join", function (data) {
@@ -364,15 +371,15 @@ io.on('connection', function (socket) {
     })
 });
 /**
- * Listen on provided port, on all network interfaces.
- */
+* Listen on provided port, on all network interfaces.
+*/
 
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 /*
- * Event listener for HTTP server "error" event.
- */
+* Event listener for HTTP server "error" event.
+*/
 
 function onError(error) {
     if (error.syscall !== 'listen') {
@@ -380,21 +387,21 @@ function onError(error) {
     }
 
     var bind = typeof port === 'string'
-            ? 'Pipe ' + port
-            : 'Port ' + port;
+    ? 'Pipe ' + port
+    : 'Port ' + port;
 
     // handle specific listen errors with friendly messages
     switch (error.code) {
         case 'EACCES':
-            console.error(bind + ' requires elevated privileges');
-            process.exit(1);
-            break;
+        console.error(bind + ' requires elevated privileges');
+        process.exit(1);
+        break;
         case 'EADDRINUSE':
-            console.error(bind + ' is already in use');
-            process.exit(1);
-            break;
+        console.error(bind + ' is already in use');
+        process.exit(1);
+        break;
         default:
-            throw error;
+        throw error;
     }
 }
 
@@ -402,11 +409,11 @@ function onError(error) {
  * Event listener for HTTP server "listening" event.
  */
 
-function onListening() {
+ function onListening() {
     var addr = server.address();
     var bind = typeof addr === 'string'
-            ? 'pipe ' + addr
-            : 'port ' + addr.port;
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
     console.log('Listening on ' + bind);
 }
 /******************

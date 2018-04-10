@@ -32,7 +32,13 @@ router.get('/', async function (req, res, next) {
     /*
      * HISTORY
      */
-    var rows = await pool.query("SELECT *,ROUND(100 * (price_sell-price_buy) / price_buy,2) as percent FROM trade where is_sell = 1 and deleted = 0 ORDER BY timestamp_sell desc").then(function (rows, err) {
+    var where = "WHERE 1=1 and deleted = 0";
+    if(test){
+        where += ' AND is_test = 1';
+    }else{
+         where += ' AND is_test = 0';
+    }
+    var rows = await pool.query("SELECT *,ROUND(100 * (price_sell-price_buy) / price_buy,2) as percent FROM trade_session  ORDER BY timestamp desc").then(function (rows, err) {
         if (err) {
             console.log(err);
         }
@@ -60,13 +66,5 @@ router.get('/', async function (req, res, next) {
         return data;
     });
     res.render('index', {title: 'Express', sumBTC: sumBTC, sumUSDT: sumUSDT, available: available, marketHot: marketHot, marketBuy: marketBuy, rows: rows});
-});
-router.get('/market', function (req, res, next) {
-    var symbol = req.query.symbol || "BTCUSDT";
-    res.json(markets[symbol]);
-});
-router.get('/balances', function (req, res, next) {
-    var coin = req.query.coin || "BTC";
-    res.json(myBalances[coin]);
 });
 module.exports = router;

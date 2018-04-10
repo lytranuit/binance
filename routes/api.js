@@ -7,23 +7,9 @@ router.get('/market', function (req, res, next) {
     var symbol = req.query.symbol || "BTCUSDT";
     res.json(markets[symbol]);
 });
-router.post('/market', function (req, res, next) {
-    var data = req.body;
-    data.mocPriceBuy = data.mocPriceBuy > 0 ? data.mocPriceBuy : 0;
-    data.isCheckRsiBan = data.isCheckRsiBan == 1 ? true : false;
-    data.isCheckMACDBan = data.isCheckMACDBan == 1 ? true : false;
-    markets[data.MarketName] = Object.assign(markets[data.MarketName], data);
-    res.json(markets[data.MarketName]);
-});
-router.post('/refreshorder', function (req, res, next) {
-    var symbol = req.body.symbol;
-    markets[symbol].refreshOrder();
-    res.json({success: 1});
-});
-router.post('/refreshtrade', function (req, res, next) {
-    var symbol = req.body.symbol;
-    markets[symbol].refreshTrade();
-    res.json({success: 1});
+router.get('/balance', function (req, res, next) {
+    var coin = req.query.coin || "BTC";
+    res.json(myBalances[coin]);
 });
 router.get('/candle', async function (req, res, next) {
     var symbol = req.query.symbol || "BTCUSDT";
@@ -35,28 +21,29 @@ router.get('/candle', async function (req, res, next) {
         }
         var events = [];
         for (var i in rows) {
+            var isBuyer = rows[i].isBuyer;
             var market = rows[i].MarketName;
-            var price_buy = rows[i].price_buy;
-            var price_sell = rows[i].price_sell;
-            var time_buy = moment(rows[i].timestamp_buy).valueOf();
-
+            var price= rows[i].price;
+            var time = moment(rows[i].timestamp).valueOf();
+            var amount = rows[i].amount;
             var id = rows[i].id;
-            events.push({
-                x: time_buy,
-                y: price_buy,
-                text: "Buy",
-                size: 5,
-                color: "#09c4ff",
-                shape: "disk"
-            });
-            if (price_sell != "") {
-                var time_sell = moment(rows[i].timestamp_sell).valueOf();
+            
+            if (isBuyer == 0) {
                 events.push({
-                    x: time_sell,
-                    y: price_sell,
+                    x: time,
+                    y: price,
                     text: "Sell",
                     size: 5,
                     color: "#ff7109",
+                    shape: "disk"
+                });
+            }else{
+                events.push({
+                    x: time,
+                    y: price,
+                    text: "Buy",
+                    size: 5,
+                    color: "#09c4ff",
                     shape: "disk"
                 });
             }
@@ -84,6 +71,117 @@ router.get('/candle', async function (req, res, next) {
             data.xSeries.LKOH.push(time / 1000);
         }
         res.json({data: data, events: events});
+    });
+});
+
+/*
+* POST
+*/
+router.post('/market', function (req, res, next) {
+    var data = req.body;
+    data.mocPriceBuy = data.mocPriceBuy > 0 ? data.mocPriceBuy : 0;
+    data.isCheckRsiBan = data.isCheckRsiBan == 1 ? true : false;
+    data.isCheckMACDBan = data.isCheckMACDBan == 1 ? true : false;
+    markets[data.MarketName] = Object.assign(markets[data.MarketName], data);
+    res.json(markets[data.MarketName]);
+});
+router.post('/refreshorder', function (req, res, next) {
+    var symbol = req.body.symbol;
+    markets[symbol].refreshOrder();
+    res.json({success: 1});
+});
+router.post('/refreshtrade', function (req, res, next) {
+    var symbol = req.body.symbol;
+    markets[symbol].refreshTrade();
+    res.json({success: 1});
+});
+router.post('/buy', function (req, res, next) {
+    var symbol = req.body.symbol;
+    var price = req.body.price || 0;
+    var quantity_per = req.body.quantity_per;
+    /*
+    * Cancle all order
+    */
+    binance.cancelOrders(symbol);
+    var primaryCoin_value = parseFloat(myBalances[primaryCoin].available) + parseFloat(myBalances[primaryCoin].onOrder);
+    var amount = primaryCoin_value * quantity_per /100;
+    var quantity = Math.ceil(amount / price);
+    if(amount < 0.001){
+        res.json({success:0,error: 'Total must be > 0.001 BTC'});
+        return;
+    }
+    binance.buy(symbol, quantity, price, (error, response) => {
+        if (error) {
+            res.json({success:0,error: "Fail!"}); 
+            return;
+        }
+        res.json({success: 1});
+    });
+});
+router.post('/buymarket', function (req, res, next) {
+    var symbol = req.body.symbol;
+    var quantity_per = req.body.quantity_per;
+    /*
+    * Cancle all order
+    */
+    binance.cancelOrders(symbol);
+
+    var primaryCoin_value = parseFloat(myBalances[primaryCoin].available) + parseFloat(myBalances[primaryCoin].onOrder);
+    var amount = primaryCoin_value * quantity_per /100;
+    var quantity = Math.ceil(amount / markets[symbol].last);
+    
+    binance.marketBuy(symbol, quantity, (error, response) => {
+        if (error) {
+            res.json({success:0,error: "Fail!"}); 
+            return;
+        }
+        res.json({success: 1});
+    });
+});
+router.post('/sell', function (req, res, next) {
+    var symbol = req.body.symbol;
+    var price = req.body.price || 0 ;
+    var quantity_per = req.body.quantity_per;
+
+    /*
+    * Cancle all order
+    */
+    binance.cancelOrders(symbol);
+
+    var altcoin = symbol.replace(primaryCoin, "");
+    var altcoin_value = parseFloat(myBalances[altcoin].available) + parseFloat(myBalances[altcoin].onOrder);
+    var quantity = Math.ceil(altcoin_value * quantity_per /100);
+    var amount = quantity * price;
+    if(amount < 0.001){
+        res.json({success:0,error: 'Total must be > 0.001 BTC'});
+        return;
+    }
+    binance.sell(symbol, quantity, price, (error, response) => {
+        if (error) {
+            res.json({success:0,error: "Fail!"}); 
+            return;
+        }
+        res.json({success: 1});
+    });
+});
+router.post('/sellmarket', function (req, res, next) {
+    var symbol = req.body.symbol;
+    var quantity_per = req.body.quantity_per;
+    /*
+    * Cancle all order
+    */
+    binance.cancelOrders(symbol);
+
+    var altcoin = symbol.replace(primaryCoin, "");
+    var altcoin_value = parseFloat(myBalances[altcoin].available) + parseFloat(myBalances[altcoin].onOrder);
+    var quantity = Math.ceil(altcoin_value * quantity_per /100);
+    
+    binance.marketSell(symbol, quantity, (error, response) => {
+        if (error) {
+            res.json({success:0,error: "Fail!"}); 
+            return;
+        }
+        res.json({success: 1});
     });
 });
 module.exports = router;

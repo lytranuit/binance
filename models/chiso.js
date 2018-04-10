@@ -35,7 +35,6 @@ var Chiso = new SchemaObject({
             var argl = [];
             var argv = [];
             var argc = [];
-//                console.log(markets[market]);
             for (var key in results) {
                 argh.push(parseFloat(results[key]['high']));
                 argl.push(parseFloat(results[key]['low']));
@@ -68,8 +67,8 @@ var Chiso = new SchemaObject({
             /*
              * MACD
              */
-            var MACD = technical.MACD;
-            var input = {
+             var MACD = technical.MACD;
+             var input = {
                 values: argc,
                 fastPeriod: 12,
                 slowPeriod: 26,
@@ -82,8 +81,8 @@ var Chiso = new SchemaObject({
             /*
              * RSI
              */
-            var rsi = technical.RSI;
-            var input = {
+             var rsi = technical.RSI;
+             var input = {
                 values: argc,
                 period: 14
             };
@@ -92,8 +91,8 @@ var Chiso = new SchemaObject({
             /*
              * MFI
              */
-            var mfi = technical.MFI;
-            var input = {
+             var mfi = technical.MFI;
+             var input = {
                 high: argh,
                 low: argl,
                 close: argc,
@@ -103,13 +102,9 @@ var Chiso = new SchemaObject({
             var array_mfi = mfi.calculate(input);
             self.mfi = array_mfi[array_mfi.length - 1];
             /*
-             * BOLLINGER BAND 
-             */
+            * BOLLINGER BAND 
+            */
             var bb = technical.BollingerBands;
-            var arg = [];
-            for (var key in results) {
-                arg.push(results[key]['close']);
-            }
             var input = {
                 values: argc,
                 period: 20,
@@ -117,6 +112,8 @@ var Chiso = new SchemaObject({
             };
             var array_bb = bb.calculate(input);
             self.bb = array_bb[array_bb.length - 1];
+            
+
         }
     }
 });

@@ -25,11 +25,10 @@ var Market = new SchemaObject({
     isCheckMACDBan: {type: Boolean, default: true},
     isCheckRsiBan: {type: Boolean, default: true},
     isHotMarket: {type: Boolean, default: false},
-    priceBuy: Array,
-    timeBuy: Array,
     timeBuyNext: String,
-    idBuy: Array,
+    trade_session: {type:Object,default: {trade_sell: [],trade_buy: []}},
     priceBuyAvg: numberType,
+    priceSellAvg:numberType,
     minPriceSell: numberType,
     maxPriceSell: numberType,
     mocPriceSell: {type: Number, default: 500000},
@@ -39,150 +38,6 @@ var Market = new SchemaObject({
     onOrder: {type: Boolean, default: false}
 }, {
     methods: {
-        checkHotMarket: function () {
-            var self = this;
-            if (self.MarketName == "BTCUSDT")
-                return;
-            if (!self.isHotMarket && (self.indicator_1m.count_buy > 200 && self.indicator_1m.count_sell > 200)) {
-                self.isHotMarket = true;
-                console.log(clc.green("HOT"), clc.red("HOT"), self.MarketName);
-                var html = "<p>" + self.MarketName + "</p><p>Current Price:" + self.last + "</p>";
-                Mail.sendmail("[HOT]" + self.MarketName + " PUMP", html);
-                io.emit("hotMarket", {symbol: self.MarketName, last: self.last});
-            } else if (self.isHotMarket && (self.indicator_1m.count_buy < 200 && self.indicator_1m.count_sell < 200)) {
-                self.isHotMarket = false;
-            }
-        },
-        checkban: function (price) {
-            var self = this;
-            if (self.isBuy && self.priceBuyAvg > 0) {
-                var percent = (price - self.priceBuyAvg) / self.priceBuyAvg * 100;
-                if (percent > 0) {
-                    var textpercent = clc.green(percent.toFixed(2));
-                } else {
-                    var textpercent = clc.red(percent.toFixed(2));
-                }
-                console.log(clc.black.bgWhite(self.MarketName), " price:" + price + " - " + textpercent + "%");
-                if (!self.hasDataChiso())
-                    return;
-                if (self.onOrder)
-                    return;
-                /*
-                 * CHeck chien luoc
-                 */
-
-                if (self.chienLuocBan == "chienLuocBanMin") {
-                    if (self.isBanMin() && (self.chienLuocBanRSI() || self.isBanMACD()))
-                        self.orderBan(price);
-                } else if (self.chienLuocBan == "chienLuocBanMoc") {
-                    if (self.isBanMoc())
-                        self.orderBan(price);
-                }
-            }
-        },
-        orderBan: function (price) {
-            /*
-             * VAO LENH
-             */
-            var self = this;
-            console.log(clc.red('Order'), self.MarketName + " price:" + price);
-            if (!test) {
-                self.onOrder = true;
-                var coin = self.MarketName.replace(primaryCoin, "");
-                binance.sell(self.MarketName, myBalances[coin].available, price, (error, response) => {
-                    if (error) {
-                        self.onOrder = false;
-                    }
-                });
-                setTimeout(function () {
-                    self.onOrder = false;
-                    binance.cancelOrders(self.MarketName);
-                }, 60000);
-            } else {
-                self.save_db_ban(price);
-            }
-        },
-        chienLuocBanRSI: function () {
-            var self = this;
-            /*
-             * RSI > 80
-             */
-            if (!self.isCheckRsiBan || self.indicator_5m.rsi < 80)
-                return false;
-            return true;
-        },
-        isBanMACD: function () {
-            var self = this;
-            /*
-             * MACD < 0
-             */
-            if (self.isCheckMACDBan && self.indicator_5m.MACD.histogram > 0)
-                return false;
-            return true;
-        },
-        isBanMin: function () {
-            var self = this;
-            /*
-             * price < min
-             */
-            if (self.last < self.minPriceSell)
-                return false;
-            return true;
-        },
-        isBanMoc: function () {
-            var self = this;
-            /*
-             * price < moc
-             */
-            if (self.last < self.mocPriceSell)
-                return false;
-            return true;
-        },
-        save_db_ban: function (price) {
-            var time = moment();
-            var self = this;
-            if (self.idBuy.length > 1) {
-                var update = {
-                    is_sell: 1,
-                    timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
-                    deleted: 1
-                };
-                pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + ")", update);
-                var col_test = test ? 1 : 0;
-                var insert = {
-                    is_sell: 1,
-                    timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
-                    price_sell: price,
-                    timestamp_buy: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
-                    price_buy: self.priceBuyAvg,
-                    MarketName: self.MarketName,
-                    amount: self.amountbuy * self.idBuy.length,
-                    test: col_test
-                }
-                pool.query("INSERT INTO trade SET ? ", insert);
-            } else {
-                var update = {
-                    is_sell: 1,
-                    timestamp_sell: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
-                    price_sell: price
-                };
-                pool.query("UPDATE trade SET ? WHERE id IN(" + self.idBuy.join(",") + ")", update);
-            }
-            self.ban(price);
-        },
-        ban: function (price) {
-            var self = this;
-            console.log(clc.bgRed('Sell'), self.MarketName + " price:" + price);
-            /*
-             * RESET
-             */
-            self.isBuy = false;
-            self.countbuy = 5;
-            self.priceBuy = [];
-            self.timeBuy = [];
-            self.idBuy = [];
-            self.priceBuyAvg = 0;
-        },
         checkmua: function (price) {
             var self = this;
             var MarketName = self.MarketName;
@@ -228,9 +83,9 @@ var Market = new SchemaObject({
             /*
              * VAO LENH
              */
-            if (!test) {
+             var amount = Math.ceil(self.amountbuy / price);
+             if (!test) {
                 self.onOrder = true;
-                var amount = Math.ceil(self.amountbuy / price);
                 binance.buy(self.MarketName, amount, price, (error, response) => {
                     if (error) {
                         self.onOrder = false;
@@ -242,43 +97,254 @@ var Market = new SchemaObject({
                     binance.cancelOrders(self.MarketName);
                 }, 60000);
             } else {
-                self.mua(price);
-                self.save_db_mua(price);
+                self.mua(price,amount);
+                self.save_db_mua(price,amount);
             }
         },
-        save_db_mua: function (price) {
+        save_db_mua: async function (price,amount,time) {
             var self = this;
-            var col_test = test ? 1 : 0;
-            var row = {
+
+            var time = time || moment();
+            var insert = {
                 MarketName: self.MarketName,
-                price_buy: price,
-                amount: self.amountbuy,
-                timestamp_buy: moment().format("YYYY-MM-DD HH:mm:ss.SSS"),
-                test: col_test
+                price: price,
+                amount: amount,
+                timestamp: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                isBuyer:1
             };
-            pool.query('INSERT INTO trade SET ?', row).then(function (result) {
-                self['idBuy'].push(result.insertId);
-            });
+            await pool.query('INSERT INTO trade SET ?', insert);
         },
-        mua: function (price, time) {
+        mua: function (price,amount, time) {
             var self = this;
             console.log(clc.bgGreen('Buy'), self.MarketName + " price:" + price);
             var time = time || moment();
-            self['countbuy']--;
-            self['isBuy'] = true;
-            self['priceBuy'].push(price);
-            self['timeBuy'].push(time.format("MM-DD HH:mm"));
-            self['timeBuyNext'] = time.add(1, "h").format("YYYY-MM-DD HH:mm:ss.SSS");
-            self['priceBuyAvg'] = math.mean(self['priceBuy']);
-            self['minPriceSell'] = self['priceBuyAvg'] + (self['priceBuyAvg'] * self['minGain'] / 100);
-            self['maxPriceSell'] = self['priceBuyAvg'] + (self['priceBuyAvg'] * self['maxGain'] / 100);
+            var obj = {
+                time:time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                amount:amount,
+                price:price
+            }
+            self.trade_session.trade_buy.push(obj);
+            self.countbuy--;
+            self.isBuy = true;
+            self.timeBuyNext = time.add(1, "h").format("YYYY-MM-DD HH:mm:ss.SSS");
+            var trade_buy = self.trade_session.trade_buy;
+            
+            var sumcoin = 0;
+            var sumamount = 0;
+            for(var i in trade_buy){
+                sumcoin += parseFloat(trade_buy[i].amount) * parseFloat(trade_buy[i].price);
+                sumamount += parseFloat(trade_buy[i].amount);
+            }
+            self.priceBuyAvg = sumcoin / sumamount;
+            self.minPriceSell = self.priceBuyAvg + (self.priceBuyAvg * self.priceBuyAvg / 100);
+            self.maxPriceSell = self.priceBuyAvg + (self.priceBuyAvg * self.priceBuyAvg / 100);
+        },
+        checkban: function (price) {
+            var self = this;
+            if (self.isBuy && self.priceBuyAvg > 0) {
+                var percent = (price - self.priceBuyAvg) / self.priceBuyAvg * 100;
+                if (percent > 0) {
+                    var textpercent = clc.green(percent.toFixed(2));
+                } else {
+                    var textpercent = clc.red(percent.toFixed(2));
+                }
+                console.log(clc.black.bgWhite(self.MarketName), " price:" + price + " - " + textpercent + "%");
+                if (!self.hasDataChiso())
+                    return;
+                if (self.onOrder)
+                    return;
+                /*
+                 * CHeck chien luoc
+                 */
+
+                 if (self.chienLuocBan == "chienLuocBanMin") {
+                    if (self.isBanMin() && (self.chienLuocBanRSI() || self.isBanMACD()))
+                        self.orderBan(price);
+                } else if (self.chienLuocBan == "chienLuocBanMoc") {
+                    if (self.isBanMoc())
+                        self.orderBan(price);
+                }
+            }
+        },
+        orderBan: function (price) {
+            /*
+             * VAO LENH
+             */
+             var self = this;
+             console.log(clc.red('Order'), self.MarketName + " price:" + price);
+             if (!test) {
+                self.onOrder = true;
+                var coin = self.MarketName.replace(primaryCoin, "");
+                binance.sell(self.MarketName, myBalances[coin].available, price, (error, response) => {
+                    if (error) {
+                        self.onOrder = false;
+                    }
+                });
+                setTimeout(function () {
+                    self.onOrder = false;
+                    binance.cancelOrders(self.MarketName);
+                }, 60000);
+            } else {
+                var coin = self.MarketName.replace(primaryCoin, "");
+                self.save_db_ban(price,myBalances[coin].available);
+                self.ban(price,myBalances[coin].available);
+            }
+        },
+        save_db_ban: async function (price,amount,time) {
+            var time = time || moment();
+            var self = this;
+            var insert = {
+                MarketName: self.MarketName,
+                price: price,
+                amount: amount,
+                timestamp: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                isBuyer:0
+            };
+            await pool.query("INSERT INTO trade SET ? ", insert);
+        },
+        ban: function (price,amount,time) {
+            var time = time || moment();
+            var self = this;
+            console.log(clc.bgRed('Sell'), self.MarketName + " price:" + price);
+            var obj = {
+                time:time.format("YYYY-MM-DD HH:mm:ss.SSS"),
+                amount:amount,
+                price:price
+            }
+            self.trade_session.trade_sell.push(obj);
+            var trade_sell = self.trade_session.trade_sell;
+            var sumcoin = 0;
+            var sumamount = 0;
+            for(var i in trade_sell){
+                sumcoin += parseFloat(trade_sell[i].amount) * parseFloat(trade_sell[i].price);
+                sumamount += parseFloat(trade_sell[i].amount);
+            }
+            self.priceSellAvg = sumcoin / sumamount;
+            // if(self.MarketName == "TRIGBTC"){
+
+            //     console.log(self.MarketName);
+
+            //     console.log(self.priceSellAvg);
+
+            //     console.log(sumcoin);
+
+            //     console.log(sumamount);
+            //     console.log(self.is_final_session());
+
+            // }
+            /*
+            * RESET
+            */
+            var trade_session = self.trade_session;
+
+            var sumamount_buy = 0;
+            var array_time = [];
+            for(var i in trade_session.trade_buy){
+                sumamount_buy += parseFloat(trade_session.trade_buy[i].amount);
+                array_time.push(trade_session.trade_buy[i].time);
+            }
+            var sumamount_sell = 0;
+            for(var i in trade_session.trade_sell){
+                sumamount_sell += parseFloat(trade_session.trade_sell[i].amount);
+                array_time.push(trade_session.trade_sell[i].time);
+            }
+            // if(self.MarketName == "IOTABTC"){
+
+            //     console.log(self.MarketName);
+
+            //     console.log(sumamount_buy);
+
+            //     console.log(sumamount_sell);
+            //     console.log(sumamount_buy == sumamount_sell);
+            // }
+            if(sumamount_buy == sumamount_sell){
+                /*
+                * SAVE SESSION
+                */
+                var col_test = test ? 1 : 0;
+                var insert = {
+                    MarketName: self.MarketName,
+                    price_buy: self.priceBuyAvg,
+                    price_sell: self.priceSellAvg,
+                    amount: sumamount,
+                    is_test:col_test,
+                    timestamp: time.format("YYYY-MM-DD HH:mm:ss.SSS")
+                };
+                pool.query("INSERT INTO trade_session SET ? ", insert).then(function(data){
+                    var id_session = data.insertId
+                    var update = {
+                        id_session:id_session
+                    }
+                    pool.query("UPDATE trade SET ? WHERE MarketName = '"+self.MarketName+"' and timestamp IN('"+array_time.join("','")+"')",update);
+                });
+
+                self.isBuy = false;
+                self.countbuy = 5;
+                self.priceBuyAvg = 0;
+                self.priceSellAvg = 0;
+                self.trade_session = {trade_buy:[],trade_sell:[]};
+            }
+        },
+        is_final_session:function(){
+            var self = this;
+            var trade_session = self.trade_session;
+
+            var sumamount_buy = 0;
+            for(var i in trade_session.trade_buy){
+                sumamount_buy += parseFloat(trade_session.trade_buy[i].amount);
+            }
+            var sumamount_sell = 0;
+            for(var i in trade_session.trade_sell){
+                sumamount_sell += parseFloat(trade_session.trade_sell[i].amount);
+            }
+            if(sumamount_buy == sumamount_sell){
+                console.log(self.MarketName);
+                return true;
+            }
+            return false;
+        },
+        chienLuocBanRSI: function () {
+            var self = this;
+            /*
+             * RSI > 80
+             */
+             if (!self.isCheckRsiBan || self.indicator_5m.rsi < 80)
+                return false;
+            return true;
+        },
+        isBanMACD: function () {
+            var self = this;
+            /*
+             * MACD < 0
+             */
+             if (self.isCheckMACDBan && self.indicator_5m.MACD.histogram > 0)
+                return false;
+            return true;
+        },
+        isBanMin: function () {
+            var self = this;
+            /*
+             * price < min
+             */
+             if (self.last < self.minPriceSell)
+                return false;
+            return true;
+        },
+        isBanMoc: function () {
+            var self = this;
+            /*
+             * price < moc
+             */
+             if (self.last < self.mocPriceSell)
+                return false;
+            return true;
         },
         isMuaMoc: function () {
             var self = this;
             /*
              * price < moc
              */
-            if (self.last > self.mocPriceBuy)
+             if (self.last > self.mocPriceBuy)
                 return false;
             return true;
         },
@@ -295,6 +361,58 @@ var Market = new SchemaObject({
         refreshOrder:function(){
             var self = this;
             self.orderBook = {bids: {}, asks: {}};
+        },
+        checkHotMarket: function (candles) {
+            var self = this;
+            if (self.MarketName == "BTCUSDT")
+                return;
+            var entries = Object.entries(candles);
+            var candle1 = entries[entries.length - 1];
+            var candle2 = entries[entries.length - 2];
+            var input = {
+                close: [candle1[1].close],
+                open: [candle1[1].open],
+                high: [candle1[1].high],
+                low: [candle1[1].low],
+            }
+            var is_bullishmarubozu = technical.bullishmarubozu(input);
+            // if(is_bullishmarubozu)
+            //     console.log(self.MarketName,candle1,candle2);
+            var is_volume_large = candle1[1].volume > candle2[1].volume * 10;
+            var is_price_increase = candle1[1].close > candle2[1].high * 1.02;
+            if (!self.isHotMarket && ((self.indicator_1m.count_buy > 200 && self.indicator_1m.count_sell > 200) || (is_bullishmarubozu && is_volume_large && is_price_increase))) {
+                self.isHotMarket = true;
+                console.log(clc.green("HOT"), clc.red("HOT"), self.MarketName);
+                var html = "<p>" + self.MarketName + "</p><p>Current Price:" + self.last + "</p>";
+                Mail.sendmail("[HOT]" + self.MarketName + " PUMP", html);
+                io.emit("hotMarket", {symbol: self.MarketName, last: self.last});
+            }
+        },
+        syncTrade:  function(){
+            var self = this;
+            var market = self.MarketName;
+            if (market == "BTCUSDT" || market == "KNCBTC" || market == "BNBBTC")
+                return;
+            binance.trades(market, async (error, response,symbol)=>{
+                if(error){
+                    console.log(error);
+                    self.syncTrade();
+                    return;
+                }
+                for(var i in response){
+                    var trade = response[i];
+                    var price = trade.price;
+                    var quantity = trade.qty;
+                    var time = moment.unix(trade.time / 1000);
+                    if(trade.isBuyer){
+                        self.mua(price,quantity,time);
+                        await self.save_db_mua(price,quantity,time);
+                    }else{
+                        await self.save_db_ban(price,quantity,time);
+                        self.ban(price,quantity,time);
+                    }
+                }
+            });
         }
     }
 });
