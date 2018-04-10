@@ -851,7 +851,7 @@
         $(document).on('click', ".fancybox", function (e) {
             e.preventDefault();
             var symbol = $(this).attr("data-symbol");
-            var price_buy = $(".price_buy[data-symbol="+symbol+"]").text() || "";
+            var price_buy = $(".price_buy[data-symbol="+symbol+"]").first().text() || "";
             /*
             * RESET
             */
