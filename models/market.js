@@ -19,7 +19,7 @@ var Market = new SchemaObject({
     orderBook: {type: Object, default: {bids: {}, asks: {}}},
     countbuy: {type: Number, default: 5},
     amountbuy: {type: Number, default: 0.001},
-    minGain: {type: Number, default: 1},
+    minGain: {type: Number, default: 2},
     maxGain: {type: Number, default: 50},
     isBuy: {type: Boolean, default: false},
     isCheckMACDBan: {type: Boolean, default: true},
@@ -97,18 +97,18 @@ var Market = new SchemaObject({
                     binance.cancelOrders(self.MarketName);
                 }, 60000);
             } else {
-                self.mua(price,amount);
                 self.save_db_mua(price,amount);
+                self.mua(price,amount);
             }
         },
-        save_db_mua: async function (price,amount,time) {
+        save_db_mua: async function (price,amount,id,time) {
             var self = this;
-
             var time = time || moment();
             var insert = {
                 MarketName: self.MarketName,
                 price: price,
                 amount: amount,
+                id_trade:id,
                 timestamp: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
                 isBuyer:1
             };
@@ -118,6 +118,7 @@ var Market = new SchemaObject({
             var self = this;
             console.log(clc.bgGreen('Buy'), self.MarketName + " price:" + price);
             var time = time || moment();
+            var timeBuyNext = time;
             var obj = {
                 time:time.format("YYYY-MM-DD HH:mm:ss.SSS"),
                 amount:amount,
@@ -126,7 +127,7 @@ var Market = new SchemaObject({
             self.trade_session.trade_buy.push(obj);
             self.countbuy--;
             self.isBuy = true;
-            self.timeBuyNext = time.add(1, "h").format("YYYY-MM-DD HH:mm:ss.SSS");
+            self.timeBuyNext = timeBuyNext.add(1, "h").format("YYYY-MM-DD HH:mm:ss.SSS");
             var trade_buy = self.trade_session.trade_buy;
             
             var sumcoin = 0;
@@ -135,9 +136,8 @@ var Market = new SchemaObject({
                 sumcoin += parseFloat(trade_buy[i].amount) * parseFloat(trade_buy[i].price);
                 sumamount += parseFloat(trade_buy[i].amount);
             }
-            self.priceBuyAvg = sumcoin / sumamount;
-            self.minPriceSell = self.priceBuyAvg + (self.priceBuyAvg * self.priceBuyAvg / 100);
-            self.maxPriceSell = self.priceBuyAvg + (self.priceBuyAvg * self.priceBuyAvg / 100);
+            self.priceBuyAvg = parseFloat(sumcoin / sumamount);
+            self.minPriceSell = parseFloat(self.priceBuyAvg) + parseFloat(self.priceBuyAvg * self.minGain / 100);
         },
         checkban: function (price) {
             var self = this;
@@ -190,13 +190,14 @@ var Market = new SchemaObject({
                 self.ban(price,myBalances[coin].available);
             }
         },
-        save_db_ban: async function (price,amount,time) {
+        save_db_ban: async function (price,amount,id,time) {
             var time = time || moment();
             var self = this;
             var insert = {
                 MarketName: self.MarketName,
                 price: price,
                 amount: amount,
+                id_trade:id,
                 timestamp: time.format("YYYY-MM-DD HH:mm:ss.SSS"),
                 isBuyer:0
             };
@@ -275,6 +276,10 @@ var Market = new SchemaObject({
                     var update = {
                         id_session:id_session
                     }
+                    // if(self.MarketName == "IOTABTC"){
+
+                    //     console.log("UPDATE trade SET ? WHERE MarketName = '"+self.MarketName+"' and timestamp IN('"+array_time.join("','")+"')");
+                    // }
                     pool.query("UPDATE trade SET ? WHERE MarketName = '"+self.MarketName+"' and timestamp IN('"+array_time.join("','")+"')",update);
                 });
 
@@ -388,9 +393,17 @@ var Market = new SchemaObject({
                 io.emit("hotMarket", {symbol: self.MarketName, last: self.last});
             }
         },
-        syncTrade:  function(){
+        syncTrade: async function(){
             var self = this;
             var market = self.MarketName;
+            var id_trade = await pool.query("select id_trade from trade WHERE MarketName = '" + market+"' ORDER BY timestamp DESC LIMIT 1").then(function(data){
+                if(data && data.length)
+                    return data[0].id_trade + 1;
+                else
+                    return 0;
+            });
+            // console.log(id_trade);
+            // return;
             if (market == "BTCUSDT" || market == "KNCBTC" || market == "BNBBTC")
                 return;
             binance.trades(market, async (error, response,symbol)=>{
@@ -403,16 +416,17 @@ var Market = new SchemaObject({
                     var trade = response[i];
                     var price = trade.price;
                     var quantity = trade.qty;
+                    var id = trade.id;
                     var time = moment.unix(trade.time / 1000);
                     if(trade.isBuyer){
+                        await self.save_db_mua(price,quantity,id,time);
                         self.mua(price,quantity,time);
-                        await self.save_db_mua(price,quantity,time);
                     }else{
-                        await self.save_db_ban(price,quantity,time);
+                        await self.save_db_ban(price,quantity,id,time);
                         self.ban(price,quantity,time);
                     }
                 }
-            });
+            },{fromId:id_trade});
         }
     }
 });

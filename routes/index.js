@@ -42,28 +42,7 @@ router.get('/', async function (req, res, next) {
         if (err) {
             console.log(err);
         }
-        var data = [];
-        for (var i in rows) {
-            var market = rows[i].MarketName;
-            var price_buy = rows[i].price_buy;
-            var price_sell = rows[i].price_sell;
-            var time_buy = moment(rows[i].timestamp_buy).format("YYYY-MM-DD HH:mm:ss");
-            var time_sell = moment(rows[i].timestamp_sell).format("YYYY-MM-DD HH:mm:ss");
-            var amount = rows[i].amount;
-            var id = rows[i].id;
-            var percent = rows[i].percent;
-            data.push({
-                market: market,
-                price_buy: price_buy,
-                price_sell: price_sell,
-                time_buy: time_buy,
-                time_sell: time_sell,
-                amount: amount,
-                percent: percent,
-                id: id
-            });
-        }
-        return data;
+        return rows;
     });
     res.render('index', {title: 'Express', sumBTC: sumBTC, sumUSDT: sumUSDT, available: available, marketHot: marketHot, marketBuy: marketBuy, rows: rows});
 });

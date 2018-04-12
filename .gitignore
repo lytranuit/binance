@@ -2,3 +2,4 @@
 key.json
 config.json
 /config.json
+.env

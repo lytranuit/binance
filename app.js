@@ -1,7 +1,6 @@
 const binance = require('node-binance-api');
 const mysql = require('promise-mysql');
 const config = require('./config.json');
-const key = require('./key.json');
 const moment = require('moment');
 const math = require('mathjs');
 const technical = require('technicalindicators');
@@ -12,7 +11,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
+require('dotenv').config();
 var http = require('http');
 
 var Mail = require("./models/mail");
@@ -23,10 +22,10 @@ var Mail = require("./models/mail");
  * 
  *****************/
  global.pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'binance',
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     connectionLimit: 10
 });
 /******************
@@ -34,7 +33,6 @@ var Mail = require("./models/mail");
  * END CONFIG MYSQL
  * 
  *****************/
-
 
 
 
@@ -98,7 +96,10 @@ module.exports = app;
  * CONFIG BINANCE
  * 
  *****************/
- binance.options(key);
+ binance.options({
+    APIKEY:process.env.APIKEY,
+    APISECRET:process.env.APISECRET
+ });
  global.currentTime = null;
  global.primaryCoin = config.primaryCoin;
  global.myBalances = {};
@@ -139,7 +140,7 @@ module.exports = app;
                 };
                 markets[market] = new MarketModel(obj);
                 array_market.push(market);
-                // markets[market].syncTrade();
+                markets[market].syncTrade();
             }
         }
         // return;
@@ -282,6 +283,7 @@ function balance_update(data) {
         let {a: asset, f: available, l: onOrder} = obj;
         myBalances[asset].available = available;
         myBalances[asset].onOrder = onOrder;
+        io.emit("coin_update",{coin:asset,available:available,onOrder:onOrder});
         if (available == "0.00000000" && onOrder == "0.00000000")
             continue;
         console.log(asset + "\tavailable: " + available + " (" + onOrder + " on order)");
@@ -289,7 +291,7 @@ function balance_update(data) {
 }
 function execution_update(data) {
     console.log(data);
-    let {x: executionType, s: symbol, p: price, q: quantity, S: side, o: orderType, i: orderId, X: orderStatus, L: priceMarket} = data;
+    let {x: executionType, s: symbol, p: price, q: quantity, S: side, o: orderType, i: orderId, X: orderStatus, L: priceMarket,t:tradeId} = data;
     if (executionType == "NEW") {
         if (orderStatus == "REJECTED") {
             console.log("Order Failed! Reason: " + data.r);
@@ -307,7 +309,7 @@ function execution_update(data) {
             var html = "<p>" + symbol + "</p><p>Price Buy:" + price_buy + "</p><p>Price Sell:" + priceMarket + "</p><p style='color:green;'>Profit:" + percent.toFixed(2) + "%</p>";
             Mail.sendmail("[Sell]" + symbol, html);
 
-            markets[symbol].save_db_ban(priceMarket,quantity);
+            markets[symbol].save_db_ban(priceMarket,quantity,tradeId);
             markets[symbol].ban(priceMarket,quantity);
         } else if (orderType == "LIMIT" && side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
 
@@ -317,24 +319,22 @@ function execution_update(data) {
             var html = "<p>" + symbol + "</p><p>Price Buy:" + price_buy + "</p><p>Price Sell:" + price + "</p><p style='color:green;'>Profit:" + percent.toFixed(2) + "%</p>";
             Mail.sendmail("[Sell]" + symbol, html);
 
-            markets[symbol].save_db_ban(price,quantity);
+            markets[symbol].save_db_ban(price,quantity,tradeId);
             markets[symbol].ban(priceMarket,quantity);
         }else if (orderType == "MARKET" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
 
             var html = "<p>" + symbol + "</p><p>Price:" + priceMarket + "</p>";
             Mail.sendmail("[Buy]" + symbol, html);
 
+            markets[symbol].save_db_mua(priceMarket,quantity,tradeId);
             markets[symbol].mua(priceMarket,quantity);
-            markets[symbol].save_db_mua(priceMarket,quantity);
         } else if (orderType == "LIMIT" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
 
             var html = "<p>" + symbol + "</p><p>Price:" + price + "</p>";
             Mail.sendmail("[Buy]" + symbol, html);
 
-
+            markets[symbol].save_db_mua(priceMarket,quantity,tradeId);
             markets[symbol].mua(priceMarket,quantity);
-            markets[symbol].save_db_mua(priceMarket,quantity);
-
         }
     }
     console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);

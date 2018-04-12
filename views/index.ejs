@@ -392,7 +392,7 @@
                                             <tr>
                                                 <td><input class='form-control' readonly="" type="number" id="buy_value" placeholder="BTC value"></td>
                                                 <td><span class="price_last" data-symbol="">0.0000000</span></td>
-                                                <td><input class='form-control bg bg-success text-white text-center' readonly="" type="text" id="sell_profit" value="0%"></td>
+                                                <td><input class='form-control bg bg-success text-white text-center' type="number" id="sell_profit" value="0"></td>
                                             </tr>
                                             <tr>
                                                 <td>
@@ -530,8 +530,9 @@
                                 <div data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
                                     <input class="form-check-input" type="radio" name="chienLuocBan" id='chienLuocBanMin' value="chienLuocBanMin" checked>
                                     <label class="form-check-label" for="chienLuocBanMin">
-                                        Bán min
+                                        Bán Gain
                                     </label>
+                                    >= <input name="minGain" class="form-control d-inline-block" style="width:50px" value=""> %
                                 </div>
                                 <div id="collapseOne" class="collapse show ml-3" aria-labelledby="headingOne" data-parent="#settingBan">
                                     <div class='col-12'>
@@ -585,9 +586,10 @@
                             <th>Giá mua</th>
                             <th>Giá bán</th>
                             <th>Số lượng</th>
+                            <th>BTC mua</th>
+                            <th>BTC bán</th>
                             <th>Tỉ lệ</th>
-                            <th>Thời gian mua</th>
-                            <th>Thời gian bán</th>
+                            <th>Thời gian bán</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -596,21 +598,23 @@
                         <% var price_sell = rows[i].price_sell; %>
                         <% var price_buy = rows[i].price_buy; %>
                         <% var amount = rows[i].amount; %>
-                        <% var market = rows[i].market; %>
-                        <% var timestamp_buy = rows[i].time_buy; %>
-                        <% var timestamp_sell = rows[i].time_sell; %>
+                        <% var market = rows[i].MarketName; %>
+                        <% var timestamp = rows[i].timestamp.toISOString(); %>
+                        <% var BTC_buy = price_buy * amount; %>
+                        <% var BTC_sell = price_sell * amount; %>
                         <% var percent = rows[i].percent; %>
                         <tr>
                             <td><%= i %></td>
                             <td> 
                                 <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data-symbol='<%= market %>'  data-dismiss="modal"><%= market %></a>
                             </td>
-                            <td class="text-success"><%= price_buy %></td>
-                            <td class="text-danger"><%= price_sell %></td>
+                            <td class="text-success"><%= price_buy.toFixed(10) %></td>
+                            <td class="text-danger"><%= price_sell.toFixed(10) %></td>
                             <td><%= amount %></td>
+                            <td class="text-success"><%= BTC_buy.toFixed(10) %></td>
+                            <td class="text-danger"><%= BTC_sell.toFixed(10) %></td>
                             <td class="text-success"><%= percent %>%</td>
-                            <td><%= timestamp_buy %></td>
-                            <td><%= timestamp_sell %></td>
+                            <td><%= timestamp %></td>
                         </tr>
                         <% } %>
 
@@ -731,12 +735,18 @@
         $(".count_buy[data-symbol=" + symbol + "][data-interval='" + interval + "']").text(count_buy);
         $(".tr_market[data-symbol=" + symbol + "]").attr("data-volume_" + interval, count_sell + count_buy);
     });
+    socket.on("coin_update",function(data){
+        var coin = data.coin;
+        var amount = parseFloat(data.available) + parseFloat(data.onOrder);
+        $(".value_coin[data-coin='"+coin+"']").text(amount);
+    })
     $(document).ready(function () {
         //
         $('#tickets').DataTable();
         $('#history').DataTable();
         $('#BTC-markets').DataTable({
-            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            "iDisplayLength": -1
         });
         $("#refreshOrder").click(function () {
             var symbol = $("#myModal").data("symbol");
@@ -840,6 +850,9 @@
         });
         $("#buy_price").blur(function(){
             calculateBuyValue();
+        });
+        $("#sell_profit").blur(function(){
+            calculateSellPrice();
         });
         $("#BuySellTable .price_last").click(function(){
             var price = $(this).text();
@@ -996,7 +1009,13 @@ function calculateSellProfit(){
     var price_sell = $("#sell_price").val();
     var price_buy = $("#BuySellTable .price_buy").text();
     var profit = 100 * (parseFloat(price_sell) - parseFloat(price_buy)) / parseFloat(price_buy);
-    $("#sell_profit").val(profit.toFixed(2) + "%");
+    $("#sell_profit").val(profit.toFixed(2));
+}
+function calculateSellPrice(){
+    var sell_profit = $("#sell_profit").val();
+    var price_buy = $("#BuySellTable .price_buy").text();
+    var price_sell = parseFloat(price_buy) + (parseFloat(price_buy) * parseFloat(sell_profit) / 100);
+    $("#sell_price").val(price_sell.toFixed(10));
 }
 function drawChart(symbol, interval) {
     var interval1 = "D1";

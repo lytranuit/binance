@@ -82,6 +82,7 @@ router.post('/market', function (req, res, next) {
     data.mocPriceBuy = data.mocPriceBuy > 0 ? data.mocPriceBuy : 0;
     data.isCheckRsiBan = data.isCheckRsiBan == 1 ? true : false;
     data.isCheckMACDBan = data.isCheckMACDBan == 1 ? true : false;
+    data.minPriceSell = parseFloat(markets[data.MarketName].priceBuyAvg) + parseFloat(markets[data.MarketName].priceBuyAvg * data.minGain / 100);
     markets[data.MarketName] = Object.assign(markets[data.MarketName], data);
     res.json(markets[data.MarketName]);
 });
@@ -110,13 +111,8 @@ router.post('/buy', function (req, res, next) {
         res.json({success:0,error: 'Total must be > 0.001 BTC'});
         return;
     }
-    binance.buy(symbol, quantity, price, (error, response) => {
-        if (error) {
-            res.json({success:0,error: "Fail!"}); 
-            return;
-        }
-        res.json({success: 1});
-    });
+    binance.buy(symbol, quantity, price);
+    res.json({success: 1});
 });
 router.post('/buymarket', function (req, res, next) {
     var symbol = req.body.symbol;
@@ -156,13 +152,8 @@ router.post('/sell', function (req, res, next) {
         res.json({success:0,error: 'Total must be > 0.001 BTC'});
         return;
     }
-    binance.sell(symbol, quantity, price, (error, response) => {
-        if (error) {
-            res.json({success:0,error: "Fail!"}); 
-            return;
-        }
-        res.json({success: 1});
-    });
+    binance.sell(symbol, quantity, price);
+    res.json({success: 1});
 });
 router.post('/sellmarket', function (req, res, next) {
     var symbol = req.body.symbol;
