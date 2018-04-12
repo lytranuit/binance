@@ -32,11 +32,11 @@ router.get('/', async function (req, res, next) {
     /*
      * HISTORY
      */
-    var where = "WHERE 1=1 and deleted = 0";
-    if(test){
-        where += ' AND is_test = 1';
+     var where = "WHERE 1=1 and deleted = 0";
+     if(process.env.NODE_ENV == "development"){
+        where += ' AND is_test = 0';
     }else{
-         where += ' AND is_test = 0';
+        where += ' AND is_test = 1';
     }
     var rows = await pool.query("SELECT *,ROUND(100 * (price_sell-price_buy) / price_buy,2) as percent FROM trade_session  ORDER BY timestamp desc").then(function (rows, err) {
         if (err) {

@@ -84,7 +84,7 @@ var Market = new SchemaObject({
              * VAO LENH
              */
              var amount = Math.ceil(self.amountbuy / price);
-             if (!test) {
+             if (process.env.NODE_ENV == "development") {
                 self.onOrder = true;
                 binance.buy(self.MarketName, amount, price, (error, response) => {
                     if (error) {
@@ -172,7 +172,7 @@ var Market = new SchemaObject({
              */
              var self = this;
              console.log(clc.red('Order'), self.MarketName + " price:" + price);
-             if (!test) {
+             if (process.env.NODE_ENV == "development") {
                 self.onOrder = true;
                 var coin = self.MarketName.replace(primaryCoin, "");
                 binance.sell(self.MarketName, myBalances[coin].available, price, (error, response) => {
@@ -262,7 +262,7 @@ var Market = new SchemaObject({
                 /*
                 * SAVE SESSION
                 */
-                var col_test = test ? 1 : 0;
+                var col_test = process.env.NODE_ENV == "development" ? 0:1;
                 var insert = {
                     MarketName: self.MarketName,
                     price_buy: self.priceBuyAvg,

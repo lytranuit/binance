@@ -103,7 +103,6 @@ module.exports = app;
  global.currentTime = null;
  global.primaryCoin = config.primaryCoin;
  global.myBalances = {};
- global.test = config.test;
  global.ignoreCoin = config.ignoreCoin;
 /******************
  * 
@@ -301,7 +300,7 @@ function execution_update(data) {
         return;
     }
     //NEW, CANCELED, REPLACED, REJECTED, TRADE, EXPIRED
-    if (!test) {
+    if (process.env.NODE_ENV == "development") {
         if (orderType == "MARKET" && side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
             var price_buy = markets[symbol].priceBuyAvg;
             var profit = (priceMarket - price_buy);

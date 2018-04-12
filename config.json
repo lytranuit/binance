@@ -1,5 +1,4 @@
 {
-    "test": true,
     "ignoreCoin": ["BTC", "KNC", "BNB"],
     "primaryCoin": "BTC"
 }
