@@ -751,7 +751,7 @@
         $("#refreshOrder").click(function () {
             var symbol = $("#myModal").data("symbol");
             $.ajax({
-                url: "http://localhost:3000/api/refreshorder",
+                url: "/api/refreshorder",
                 dataType: "JSON",
                 data: {symbol: symbol},
                 type: "POST",
@@ -765,7 +765,7 @@
         $("#refreshTrade").click(function () {
             var symbol = $("#myModal").data("symbol");
             $.ajax({
-                url: "http://localhost:3000/api/refreshtrade",
+                url: "/api/refreshtrade",
                 dataType: "JSON",
                 data: {symbol: symbol},
                 type: "POST",
@@ -822,7 +822,7 @@
             e.preventDefault();
             var symbol = $(this).attr("data-symbol");
             $.ajax({
-                url: "http://localhost:3000/api/market?symbol=" + symbol,
+                url: "/api/market?symbol=" + symbol,
                 dataType: "JSON",
                 success: function (data) {
                     applyForm($("#formSetting"), data);
@@ -834,7 +834,7 @@
             e.preventDefault();
             var data = $("#formSetting").serialize();
             $.ajax({
-                url: "http://localhost:3000/api/market",
+                url: "/api/market",
                 dataType: "JSON",
                 data: data,
                 type: "POST",
@@ -905,7 +905,7 @@
             var price = $("#buy_price").val();
             var symbol = $("#myModal").data("symbol");
             $.ajax({
-                url: "http://localhost:3000/api/buy",
+                url: "/api/buy",
                 data: {symbol: symbol,quantity_per:percent,price:price},
                 type: "POST",
                 dataType: "JSON",
@@ -922,7 +922,7 @@
             var percent = $("#percent").val();
             var symbol = $("#myModal").data("symbol");
             $.ajax({
-                url: "http://localhost:3000/api/buymarket",
+                url: "/api/buymarket",
                 data: {symbol: symbol,quantity_per:percent},
                 type: "POST",
                 dataType: "JSON",
@@ -940,7 +940,7 @@
             var price = $("#sell_price").val();
             var symbol = $("#myModal").data("symbol");
             $.ajax({
-                url: "http://localhost:3000/api/sell",
+                url: "/api/sell",
                 data: {symbol: symbol,quantity_per:percent,price:price},
                 type: "POST",
                 dataType: "JSON",
@@ -957,7 +957,7 @@
             var percent = $("#percent").val();
             var symbol = $("#myModal").data("symbol");
             $.ajax({
-                url: "http://localhost:3000/api/sellmarket",
+                url: "/api/sellmarket",
                 data: {symbol: symbol,quantity_per:percent},
                 type: "POST",
                 dataType: "JSON",
@@ -979,7 +979,7 @@ function getBalances(symbol){
     $("#altcoin .name_coin").text(altcoin);
 
     $.ajax({
-        url: "http://localhost:3000/api/balance",
+        url: "/api/balance",
         data:{coin:primaryCoin},
         dataType: "JSON",
         success: function (data) {
@@ -988,7 +988,7 @@ function getBalances(symbol){
         }
     });
     $.ajax({
-        url: "http://localhost:3000/api/balance",
+        url: "/api/balance",
         data:{coin:altcoin},
         dataType: "JSON",
         success: function (data) {
@@ -1033,7 +1033,7 @@ function drawChart(symbol, interval) {
     $("#tradingview").empty();
     $("#tradingview").append("<div id='tradingview1' data-symbol='" + symbol + "' data-interval='" + interval + "'/>");
     $.ajax({
-        url: "http://localhost:3000/api/candle?interval=" + interval + "&symbol=" + symbol,
+        url: "/api/candle?interval=" + interval + "&symbol=" + symbol,
         dataType: "JSON",
         success: function (data) {
             var pointFormatter = function () {
