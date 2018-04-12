@@ -3,12 +3,13 @@ const moment = require('moment');
 var passport = require("passport");
 var router = express.Router();
 /* GET home page. */
-router.get('/login', function (req, res, next) {
-	res.render('login');
-});
 router.get('/logout', function (req, res, next) {
 	req.logout();
-	res.render('login');
+	res.redirect('login');
 });
-router.post('/login', passport.authenticate('local', {successRedirect: '/', ailureRedirect: '/login'}));
+router.post('/login', 
+	passport.authenticate('local', { failureRedirect: '/login' }),
+	function(req, res) {
+		res.redirect('/');
+	});
 module.exports = router;

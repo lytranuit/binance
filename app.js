@@ -38,16 +38,23 @@ var Mail = require("./models/mail");
 *****************/
 
 passport.serializeUser(function(user, done) {
-    done(null, user.id);
+    done(null, user);
 });
 
-passport.deserializeUser(function(id, done) {
-    done(null, id);
+passport.deserializeUser(function(user, done) {
+    done(null, user);
 });
-passport.use(new LocalStrategy(
-    function (username,password,done) {
-        return done(err);
-    })
+passport.use(new LocalStrategy({
+    usernameField: 'username',
+    passwordField: 'password',
+    session: true
+},
+function (username,password,done) {
+    if(username == "daotran" && password == "Asd1234")
+        return done(null,username);
+    else
+        return done(null, false);
+})
 );
 /******************
  * 
@@ -78,7 +85,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
   secret : "secret",
   saveUninitialized: true,
-  resave: true
+  resave: true,
+  key:'sid'
 }))
 
 app.use(passport.initialize());
@@ -129,14 +137,14 @@ module.exports = app;
  global.myBalances = {};
  global.ignoreCoin = config.ignoreCoin;
 /******************
- * 
- * END CONFIG MAIL
- * 
- *****************/
- var MarketModel = require('./models/market');
- var ChisoModel = require('./models/chiso');
- global.markets = {};
- binance.useServerTime(function () {
+* 
+* END CONFIG MAIL
+* 
+*****************/
+var MarketModel = require('./models/market');
+var ChisoModel = require('./models/chiso');
+global.markets = {};
+binance.useServerTime(function () {
     binance.balance((error, balances) => {
         myBalances = balances;
     });

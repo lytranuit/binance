@@ -2,7 +2,7 @@ var express = require('express');
 const moment = require('moment');
 var router = express.Router();
 /* GET home page. */
-router.get('/', async function (req, res, next) {
+router.get('/', ensureAuthenticated,async function (req, res, next) {
     var lastBTC = markets['BTCUSDT'].last;
     var marketBuy = {};
     var marketGood = {"BTCUSDT": markets['BTCUSDT']};
@@ -46,4 +46,13 @@ router.get('/', async function (req, res, next) {
     });
     res.render('index', {title: 'Express', sumBTC: sumBTC, sumUSDT: sumUSDT, available: available, marketHot: marketHot, marketBuy: marketBuy, rows: rows});
 });
+
+router.get('/login', function (req, res, next) {
+    res.render('login');
+});
+
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) { return next(); }
+  res.redirect('/login');
+}
 module.exports = router;

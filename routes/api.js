@@ -3,15 +3,15 @@ var router = express.Router();
 const binance = require('node-binance-api');
 const moment = require('moment');
 /* GET api listing. */
-router.get('/market', function (req, res, next) {
+router.get('/market',ensureAuthenticated, function (req, res, next) {
     var symbol = req.query.symbol || "BTCUSDT";
     res.json(markets[symbol]);
 });
-router.get('/balance', function (req, res, next) {
+router.get('/balance', ensureAuthenticated,function (req, res, next) {
     var coin = req.query.coin || "BTC";
     res.json(myBalances[coin]);
 });
-router.get('/candle', async function (req, res, next) {
+router.get('/candle',ensureAuthenticated, async function (req, res, next) {
     var symbol = req.query.symbol || "BTCUSDT";
     var interval = req.query.interval || "1d";
     var events = [];
@@ -77,7 +77,7 @@ router.get('/candle', async function (req, res, next) {
 /*
 * POST
 */
-router.post('/market', function (req, res, next) {
+router.post('/market',ensureAuthenticated, function (req, res, next) {
     var data = req.body;
     data.mocPriceBuy = data.mocPriceBuy > 0 ? data.mocPriceBuy : 0;
     data.isCheckRsiBan = data.isCheckRsiBan == 1 ? true : false;
@@ -86,17 +86,17 @@ router.post('/market', function (req, res, next) {
     markets[data.MarketName] = Object.assign(markets[data.MarketName], data);
     res.json(markets[data.MarketName]);
 });
-router.post('/refreshorder', function (req, res, next) {
+router.post('/refreshorder',ensureAuthenticated, function (req, res, next) {
     var symbol = req.body.symbol;
     markets[symbol].refreshOrder();
     res.json({success: 1});
 });
-router.post('/refreshtrade', function (req, res, next) {
+router.post('/refreshtrade',ensureAuthenticated, function (req, res, next) {
     var symbol = req.body.symbol;
     markets[symbol].refreshTrade();
     res.json({success: 1});
 });
-router.post('/buy', function (req, res, next) {
+router.post('/buy',ensureAuthenticated, function (req, res, next) {
     var symbol = req.body.symbol;
     var price = req.body.price || 0;
     var quantity_per = req.body.quantity_per;
@@ -114,7 +114,7 @@ router.post('/buy', function (req, res, next) {
     binance.buy(symbol, quantity, price);
     res.json({success: 1});
 });
-router.post('/buymarket', function (req, res, next) {
+router.post('/buymarket',ensureAuthenticated, function (req, res, next) {
     var symbol = req.body.symbol;
     var quantity_per = req.body.quantity_per;
     /*
@@ -134,7 +134,7 @@ router.post('/buymarket', function (req, res, next) {
         res.json({success: 1});
     });
 });
-router.post('/sell', function (req, res, next) {
+router.post('/sell',ensureAuthenticated, function (req, res, next) {
     var symbol = req.body.symbol;
     var price = req.body.price || 0 ;
     var quantity_per = req.body.quantity_per;
@@ -155,7 +155,7 @@ router.post('/sell', function (req, res, next) {
     binance.sell(symbol, quantity, price);
     res.json({success: 1});
 });
-router.post('/sellmarket', function (req, res, next) {
+router.post('/sellmarket',ensureAuthenticated, function (req, res, next) {
     var symbol = req.body.symbol;
     var quantity_per = req.body.quantity_per;
     /*
@@ -175,4 +175,9 @@ router.post('/sellmarket', function (req, res, next) {
         res.json({success: 1});
     });
 });
+
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) { return next(); }
+  res.json({success:0,code:500,error:'No Access'});
+}
 module.exports = router;
