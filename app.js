@@ -10,6 +10,9 @@ var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
+var passport = require("passport");
+var LocalStrategy = require('passport-local').Strategy;
+var session = require('express-session');
 var logger = require('morgan');
 require('dotenv').config();
 var http = require('http');
@@ -29,13 +32,23 @@ var Mail = require("./models/mail");
     connectionLimit: 10
 });
 /******************
- * 
- * END CONFIG MYSQL
- * 
- *****************/
+*
+* END CONFIG MYSQL
+* 
+*****************/
 
+passport.serializeUser(function(user, done) {
+    done(null, user.id);
+});
 
-
+passport.deserializeUser(function(id, done) {
+    done(null, id);
+});
+passport.use(new LocalStrategy(
+    function (username,password,done) {
+        return done(err);
+    })
+);
 /******************
  * 
  * END CONFIG MAIL
@@ -62,6 +75,15 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({
+  secret : "secret",
+  saveUninitialized: true,
+  resave: true
+}))
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 app.use('/', indexRouter);
 app.use('/api', apiRouter);
@@ -101,7 +123,7 @@ module.exports = app;
  binance.options({
     APIKEY:process.env.APIKEY,
     APISECRET:process.env.APISECRET
- });
+});
  global.currentTime = null;
  global.primaryCoin = config.primaryCoin;
  global.myBalances = {};
