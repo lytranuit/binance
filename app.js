@@ -263,7 +263,7 @@ binance.useServerTime(function () {
             if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
                 if (maker) {
                     markets[symbol].sumquantity -= quantity;
-                    markets[symbol].trades.asks.push({price: price, quantity: quantity;});
+                    markets[symbol].trades.asks.push({price: price, quantity: quantity});
                     markets[symbol]['indicator_1h'].count_sell++;
                     markets[symbol]['indicator_5m'].count_sell++;
                     markets[symbol]['indicator_1m'].count_sell++;
