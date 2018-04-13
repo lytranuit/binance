@@ -355,7 +355,7 @@ function execution_update(data) {
         return;
     }
     //NEW, CANCELED, REPLACED, REJECTED, TRADE, EXPIRED
-    if (process.env.NODE_ENV == "development") {
+    if (process.env.NODE_ENV == "production") {
         if (orderType == "MARKET" && side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
             var price_buy = markets[symbol].priceBuyAvg;
             var profit = (priceMarket - price_buy);

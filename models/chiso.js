@@ -121,10 +121,10 @@ var Chiso = new SchemaObject({
             var self = this;
             var time = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
             if(self.currentquantity.highquantity.quantity < quantity){
-                self.highquantity = {time:time,quantity:quantity};
+                self.currentquantity.highquantity = {time:time,quantity:quantity};
             }
             if(self.currentquantity.lowquantity.quantity > quantity){
-                self.lowquantity = {time:time,quantity:quantity};
+                self.currentquantity.lowquantity = {time:time,quantity:quantity};
             }
             var timenext = moment(self.prevquantity.value.time);
             if(self.prevquantity.value.time == 0 || timenext.add(self.interval,self.type_interval).valueOf() > moment().valueOf()){
