@@ -18,7 +18,7 @@ router.get('/', ensureAuthenticated,async function (req, res, next) {
     var sumBTC = 0;
     var sumUSDT = 0;
     var available = 0
-    if(process.env.NODE_ENV == "development"){
+    if(process.env.NODE_ENV == "production"){
         available = myBalances["BTC"].available ;
         for (var coin in myBalances) {
             var ava = myBalances[coin].available;
@@ -37,7 +37,7 @@ router.get('/', ensureAuthenticated,async function (req, res, next) {
     * HISTORY
     */
     var where = "WHERE 1=1 and deleted = 0";
-    if(process.env.NODE_ENV == "development"){
+    if(process.env.NODE_ENV == "production"){
         where += ' AND is_test = 0';
     }else{
         where += ' AND is_test = 1';

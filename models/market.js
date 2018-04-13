@@ -50,7 +50,7 @@ var Market = new SchemaObject({
             var MarketName = self.MarketName;
             if (MarketName == "BTCUSDT" || MarketName == "BNBBTC")
                 return;
-            if (process.env.NODE_ENV == "development" && myBalances[primaryCoin].available <= self.amountbuy)
+            if (process.env.NODE_ENV == "production" && myBalances[primaryCoin].available <= self.amountbuy)
                 return;
             if (!self.hasDataChiso())
                 return;
