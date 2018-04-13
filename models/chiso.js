@@ -15,6 +15,8 @@ var Chiso = new SchemaObject({
     count_sell: numberType,
     rate:numberType,
     periodTime: numberType,
+    currentquantity:{type:Object,default:{highquantity:{time:0,quantity:0},lowquantity:{time:0,quantity:0}}},
+    prevquantity:{type:Object,default:{value:{time:0,quantity:0},highquantity:{time:0,quantity:0},lowquantity:{time:0,quantity:0}}},
     pattern: Object,
     candle: Array,
     hs: booleanType,
@@ -112,9 +114,22 @@ var Chiso = new SchemaObject({
             };
             var array_bb = bb.calculate(input);
             self.bb = array_bb[array_bb.length - 1];
-            
-
-        }
+        },
+        checkhighlow:function(quantity){
+            var self = this;
+            var time = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+            if(self.currentquantity.highquantity.quantity < quantity){
+                self.highquantity = {time:time,quantity:quantity};
+            }
+            if(self.currentquantity.lowquantity.quantity > quantity){
+                self.lowquantity = {time:time,quantity:quantity};
+            }
+            var timenext = moment(self.prevquantity.value.time);
+            if(self.prevquantity.value.time == 0 || timenext.add(self.interval,self.type_interval).valueOf() > moment().valueOf()){
+                self.prevquantity = self.currentquantity;
+                self.prevquantity.value = {time:time,quantity:quantity};
+            }
+        },
     }
 });
 module.exports = Chiso;

@@ -16,6 +16,7 @@ var Market = new SchemaObject({
     indicator_1h: Object,
     indicator_5m: Object,
     indicator_1m: Object,
+    sumquantity:numberType,
     orderBook: {type: Object, default: {bids: {}, asks: {}}},
     countbuy: {type: Number, default: 5},
     amountbuy: {type: Number, default: 0.001},

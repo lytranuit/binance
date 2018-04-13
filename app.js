@@ -159,12 +159,24 @@ binance.useServerTime(function () {
             var market = i;
             var last = ticker[i];
             if (market.indexOf(primaryCoin) != -1) {
-                var chiso1h = new ChisoModel();
-                var chiso5m = new ChisoModel();
-                var chiso1m = new ChisoModel();
+                var chiso1y = new ChisoModel({interval:1,type_interval:"y"});
+                var chiso6M = new ChisoModel({interval:6,type_interval:"M"});
+                var chiso3M = new ChisoModel({interval:3,type_interval:"M"});
+                var chiso1M = new ChisoModel({interval:1,type_interval:"M"});
+                var chiso1w = new ChisoModel({interval:1,type_interval:"w"});
+                var chiso1d = new ChisoModel({interval:1,type_interval:"d"});
+                var chiso1h = new ChisoModel({interval:1,type_interval:"h"});
+                var chiso5m = new ChisoModel({interval:5,type_interval:"m"});
+                var chiso1m = new ChisoModel({interval:1,type_interval:"m"});
                 var obj = {
                     MarketName: market,
                     last: last,
+                    indicator_1y: chiso1h,
+                    indicator_6M: chiso5m,
+                    indicator_3M: chiso1m,
+                    indicator_1M: chiso1h,
+                    indicator_1w: chiso5m,
+                    indicator_1d: chiso1m,
                     indicator_1h: chiso1h,
                     indicator_5m: chiso5m,
                     indicator_1m: chiso1m
@@ -250,16 +262,27 @@ binance.useServerTime(function () {
             let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
             if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
                 if (maker) {
-                    markets[symbol].trades.asks.push({price: price, quantity: quantity});
+                    markets[symbol].sumquantity -= quantity;
+                    markets[symbol].trades.asks.push({price: price, quantity: quantity;});
                     markets[symbol]['indicator_1h'].count_sell++;
                     markets[symbol]['indicator_5m'].count_sell++;
                     markets[symbol]['indicator_1m'].count_sell++;
                 } else {
+                    markets[symbol].sumquantity += quantity;
                     markets[symbol].trades.bids.push({price: price, quantity: quantity});
                     markets[symbol]['indicator_1h'].count_buy++;
                     markets[symbol]['indicator_5m'].count_buy++;
                     markets[symbol]['indicator_1m'].count_buy++;
                 }
+                markets[symbol]['indicator_1m'].checkhighlow(markets[symbol].sumquantity);
+                markets[symbol]['indicator_5m'].checkhighlow(markets[symbol].sumquantity);
+                markets[symbol]['indicator_1h'].checkhighlow(markets[symbol].sumquantity);
+                markets[symbol]['indicator_1d'].checkhighlow(markets[symbol].sumquantity);
+                markets[symbol]['indicator_1w'].checkhighlow(markets[symbol].sumquantity);
+                markets[symbol]['indicator_1M'].checkhighlow(markets[symbol].sumquantity);
+                markets[symbol]['indicator_3M'].checkhighlow(markets[symbol].sumquantity);
+                markets[symbol]['indicator_6M'].checkhighlow(markets[symbol].sumquantity);
+                markets[symbol]['indicator_1y'].checkhighlow(markets[symbol].sumquantity);
             }
         });
         binance.websockets.depth(array_market, (depth) => {
