@@ -56,7 +56,7 @@ var Market = new SchemaObject({
                 return;
             if (markets['BTCUSDT']['indicator_5m']['mfi'] < 35) {
                 if (currentTime != markets['BTCUSDT'].periodTime)
-                    console.log(clc.black.bgYellow('Down'), " MFI:" + markets['BTCUSDT']['indicator_5m']['mfi']);
+                    // console.log(clc.black.bgYellow('Down'), " MFI:" + markets['BTCUSDT']['indicator_5m']['mfi']);
                 return;
             }
             if (self.indicator_1h.td || self.indicator_1h.dt) {
@@ -155,7 +155,7 @@ var Market = new SchemaObject({
                 } else {
                     var textpercent = clc.red(percent.toFixed(2));
                 }
-                console.log(clc.black.bgWhite(self.MarketName), " price:" + price + " - " + textpercent + "%");
+                // console.log(clc.black.bgWhite(self.MarketName), " price:" + price + " - " + textpercent + "%");
                 if (!self.hasDataChiso())
                     return;
                 if (self.onOrder)
@@ -310,7 +310,6 @@ var Market = new SchemaObject({
                 sumamount_sell += parseFloat(trade_session.trade_sell[i].amount);
             }
             if(sumamount_buy == sumamount_sell){
-                console.log(self.MarketName);
                 return true;
             }
             return false;
@@ -394,7 +393,8 @@ var Market = new SchemaObject({
             var is_price_increase = candle1[1].close > candle2[1].high * 1.02;
             if (!self.isHotMarket && ((self.indicator_1m.count_buy > 200 && self.indicator_1m.count_sell > 200) || (is_bullishmarubozu && is_volume_large && is_price_increase))) {
                 self.isHotMarket = true;
-                console.log(clc.green("HOT"), clc.red("HOT"), self.MarketName);
+                
+                // console.log(clc.green("HOT"), clc.red("HOT"), self.MarketName);
                 var html = "<p>" + self.MarketName + "</p><p>Current Price:" + self.last + "</p>";
                 Mail.sendmail("[HOT]" + self.MarketName + " PUMP", html);
                 io.emit("hotMarket", {symbol: self.MarketName, last: self.last});
