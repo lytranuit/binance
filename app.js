@@ -171,12 +171,12 @@ binance.useServerTime(function () {
                 var obj = {
                     MarketName: market,
                     last: last,
-                    indicator_1y: chiso1h,
-                    indicator_6M: chiso5m,
-                    indicator_3M: chiso1m,
-                    indicator_1M: chiso1h,
-                    indicator_1w: chiso5m,
-                    indicator_1d: chiso1m,
+                    indicator_1y: chiso1y,
+                    indicator_6M: chiso6M,
+                    indicator_3M: chiso3M,
+                    indicator_1M: chiso1M,
+                    indicator_1w: chiso1w,
+                    indicator_1d: chiso1d,
                     indicator_1h: chiso1h,
                     indicator_5m: chiso5m,
                     indicator_1m: chiso1m
