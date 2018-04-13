@@ -15,6 +15,8 @@ var Chiso = new SchemaObject({
     count_sell: numberType,
     rate:numberType,
     periodTime: numberType,
+    interval: {type: Number, default: 1},
+    type_interval: {type: String, default: "m"},
     currentquantity:{type:Object,default:{highquantity:{time:0,quantity:0},lowquantity:{time:0,quantity:0}}},
     prevquantity:{type:Object,default:{value:{time:0,quantity:0},highquantity:{time:0,quantity:0},lowquantity:{time:0,quantity:0}}},
     pattern: Object,
