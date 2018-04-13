@@ -5,7 +5,6 @@ var router = express.Router();
 router.get('/', ensureAuthenticated,async function (req, res, next) {
     var lastBTC = markets['BTCUSDT'].last;
     var marketBuy = {};
-    var marketGood = {"BTCUSDT": markets['BTCUSDT']};
     var marketHot = {"BTCUSDT": markets['BTCUSDT']};
     for (var market in markets) {
         if (markets[market].isBuy) {
@@ -15,25 +14,30 @@ router.get('/', ensureAuthenticated,async function (req, res, next) {
             marketHot[market] = markets[market];
         }
     }
-    var available = myBalances["BTC"].available;
+
     var sumBTC = 0;
-    for (var coin in myBalances) {
-        var ava = myBalances[coin].available;
-        var order = myBalances[coin].onOrder;
-        var sumCoin = parseFloat(ava) + parseFloat(order);
-        if (markets[coin + "BTC"]) {
-            var btcCoin = sumCoin * markets[coin + "BTC"].last;
-            sumBTC += btcCoin;
-        } else if (coin == "BTC") {
-            sumBTC += sumCoin;
+    var sumUSDT = 0;
+    var available = 0
+    if(process.env.NODE_ENV == "development"){
+        available = myBalances["BTC"].available ;
+        for (var coin in myBalances) {
+            var ava = myBalances[coin].available;
+            var order = myBalances[coin].onOrder;
+            var sumCoin = parseFloat(ava) + parseFloat(order);
+            if (markets[coin + "BTC"]) {
+                var btcCoin = sumCoin * markets[coin + "BTC"].last;
+                sumBTC += btcCoin;
+            } else if (coin == "BTC") {
+                sumBTC += sumCoin;
+            }
         }
+        sumUSDT = sumBTC * lastBTC;
     }
-    var sumUSDT = sumBTC * lastBTC;
     /*
-     * HISTORY
-     */
-     var where = "WHERE 1=1 and deleted = 0";
-     if(process.env.NODE_ENV == "development"){
+    * HISTORY
+    */
+    var where = "WHERE 1=1 and deleted = 0";
+    if(process.env.NODE_ENV == "development"){
         where += ' AND is_test = 0';
     }else{
         where += ' AND is_test = 1';

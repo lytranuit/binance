@@ -127,9 +127,13 @@ var Chiso = new SchemaObject({
                 self.currentquantity.lowquantity = {time:time,quantity:quantity};
             }
             var timenext = moment(self.prevquantity.value.time);
-            if(self.prevquantity.value.time == 0 || timenext.add(self.interva,self.type_interval).valueOf() > moment().valueOf()){
+            // console.log(timenext.add(self.interval,self.type_interval).valueOf());
+            // console.log(moment().valueOf());
+
+            if(self.prevquantity.value.time == 0 || timenext.add(self.interval,self.type_interval).valueOf() < moment().valueOf()){
                 self.prevquantity = self.currentquantity;
                 self.prevquantity.value = {time:time,quantity:quantity};
+                self.currentquantity = {highquantity:{time:0,quantity:0},lowquantity:{time:0,quantity:0}};
             }
         },
     }

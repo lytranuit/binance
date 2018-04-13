@@ -1,7 +1,8 @@
 const binance = require('node-binance-api');
 const mysql = require('promise-mysql');
 const config = require('./config.json');
-const moment = require('moment');
+const moment = require('moment-timezone');
+moment.tz.setDefault("Asia/Ho_Chi_Minh");
 const math = require('mathjs');
 const technical = require('technicalindicators');
 const clc = require('cli-color');
@@ -145,11 +146,12 @@ var MarketModel = require('./models/market');
 var ChisoModel = require('./models/chiso');
 global.markets = {};
 binance.useServerTime(function () {
-    binance.balance((error, balances) => {
-        myBalances = balances;
-    });
-    binance.websockets.userData(balance_update, execution_update);
-
+    if (process.env.NODE_ENV == "production") {
+        binance.balance((error, balances) => {
+            myBalances = balances;
+        });
+        binance.websockets.userData(balance_update, execution_update);
+    }
     binance.prices((error, ticker) => {
         if (error) {
             return console.error(error);
@@ -183,7 +185,9 @@ binance.useServerTime(function () {
                 };
                 markets[market] = new MarketModel(obj);
                 array_market.push(market);
-                markets[market].syncTrade();
+                if (process.env.NODE_ENV == "production") {
+                    markets[market].syncTrade();
+                }
             }
         }
         // return;

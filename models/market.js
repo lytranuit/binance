@@ -11,18 +11,18 @@ var numberType = {type: Number, default: 0};
 var Market = new SchemaObject({
     MarketName: NotEmptyString,
     last: numberType,
-    trades: {type: Object, default: {bids: [], asks: []}},
     periodTime: numberType,
-    indicator_1y: Object,
-    indicator_6M: Object,
-    indicator_3M: Object,
-    indicator_1M: Object,
-    indicator_1w: Object,
-    indicator_1d: Object,
-    indicator_1h: Object,
-    indicator_5m: Object,
     indicator_1m: Object,
+    indicator_5m: Object,
+    indicator_1h: Object,
+    indicator_1d: Object,
+    indicator_1w: Object,
+    indicator_1M: Object,
+    indicator_3M: Object,
+    indicator_6M: Object,
+    indicator_1y: Object,
     sumquantity:numberType,
+    trades: {type: Object, default: {bids: [], asks: []}},
     orderBook: {type: Object, default: {bids: {}, asks: {}}},
     countbuy: {type: Number, default: 5},
     amountbuy: {type: Number, default: 0.001},
@@ -48,9 +48,9 @@ var Market = new SchemaObject({
         checkmua: function (price) {
             var self = this;
             var MarketName = self.MarketName;
-            if (MarketName == "BTCUSDT" || MarketName == "KNCBTC" || MarketName == "BNBBTC")
+            if (MarketName == "BTCUSDT" || MarketName == "BNBBTC")
                 return;
-            if (myBalances[primaryCoin].available <= self.amountbuy)
+            if (process.env.NODE_ENV == "development" && myBalances[primaryCoin].available <= self.amountbuy)
                 return;
             if (!self.hasDataChiso())
                 return;
@@ -193,8 +193,8 @@ var Market = new SchemaObject({
                 }, 60000);
             } else {
                 var coin = self.MarketName.replace(primaryCoin, "");
-                self.save_db_ban(price,myBalances[coin].available);
-                self.ban(price,myBalances[coin].available);
+                self.save_db_ban(price,1);
+                self.ban(price,1);
             }
         },
         save_db_ban: async function (price,amount,id,time) {
@@ -265,7 +265,7 @@ var Market = new SchemaObject({
             //     console.log(sumamount_sell);
             //     console.log(sumamount_buy == sumamount_sell);
             // }
-            if(sumamount_buy == sumamount_sell){
+            if(sumamount_buy <= sumamount_sell){
                 /*
                 * SAVE SESSION
                 */
