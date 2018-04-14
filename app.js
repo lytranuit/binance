@@ -185,6 +185,7 @@ binance.useServerTime(function () {
                 };
                 markets[market] = new MarketModel(obj);
                 array_market.push(market);
+                markets[market].sync_quantity();
                 if (process.env.NODE_ENV == "production") {
                     markets[market].syncTrade();
                 }
@@ -222,9 +223,12 @@ binance.useServerTime(function () {
                     global.currentTime = tick;
                     console.log("Bắt đầu phiên:", moment.unix(tick / 1000).format());
                 }
+                
+                markets[market].save_db_quantity();
                 markets[market]['indicator_' + interval].setIndicator(results);
                 markets[market]['indicator_' + interval].count_buy = 0;
                 markets[market]['indicator_' + interval].count_sell = 0;
+                markets[market]['indicator_' + interval].sumquantity = 0;
                 markets[market].isHotMarket = false;
             }
             /*
@@ -266,27 +270,18 @@ binance.useServerTime(function () {
             let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
             if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
                 if (maker) {
-                    markets[symbol].sumquantity -= quantity;
+                    markets[symbol]['indicator_5m'].sumquantity -= parseFloat(quantity);
                     markets[symbol].trades.asks.push({price: price, quantity: quantity});
                     markets[symbol]['indicator_1h'].count_sell++;
                     markets[symbol]['indicator_5m'].count_sell++;
                     markets[symbol]['indicator_1m'].count_sell++;
                 } else {
-                    markets[symbol].sumquantity += quantity;
+                    markets[symbol]['indicator_5m'].sumquantity += parseFloat(quantity);
                     markets[symbol].trades.bids.push({price: price, quantity: quantity});
                     markets[symbol]['indicator_1h'].count_buy++;
                     markets[symbol]['indicator_5m'].count_buy++;
                     markets[symbol]['indicator_1m'].count_buy++;
                 }
-                markets[symbol]['indicator_1m'].checkhighlow(markets[symbol].sumquantity);
-                markets[symbol]['indicator_5m'].checkhighlow(markets[symbol].sumquantity);
-                markets[symbol]['indicator_1h'].checkhighlow(markets[symbol].sumquantity);
-                markets[symbol]['indicator_1d'].checkhighlow(markets[symbol].sumquantity);
-                markets[symbol]['indicator_1w'].checkhighlow(markets[symbol].sumquantity);
-                markets[symbol]['indicator_1M'].checkhighlow(markets[symbol].sumquantity);
-                markets[symbol]['indicator_3M'].checkhighlow(markets[symbol].sumquantity);
-                markets[symbol]['indicator_6M'].checkhighlow(markets[symbol].sumquantity);
-                markets[symbol]['indicator_1y'].checkhighlow(markets[symbol].sumquantity);
             }
         });
         binance.websockets.depth(array_market, (depth) => {

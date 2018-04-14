@@ -21,7 +21,6 @@ var Market = new SchemaObject({
     indicator_3M: Object,
     indicator_6M: Object,
     indicator_1y: Object,
-    sumquantity:numberType,
     trades: {type: Object, default: {bids: [], asks: []}},
     orderBook: {type: Object, default: {bids: {}, asks: {}}},
     countbuy: {type: Number, default: 5},
@@ -88,10 +87,10 @@ var Market = new SchemaObject({
             console.log(clc.green('Order'), self.MarketName + " price:" + price);
 
             /*
-             * VAO LENH
-             */
-             var amount = Math.ceil(self.amountbuy / price);
-             if (process.env.NODE_ENV == "production") {
+            * VAO LENH
+            */
+            var amount = Math.ceil(self.amountbuy / price);
+            if (process.env.NODE_ENV == "production") {
                 self.onOrder = true;
                 binance.buy(self.MarketName, amount, price, (error, response) => {
                     if (error) {
@@ -185,6 +184,7 @@ var Market = new SchemaObject({
                 binance.sell(self.MarketName, myBalances[coin].available, price, (error, response) => {
                     if (error) {
                         self.onOrder = false;
+                        binance.marketSell(self.MarketName, myBalances[coin].available);
                     }
                 });
                 setTimeout(function () {
@@ -434,6 +434,50 @@ var Market = new SchemaObject({
                     }
                 }
             },{fromId:id_trade});
+        },
+        save_db_quantity:function(){
+            var self = this;
+            var time = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+            var insert = {
+                MarketName: self.MarketName,
+                timestamp: time,
+                quantity: self.indicator_5m.sumquantity,
+                count_buy:self.indicator_5m.count_buy,
+                count_sell:self.indicator_5m.count_sell
+            };
+            return pool.query('INSERT INTO event_quantity SET ?', insert).catch(function(error){
+                return false;
+            }).then(function(){
+                return true;
+            });
+        },
+        sync_quantity:async function(){
+            var self = this;
+            var market = self.MarketName;
+            var rows = await pool.query("select * from event_quantity WHERE MarketName = '" + market+"' ORDER BY timestamp DESC LIMIT 1");
+            var quantity =0;
+            var timestamp = 0;
+            if(rows && rows.length){
+                var timestamp = moment(rows[0].timestamp).valueOf();
+            }
+            if(timestamp != 0){
+                binance.aggTrades(self.MarketName,{startTime:timestamp,endTime:timestamp + 1440000},(error, response,symbol) =>{
+                    if(error){
+                        console.log(error);
+                        self.sync_quantity();
+                        return;
+                    }
+                    for(var i in response){
+                        var trade = response[i];
+                        let {p: price, q: quantity, m: maker, a: tradeId} = trade;
+                        if(maker){
+                            self.indicator_5m.sumquantity -= parseFloat(quantity);
+                        }else{
+                            self.indicator_5m.sumquantity += parseFloat(quantity);
+                        }
+                    }
+                });
+            }
         }
     }
 });

@@ -17,10 +17,9 @@ var Chiso = new SchemaObject({
     periodTime: numberType,
     interval: {type: Number, default: 1},
     type_interval: {type: String, default: "m"},
-    currentquantity:{type:Object,default:{highquantity:{time:0,quantity:0},lowquantity:{time:0,quantity:0}}},
-    prevquantity:{type:Object,default:{value:{time:0,quantity:0},highquantity:{time:0,quantity:0},lowquantity:{time:0,quantity:0}}},
     pattern: Object,
     candle: Array,
+    sumquantity:numberType,
     hs: booleanType,
     ihs: booleanType,
     db: booleanType,
@@ -116,26 +115,7 @@ var Chiso = new SchemaObject({
             };
             var array_bb = bb.calculate(input);
             self.bb = array_bb[array_bb.length - 1];
-        },
-        checkhighlow:function(quantity){
-            var self = this;
-            var time = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
-            if(self.currentquantity.highquantity.quantity < quantity){
-                self.currentquantity.highquantity = {time:time,quantity:quantity};
-            }
-            if(self.currentquantity.lowquantity.quantity > quantity){
-                self.currentquantity.lowquantity = {time:time,quantity:quantity};
-            }
-            var timenext = moment(self.prevquantity.value.time);
-            // console.log(timenext.add(self.interval,self.type_interval).valueOf());
-            // console.log(moment().valueOf());
-
-            if(self.prevquantity.value.time == 0 || timenext.add(self.interval,self.type_interval).valueOf() < moment().valueOf()){
-                self.prevquantity = self.currentquantity;
-                self.prevquantity.value = {time:time,quantity:quantity};
-                self.currentquantity = {highquantity:{time:0,quantity:0},lowquantity:{time:0,quantity:0}};
-            }
-        },
+        }
     }
 });
 module.exports = Chiso;
