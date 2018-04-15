@@ -1,4 +1,5 @@
 {
-    "ignoreCoin": ["BTC", "KNC", "BNB"],
-    "primaryCoin": "BTC"
+	"ignoreCoin": ["BTC", "BNB"],
+	"primaryCoin": "BTC",
+	"stopmua":false
 }

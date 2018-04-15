@@ -80,7 +80,7 @@
                                                     <% }else{ %> 
                                                     <% classess = 'text-danger'; %> 
                                                     <% } %> 
-                                                    <tr>
+                                                    <tr data-symbol='<%= market %>'>
                                                         <td>
                                                             <%= i++ %>
                                                         </td>
@@ -666,6 +666,7 @@
 <script type='text/javascript'>
 
     var primaryCoin = '<%= primaryCoin %>';
+    var tzOffsetMoscow=3600*7;
     var socket = io();
     socket.on("start", function () {
         socket.emit("join", {room: "market"});
@@ -740,6 +741,18 @@
         var amount = parseFloat(data.available) + parseFloat(data.onOrder);
         $(".value_coin[data-coin='"+coin+"']").text(amount);
     })
+    socket.on("market_update",function(data){
+        var market = data.market;
+        var symbol = market.MarketName;
+        var price_buy = market.priceBuyAvg;
+        if($("#tickets tbody tr[data-symbol='"+symbol+"']").length){
+            $(".price_buy[data-symbol='"+symbol+"']").text(price_buy);
+        }
+    });
+    socket.on("sellFinal",function(data){
+        var symbol = data.symbol;
+        $("#tickets tbody tr[data-symbol='"+symbol+"']").remove()
+    });
     $(document).ready(function () {
         //
         $('#tickets').DataTable();
@@ -970,6 +983,23 @@
                 }
             });
         });
+        $("#stopmua").click(function(){
+            if($(this).hasClass("badge-danger")){
+                $(this).removeClass("badge-danger").addClass("badge-success");
+                value = 0;
+            }else{
+                $(this).addClass("badge-danger").removeClass("badge-success");
+                value = 1;
+            }
+            $.ajax({
+                url: "/api/stopmua",
+                data: {value: value},
+                type: "POST",
+                dataType: "JSON",
+                success: function (data) {
+                }
+            });
+        })
     });
 function getBalances(symbol){
     var altcoin = symbol.replace(primaryCoin,"");
@@ -1021,7 +1051,7 @@ function drawChart(symbol, interval) {
     var interval1 = "D1";
     var sub = 30;
     if (interval == "5m") {
-        interval1 = "M5";
+        interval1 = "I5";
         sub = 1;
     } else if (interval == "1h") {
         interval1 = "H1";
@@ -1037,7 +1067,8 @@ function drawChart(symbol, interval) {
         dataType: "JSON",
         success: function (data) {
             var pointFormatter = function () {
-                return "<div>Price: " + this.y + "</div>";
+                var time = moment(this.x, "x").format("YYYY-MM-DD HH:mm:ss");
+                return "<div><p>"+time+"</p>"+this.text+": " + this.y + "</div>";
             }
             for (var i in data.events) {
                 data.events[i].pointFormatter = pointFormatter;
@@ -1047,7 +1078,7 @@ function drawChart(symbol, interval) {
                     $("#tradingview1").data("iguanaChart").TA.BBANDS(1, 1, {TimePeriod: 20});
                 }
             }).iguanaChart({
-                ticker: "AAPL.US",
+                ticker: "MICEXINDEXCF",
                 events: data.events,
                 chartOptions: {
                     minHeight: $("#tradingview").height(),
@@ -1101,14 +1132,6 @@ function applyForm(form, data) {
             break;
         }
     });
-}
-var pointFormatter = function () {
-    return "<div>" +
-    "<div>" +
-    this.text +
-    "</div>" +
-    this.y +
-    "</div>";
 }
 
 function thenotification(title, body, tag, icon) {

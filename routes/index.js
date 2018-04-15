@@ -42,12 +42,7 @@ router.get('/', ensureAuthenticated,async function (req, res, next) {
     }else{
         where += ' AND is_test = 1';
     }
-    var rows = await pool.query("SELECT *,ROUND(100 * (price_sell-price_buy) / price_buy,2) as percent FROM trade_session  ORDER BY timestamp desc").then(function (rows, err) {
-        if (err) {
-            console.log(err);
-        }
-        return rows;
-    });
+    var rows = await pool.query("SELECT *,ROUND(100 * (price_sell-price_buy) / price_buy,2) as percent,FROM_UNIXTIME(FLOOR(TIMESTAMP / 1000)) as timestamp FROM trade_session  ORDER BY timestamp desc")
     res.render('index', {title: 'Express', sumBTC: sumBTC, sumUSDT: sumUSDT, available: available, marketHot: marketHot, marketBuy: marketBuy, rows: rows});
 });
 

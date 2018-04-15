@@ -1,8 +1,7 @@
 const binance = require('node-binance-api');
 const mysql = require('promise-mysql');
 const config = require('./config.json');
-const moment = require('moment-timezone');
-moment.tz.setDefault("Asia/Ho_Chi_Minh");
+const moment = require('moment');
 const math = require('mathjs');
 const technical = require('technicalindicators');
 const clc = require('cli-color');
@@ -125,18 +124,19 @@ module.exports = app;
 
 
 /******************
- * 
- * CONFIG BINANCE
- * 
- *****************/
- binance.options({
+* 
+* CONFIG BINANCE
+* 
+*****************/
+binance.options({
     APIKEY:process.env.APIKEY,
     APISECRET:process.env.APISECRET
 });
- global.currentTime = null;
- global.primaryCoin = config.primaryCoin;
- global.myBalances = {};
- global.ignoreCoin = config.ignoreCoin;
+global.currentTime = null;
+global.primaryCoin = config.primaryCoin;
+global.myBalances = {};
+global.ignoreCoin = config.ignoreCoin;
+global.stopmua = config.stopmua;
 /******************
 * 
 * END CONFIG MAIL
@@ -151,6 +151,13 @@ binance.useServerTime(function () {
             myBalances = balances;
         });
         binance.websockets.userData(balance_update, execution_update);
+    }else{
+        myBalances = {
+            "BTC":{
+                available:10,
+                onOrder:0
+            }
+        };
     }
     binance.prices((error, ticker) => {
         if (error) {
@@ -221,7 +228,7 @@ binance.useServerTime(function () {
             } else {
                 if (currentTime != tick) {
                     global.currentTime = tick;
-                    console.log("Bắt đầu phiên:", moment.unix(tick / 1000).format());
+                    console.log("Bắt đầu phiên:", moment(tick, "x").format());
                 }
                 
                 markets[market].save_db_quantity();
@@ -315,7 +322,7 @@ binance.useServerTime(function () {
             for (var i in rows) {
                 var market = rows[i].MarketName;
                 var price = rows[i].price;
-                var time = moment(rows[i].timestamp);
+                var time = moment(rows[i].timestamp, "x");
                 var amount = rows[i].amount;
                 var isBuyer = rows[i].isBuyer;
                 if(isBuyer){
@@ -363,7 +370,6 @@ function execution_update(data) {
             Mail.sendmail("[Sell]" + symbol, html);
 
             markets[symbol].save_db_ban(priceMarket,quantity,tradeId);
-            markets[symbol].ban(priceMarket,quantity);
         } else if (orderType == "LIMIT" && side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
 
             var price_buy = markets[symbol].priceBuyAvg;
@@ -373,21 +379,18 @@ function execution_update(data) {
             Mail.sendmail("[Sell]" + symbol, html);
 
             markets[symbol].save_db_ban(price,quantity,tradeId);
-            markets[symbol].ban(priceMarket,quantity);
         }else if (orderType == "MARKET" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
 
             var html = "<p>" + symbol + "</p><p>Price:" + priceMarket + "</p>";
             Mail.sendmail("[Buy]" + symbol, html);
 
             markets[symbol].save_db_mua(priceMarket,quantity,tradeId);
-            markets[symbol].mua(priceMarket,quantity);
         } else if (orderType == "LIMIT" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
 
             var html = "<p>" + symbol + "</p><p>Price:" + price + "</p>";
             Mail.sendmail("[Buy]" + symbol, html);
 
             markets[symbol].save_db_mua(priceMarket,quantity,tradeId);
-            markets[symbol].mua(priceMarket,quantity);
         }
     }
     console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);
