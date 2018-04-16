@@ -205,7 +205,14 @@ router.post('/sellmarket',ensureAuthenticated, function (req, res, next) {
 router.post('/stopmua',ensureAuthenticated, function (req, res, next) {
     var value = req.body.value;
     stopmua = stringtoBoolean(value);
-    res.json({success:1});
+    var update = {
+        value:value
+    }
+    pool.query("UPDATE options SET ? WHERE `key` = 'stopmua'",update).then(function(){
+        res.json({success:1});
+    }).catch(function(){
+        res.json({success:0});
+    });
 });
 function stringtoBoolean(value){
     if(!value)

@@ -1,6 +1,5 @@
 const binance = require('node-binance-api');
 const mysql = require('promise-mysql');
-const config = require('./config.json');
 const moment = require('moment');
 const math = require('mathjs');
 const technical = require('technicalindicators');
@@ -133,10 +132,12 @@ binance.options({
     APISECRET:process.env.APISECRET
 });
 global.currentTime = null;
-global.primaryCoin = config.primaryCoin;
+global.primaryCoin = "BTC";
 global.myBalances = {};
-global.ignoreCoin = config.ignoreCoin;
-global.stopmua = config.stopmua;
+global.ignoreCoin = ["BNB","BTC"];
+global.stopmua = false;
+
+
 /******************
 * 
 * END CONFIG MAIL
@@ -145,59 +146,80 @@ global.stopmua = config.stopmua;
 var MarketModel = require('./models/market');
 var ChisoModel = require('./models/chiso');
 global.markets = {};
-binance.useServerTime(function () {
-    if (process.env.NODE_ENV == "production") {
-        binance.balance((error, balances) => {
-            myBalances = balances;
-        });
-        binance.websockets.userData(balance_update, execution_update);
-    }else{
-        myBalances = {
-            "BTC":{
-                available:10,
-                onOrder:0
-            }
-        };
+pool.query("select * from options").then(function(rows, err){
+    if (err) {
+        console.log(err);
     }
-    binance.prices((error, ticker) => {
-        if (error) {
-            return console.error(error);
+    for (var i in rows) {
+        var key = rows[i]['key'];
+        var value = rows[i]['value'];
+        switch(key){
+            case "primaryCoin":
+            primaryCoin = value;
+            break;
+            case "ignoreCoin":
+            ignoreCoin = value.split(",");
+            break;
+            case 'stopmua':
+            stopmua = stringtoBoolean(value);
+            break;
         }
-        var array_market = [];
-        for (var i in ticker) {
-            var market = i;
-            var last = ticker[i];
-            if (market.indexOf(primaryCoin) != -1) {
-                var chiso1y = new ChisoModel({interval:1,type_interval:"y"});
-                var chiso6M = new ChisoModel({interval:6,type_interval:"M"});
-                var chiso3M = new ChisoModel({interval:3,type_interval:"M"});
-                var chiso1M = new ChisoModel({interval:1,type_interval:"M"});
-                var chiso1w = new ChisoModel({interval:1,type_interval:"w"});
-                var chiso1d = new ChisoModel({interval:1,type_interval:"d"});
-                var chiso1h = new ChisoModel({interval:1,type_interval:"h"});
-                var chiso5m = new ChisoModel({interval:5,type_interval:"m"});
-                var chiso1m = new ChisoModel({interval:1,type_interval:"m"});
-                var obj = {
-                    MarketName: market,
-                    last: last,
-                    indicator_1y: chiso1y,
-                    indicator_6M: chiso6M,
-                    indicator_3M: chiso3M,
-                    indicator_1M: chiso1M,
-                    indicator_1w: chiso1w,
-                    indicator_1d: chiso1d,
-                    indicator_1h: chiso1h,
-                    indicator_5m: chiso5m,
-                    indicator_1m: chiso1m
-                };
-                markets[market] = new MarketModel(obj);
-                array_market.push(market);
-                markets[market].sync_quantity();
-                if (process.env.NODE_ENV == "production") {
-                    markets[market].syncTrade();
+    }
+    return true;
+}).then(function(){
+    binance.useServerTime(function () {
+        if (process.env.NODE_ENV == "production") {
+            binance.balance((error, balances) => {
+                myBalances = balances;
+            });
+            binance.websockets.userData(balance_update, execution_update);
+        }else{
+            myBalances = {
+                "BTC":{
+                    available:10,
+                    onOrder:0
+                }
+            };
+        }
+        binance.prices((error, ticker) => {
+            if (error) {
+                return console.error(error);
+            }
+            var array_market = [];
+            for (var i in ticker) {
+                var market = i;
+                var last = ticker[i];
+                if (market.indexOf(primaryCoin) != -1) {
+                    var chiso1y = new ChisoModel({interval:1,type_interval:"y"});
+                    var chiso6M = new ChisoModel({interval:6,type_interval:"M"});
+                    var chiso3M = new ChisoModel({interval:3,type_interval:"M"});
+                    var chiso1M = new ChisoModel({interval:1,type_interval:"M"});
+                    var chiso1w = new ChisoModel({interval:1,type_interval:"w"});
+                    var chiso1d = new ChisoModel({interval:1,type_interval:"d"});
+                    var chiso1h = new ChisoModel({interval:1,type_interval:"h"});
+                    var chiso5m = new ChisoModel({interval:5,type_interval:"m"});
+                    var chiso1m = new ChisoModel({interval:1,type_interval:"m"});
+                    var obj = {
+                        MarketName: market,
+                        last: last,
+                        indicator_1y: chiso1y,
+                        indicator_6M: chiso6M,
+                        indicator_3M: chiso3M,
+                        indicator_1M: chiso1M,
+                        indicator_1w: chiso1w,
+                        indicator_1d: chiso1d,
+                        indicator_1h: chiso1h,
+                        indicator_5m: chiso5m,
+                        indicator_1m: chiso1m
+                    };
+                    markets[market] = new MarketModel(obj);
+                    array_market.push(market);
+                    markets[market].sync_quantity();
+                    if (process.env.NODE_ENV == "production") {
+                        markets[market].syncTrade();
+                    }
                 }
             }
-        }
         // return;
         binance.websockets.chart(array_market, "1h", (market, interval, results) => {
             if (Object.keys(results).length === 0)
@@ -207,10 +229,13 @@ binance.useServerTime(function () {
             if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
 
             } else {
+                markets[market].save_db_quantity();
                 markets[market].refreshTrade();
+                markets[market]['indicator_' + interval].setIndicator(results);
                 markets[market]['indicator_' + interval].count_buy = 0;
                 markets[market]['indicator_' + interval].count_sell = 0;
-                markets[market]['indicator_' + interval].setIndicator(results);
+                markets[market]['indicator_' + interval].sumquantity = 0;
+                markets[market].isHotMarket = false;
             }
             markets[market]['indicator_' + interval].periodTime = tick;
             io.to("interval").emit("interval", {symbol: market, interval: interval, time: tick, data: results[tick], count_buy: markets[market]['indicator_' + interval].count_buy, count_sell: markets[market]['indicator_' + interval].count_sell});
@@ -231,12 +256,9 @@ binance.useServerTime(function () {
                     console.log("Bắt đầu phiên:", moment(tick, "x").format());
                 }
                 
-                markets[market].save_db_quantity();
                 markets[market]['indicator_' + interval].setIndicator(results);
                 markets[market]['indicator_' + interval].count_buy = 0;
                 markets[market]['indicator_' + interval].count_sell = 0;
-                markets[market]['indicator_' + interval].sumquantity = 0;
-                markets[market].isHotMarket = false;
             }
             /*
             * RESET 1 m
@@ -277,13 +299,13 @@ binance.useServerTime(function () {
             let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
             if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
                 if (maker) {
-                    markets[symbol]['indicator_5m'].sumquantity -= parseFloat(quantity);
+                    markets[symbol]['indicator_1h'].sumquantity -= parseFloat(quantity);
                     markets[symbol].trades.asks.push({price: price, quantity: quantity});
                     markets[symbol]['indicator_1h'].count_sell++;
                     markets[symbol]['indicator_5m'].count_sell++;
                     markets[symbol]['indicator_1m'].count_sell++;
                 } else {
-                    markets[symbol]['indicator_5m'].sumquantity += parseFloat(quantity);
+                    markets[symbol]['indicator_1h'].sumquantity += parseFloat(quantity);
                     markets[symbol].trades.bids.push({price: price, quantity: quantity});
                     markets[symbol]['indicator_1h'].count_buy++;
                     markets[symbol]['indicator_5m'].count_buy++;
@@ -336,65 +358,7 @@ binance.useServerTime(function () {
     });
 
 });
-// The only time the user data (account balances) and order execution websockets will fire, is if you create or cancel an order, or an order gets filled or partially filled
-function balance_update(data) {
-    console.log("Balance Update");
-    for (let obj of data.B) {
-        let {a: asset, f: available, l: onOrder} = obj;
-        myBalances[asset].available = available;
-        myBalances[asset].onOrder = onOrder;
-        io.emit("coin_update",{coin:asset,available:available,onOrder:onOrder});
-        if (available == "0.00000000" && onOrder == "0.00000000")
-            continue;
-        console.log(asset + "\tavailable: " + available + " (" + onOrder + " on order)");
-    }
-}
-function execution_update(data) {
-    console.log(data);
-    let {x: executionType, s: symbol, p: price, q: quantity, S: side, o: orderType, i: orderId, X: orderStatus, L: priceMarket,t:tradeId} = data;
-    if (executionType == "NEW") {
-        if (orderStatus == "REJECTED") {
-            console.log("Order Failed! Reason: " + data.r);
-        }
-        console.log(symbol + " " + side + " " + orderType + " ORDER #" + orderId + " (" + orderStatus + ")");
-        console.log("..price: " + price + ", quantity: " + quantity);
-        return;
-    }
-    //NEW, CANCELED, REPLACED, REJECTED, TRADE, EXPIRED
-    if (process.env.NODE_ENV == "production") {
-        if (orderType == "MARKET" && side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
-            var price_buy = markets[symbol].priceBuyAvg;
-            var profit = (priceMarket - price_buy);
-            var percent = 100 * profit / price_buy;
-            var html = "<p>" + symbol + "</p><p>Price Buy:" + price_buy + "</p><p>Price Sell:" + priceMarket + "</p><p style='color:green;'>Profit:" + percent.toFixed(2) + "%</p>";
-            Mail.sendmail("[Sell]" + symbol, html);
-
-            markets[symbol].save_db_ban(priceMarket,quantity,tradeId);
-        } else if (orderType == "LIMIT" && side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
-
-            var price_buy = markets[symbol].priceBuyAvg;
-            var profit = (price - price_buy);
-            var percent = 100 * profit / price_buy;
-            var html = "<p>" + symbol + "</p><p>Price Buy:" + price_buy + "</p><p>Price Sell:" + price + "</p><p style='color:green;'>Profit:" + percent.toFixed(2) + "%</p>";
-            Mail.sendmail("[Sell]" + symbol, html);
-
-            markets[symbol].save_db_ban(price,quantity,tradeId);
-        }else if (orderType == "MARKET" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
-
-            var html = "<p>" + symbol + "</p><p>Price:" + priceMarket + "</p>";
-            Mail.sendmail("[Buy]" + symbol, html);
-
-            markets[symbol].save_db_mua(priceMarket,quantity,tradeId);
-        } else if (orderType == "LIMIT" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
-
-            var html = "<p>" + symbol + "</p><p>Price:" + price + "</p>";
-            Mail.sendmail("[Buy]" + symbol, html);
-
-            markets[symbol].save_db_mua(priceMarket,quantity,tradeId);
-        }
-    }
-    console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);
-}
+});
 
 
 
@@ -472,8 +436,81 @@ function onError(error) {
     : 'port ' + addr.port;
     console.log('Listening on ' + bind);
 }
+
 /******************
- * 
- * END CONFIG APACHE
- * 
- *****************/
+* 
+* END CONFIG APACHE
+*
+*****************/
+function stringtoBoolean(value){
+    if(!value)
+        return value
+    switch(value){
+        case "1": case "true": case "yes":
+        return true;
+        break;
+        case "0": case "false": case "no":
+        return false;
+        break;
+    }
+}
+
+// The only time the user data (account balances) and order execution websockets will fire, is if you create or cancel an order, or an order gets filled or partially filled
+function balance_update(data) {
+    console.log("Balance Update");
+    for (let obj of data.B) {
+        let {a: asset, f: available, l: onOrder} = obj;
+        myBalances[asset].available = available;
+        myBalances[asset].onOrder = onOrder;
+        io.emit("coin_update",{coin:asset,available:available,onOrder:onOrder});
+        if (available == "0.00000000" && onOrder == "0.00000000")
+            continue;
+        console.log(asset + "\tavailable: " + available + " (" + onOrder + " on order)");
+    }
+}
+function execution_update(data) {
+    console.log(data);
+    let {x: executionType, s: symbol, p: price, q: quantity, S: side, o: orderType, i: orderId, X: orderStatus, L: priceMarket,t:tradeId} = data;
+    if (executionType == "NEW") {
+        if (orderStatus == "REJECTED") {
+            console.log("Order Failed! Reason: " + data.r);
+        }
+        console.log(symbol + " " + side + " " + orderType + " ORDER #" + orderId + " (" + orderStatus + ")");
+        console.log("..price: " + price + ", quantity: " + quantity);
+        return;
+    }
+    //NEW, CANCELED, REPLACED, REJECTED, TRADE, EXPIRED
+    if (process.env.NODE_ENV == "production") {
+        if (orderType == "MARKET" && side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
+            var price_buy = markets[symbol].priceBuyAvg;
+            var profit = (priceMarket - price_buy);
+            var percent = 100 * profit / price_buy;
+            var html = "<p>" + symbol + "</p><p>Price Buy:" + price_buy + "</p><p>Price Sell:" + priceMarket + "</p><p style='color:green;'>Profit:" + percent.toFixed(2) + "%</p>";
+            Mail.sendmail("[Sell]" + symbol, html);
+
+            markets[symbol].save_db_ban(priceMarket,quantity,tradeId);
+        } else if (orderType == "LIMIT" && side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
+
+            var price_buy = markets[symbol].priceBuyAvg;
+            var profit = (price - price_buy);
+            var percent = 100 * profit / price_buy;
+            var html = "<p>" + symbol + "</p><p>Price Buy:" + price_buy + "</p><p>Price Sell:" + price + "</p><p style='color:green;'>Profit:" + percent.toFixed(2) + "%</p>";
+            Mail.sendmail("[Sell]" + symbol, html);
+
+            markets[symbol].save_db_ban(price,quantity,tradeId);
+        }else if (orderType == "MARKET" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
+
+            var html = "<p>" + symbol + "</p><p>Price:" + priceMarket + "</p>";
+            Mail.sendmail("[Buy]" + symbol, html);
+
+            markets[symbol].save_db_mua(priceMarket,quantity,tradeId);
+        } else if (orderType == "LIMIT" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
+
+            var html = "<p>" + symbol + "</p><p>Price:" + price + "</p>";
+            Mail.sendmail("[Buy]" + symbol, html);
+
+            markets[symbol].save_db_mua(priceMarket,quantity,tradeId);
+        }
+    }
+    console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);
+}

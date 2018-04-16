@@ -412,9 +412,10 @@ var Market = new SchemaObject({
             var insert = {
                 MarketName: self.MarketName,
                 timestamp: time,
-                quantity: self.indicator_5m.sumquantity,
-                count_buy:self.indicator_5m.count_buy,
-                count_sell:self.indicator_5m.count_sell
+                quantity: self.indicator_1h.sumquantity,
+                count_buy:self.indicator_1h.count_buy,
+                count_sell:self.indicator_1h.count_sell,
+                price:self.last
             };
             return pool.query('INSERT INTO event_quantity SET ?', insert).catch(function(error){
                 return false;
