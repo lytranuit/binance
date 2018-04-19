@@ -397,12 +397,12 @@ var Market = new SchemaObject({
             //     console.log(self.MarketName,candle1,candle2);
             var is_volume_large = candle1[1].volume > candle2[1].volume * 10;
             var is_price_increase = candle1[1].close > candle2[1].high * 1.02;
-            if (!self.isHotMarket && ((self.indicator_1m.count_buy > 200 && self.indicator_1m.count_sell > 200) || (is_bullishmarubozu && is_volume_large && is_price_increase))) {
+            if (!self.isHotMarket && ((self.indicator_1m.count_buy > 200 && self.indicator_1m.count_sell > 200 && is_price_increase) || (is_bullishmarubozu && is_volume_large && is_price_increase))) {
                 self.isHotMarket = true;
                 
                 // console.log(clc.green("HOT"), clc.red("HOT"), self.MarketName);
                 var html = "<p>" + self.MarketName + "</p><p>Current Price:" + self.last + "</p>";
-                Mail.sendmail("[HOT]" + self.MarketName + " PUMP", html);
+                // Mail.sendmail("[HOT]" + self.MarketName + " PUMP", html);
                 io.emit("hotMarket", {symbol: self.MarketName, last: self.last});
             }
         },
