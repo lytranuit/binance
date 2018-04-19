@@ -402,7 +402,7 @@ var Market = new SchemaObject({
                 
                 // console.log(clc.green("HOT"), clc.red("HOT"), self.MarketName);
                 var html = "<p>" + self.MarketName + "</p><p>Current Price:" + self.last + "</p>";
-                // Mail.sendmail("[HOT]" + self.MarketName + " PUMP", html);
+                Mail.sendmail("[HOT]" + self.MarketName + " PUMP", html);
                 io.emit("hotMarket", {symbol: self.MarketName, last: self.last});
             }
         },
