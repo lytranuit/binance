@@ -32,7 +32,7 @@ router.get('/candle',ensureAuthenticated, async function (req, res, next) {
 				events.push({
 					x: time,
 					y: price,
-					text: "Sell",
+					text: "Sell:"+price,
 					size: 5,
 					color: "#ff7109",
 					shape: "disk"
@@ -41,7 +41,7 @@ router.get('/candle',ensureAuthenticated, async function (req, res, next) {
 				events.push({
 					x: time,
 					y: price,
-					text: "Buy",
+					text: "Buy:"+price,
 					size: 5,
 					color: "#09c4ff",
 					shape: "disk"
@@ -69,7 +69,7 @@ router.get('/candle',ensureAuthenticated, async function (req, res, next) {
 					events.push({
 						x: time,
 						y: price,
-						text: "Quantity",
+						text: "Quantity:"+quantity,
 						size: 2,
 						color: "#ff7109",
 						shape: "shape"
@@ -78,7 +78,7 @@ router.get('/candle',ensureAuthenticated, async function (req, res, next) {
 					events.push({
 						x: time,
 						y: price,
-						text: "Quantity",
+						text: "Quantity:"+quantity,
 						size: 2,
 						color: "#09c4ff",
 						shape: "shape"
@@ -91,7 +91,7 @@ router.get('/candle',ensureAuthenticated, async function (req, res, next) {
 		events.push({
 			x: Math.floor(moment().valueOf() / (3600000*number)) * (3600000*number),
 			y: markets[symbol].last,
-			text: "Quantity",
+			text: "Quantity:"+markets[symbol].indicator_1h.sumquantity,
 			size: 2,
 			color: "#ff7109",
 			shape: "shape"

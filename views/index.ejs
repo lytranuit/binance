@@ -281,6 +281,8 @@
         </div>
         <!-- page-body-wrapper ends -->
     </div>
+    <!-- container-scroller -->
+
     <div id='myModal' class='modal fade' aria-labelledby="smallModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -407,76 +409,7 @@
                                             </tr>
                                         </tbody>
                                     </table>
-                                <!-- <div class="col-12">
-                                    <div class='col-12 text-center mb-2'>
-                                        <span class="badge badge-success" id="refreshTrade">Buy</span>
-                                    </div>
-                                    <div class="form-group row">
-                                        <label for="price_buy" class="col-sm-6 col-form-label">Price buy:</label>
-                                        <div class="col-sm-6">
-                                            <input type="number" class="form-control" id="price_buy" placeholder="0.000000">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <label for="quantity_buy" class="col-sm-6 col-form-label">Quantity:</label>
-                                        <div class="col-sm-6">
-                                            <select class="form-control">
-                                                <option value="5">5%</option>
-                                                <option value="10">10%</option>
-                                                <option value="25">25%</option>
-                                                <option value="50">50%</option>
-                                                <option value="75">75%</option>
-                                                <option value="100" selected="">100%</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <label for="BTC_buy" class="col-sm-6 col-form-label">BTC:</label>
-                                        <div class="col-sm-6">
-                                            <input type="number" class="form-control" id="BTC_buy" placeholder="0" value="0" readonly="true">
-                                        </div>
-                                    </div>
-                                    <div class="col-12 text-center">
-                                        <button type="submit" class="btn btn-default btn-sm">Buy</button>
-                                        <button type="submit" class="btn btn-default btn-sm">Cancle</button>
-                                        <button type="submit" class="btn btn-success">Auto Buy</button>
-                                    </div>
                                 </div>
-                                <div class="col-12">
-                                    <div class='col-12 text-center mb-2'>
-                                        <span class="badge badge-danger" id="refreshOrder">Sell</span>
-                                    </div>
-                                    <div class="form-group row">
-                                        <label for="price_buy" class="col-sm-6 col-form-label">Profit(%):</label>
-                                        <div class="col-sm-6">
-                                            <input type="number" class="form-control" id="profit" placeholder="5">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <label for="quantity_sell" class="col-sm-6 col-form-label">Quantity:</label>
-                                        <div class="col-sm-6">
-                                            <select class="form-control">
-                                                <option value="5">5%</option>
-                                                <option value="10">10%</option>
-                                                <option value="25">25%</option>
-                                                <option value="50">50%</option>
-                                                <option value="75">75%</option>
-                                                <option value="100" selected="">100%</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <label for="BTC_sell" class="col-sm-6 col-form-label">BTC:</label>
-                                        <div class="col-sm-6">
-                                            <input type="number" class="form-control" id="BTC_sell" placeholder="0" value="0" readonly="true">
-                                        </div>
-                                    </div>  
-                                    <div class="col-12 text-center">
-                                        <button type="submit" class="btn btn-default btn-sm">Sell</button>
-                                        <button type="submit" class="btn btn-default btn-sm">Cancel</button>
-                                        <button type="submit" class="btn btn-danger">Auto Sell</button>
-                                    </div>
-                                </div -->
                             </div>
                         </div>
                     </div>
@@ -484,703 +417,189 @@
             </div>
         </div>
     </div>
-</div>
-<div id='settingModal' class='modal fade' aria-labelledby="smallModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Settings</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <!-- Modal body -->
-            <div class="modal-body">
-                <div class="container-fluid">
-                    <form class="row" id="formSetting">
-                        <input type="hidden" name="MarketName" value=""/>
-                        <div class='col-6' id="settingMua">
-                            <div class='col-12'>
-                                <span class='badge badge-success'>Mua</span>
-                            </div>
-                            <div class='col-12 m-3'>
-                                <input class="form-check-input" type="radio" name="chienLuocMua" id='chienLuocMuaDay' value="chienLuocMuaDay" checked>
-                                <label class="form-check-label" for="chienLuocMuaDay">
-                                    Mua BB & RSI
-                                </label>
-                            </div>
+    <div id='settingModal' class='modal fade' aria-labelledby="smallModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Settings</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <form class="row" id="formSetting">
+                            <input type="hidden" name="MarketName" value=""/>
+                            <div class='col-6' id="settingMua">
+                                <div class='col-12'>
+                                    <span class='badge badge-success'>Mua</span>
+                                </div>
+                                <div class='col-12 m-3'>
+                                    <input class="form-check-input" type="radio" name="chienLuocMua" id='chienLuocMuaDay' value="chienLuocMuaDay" checked>
+                                    <label class="form-check-label" for="chienLuocMuaDay">
+                                        Mua BB & RSI
+                                    </label>
+                                </div>
 
-                            <div class='col-12  m-3'>
-                                <div data-toggle="collapse" data-target="#mocPriceBuy" aria-expanded="false" aria-controls="mocPriceBuy">
-                                    <input class="form-check-input" type="radio" name="chienLuocMua" id='chienLuocMuaMoc' value="chienLuocMuaMoc">
-                                    <label class="form-check-label" for="chienLuocMuaMoc">
-                                        Mua Mốc
-                                    </label>
-                                </div>
-                                <div id="mocPriceBuy" class="collapse" data-parent="#settingMua">
-                                    <input class='form-control w-75 d-inline-block is-valid' type='number' name='mocPriceBuy' value='0'/>
-                                </div>
-                            </div>
-                        </div>
-                        <div class='col-6' id='settingBan'>
-                            <div class='col-12'>
-                                <span class='badge badge-danger'>Bán</span>
-                            </div>
-                            <div class='col-12 m-3'>
-                                <div data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                    <input class="form-check-input" type="radio" name="chienLuocBan" id='chienLuocBanMin' value="chienLuocBanMin" checked>
-                                    <label class="form-check-label" for="chienLuocBanMin">
-                                        Bán Gain
-                                    </label>
-                                    >= <input name="minGain" class="form-control d-inline-block" style="width:50px" value=""> %
-                                </div>
-                                <div id="collapseOne" class="collapse show ml-3" aria-labelledby="headingOne" data-parent="#settingBan">
-                                    <div class='col-12'>
-                                        <input class="form-check-input" type="checkbox" value="1" id="isCheckRsiBan" name='isCheckRsiBan' >
-                                        <label class="form-check-label" for="isCheckRsiBan">
-                                            Kiểm tra RSI > 80
+                                <div class='col-12  m-3'>
+                                    <div data-toggle="collapse" data-target="#mocPriceBuy" aria-expanded="false" aria-controls="mocPriceBuy">
+                                        <input class="form-check-input" type="radio" name="chienLuocMua" id='chienLuocMuaMoc' value="chienLuocMuaMoc">
+                                        <label class="form-check-label" for="chienLuocMuaMoc">
+                                            Mua Mốc
                                         </label>
                                     </div>
-                                    <div class='col-12'>
-                                        <input class="form-check-input" type="checkbox" value="1" id="isCheckMACDBan" name='isCheckMACDBan'>
-                                        <label class="form-check-label" for="isCheckMACDBan">
-                                            Kiểm tra MACD
-                                        </label>
+                                    <div id="mocPriceBuy" class="collapse" data-parent="#settingMua">
+                                        <input class='form-control w-75 d-inline-block is-valid' type='number' name='mocPriceBuy' value='0'/>
                                     </div>
                                 </div>
                             </div>
-
-                            <div class='col-12  m-3'>
-                                <div data-toggle="collapse" data-target="#mocPriceSell" aria-expanded="false" aria-controls="mocPriceSell">
-                                    <input class="form-check-input" type="radio" name="chienLuocBan" id='chienLuocBanMoc' value="chienLuocBanMoc">
-                                    <label class="form-check-label" for="chienLuocBanMoc">
-                                        Bán mốc
-                                    </label>
+                            <div class='col-6' id='settingBan'>
+                                <div class='col-12'>
+                                    <span class='badge badge-danger'>Bán</span>
                                 </div>
-                                <div id="mocPriceSell" class="collapse" data-parent="#settingBan">
-                                    <input class='form-control w-75 d-inline-block is-valid' type='number' name='mocPriceSell'/>
+                                <div class='col-12 m-3'>
+                                    <div data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                        <input class="form-check-input" type="radio" name="chienLuocBan" id='chienLuocBanMin' value="chienLuocBanMin" checked>
+                                        <label class="form-check-label" for="chienLuocBanMin">
+                                            Bán Gain
+                                        </label>
+                                        >= <input name="minGain" class="form-control d-inline-block" style="width:50px" value=""> %
+                                    </div>
+                                    <div id="collapseOne" class="collapse show ml-3" aria-labelledby="headingOne" data-parent="#settingBan">
+                                        <div class='col-12'>
+                                            <input class="form-check-input" type="checkbox" value="1" id="isCheckRsiBan" name='isCheckRsiBan' >
+                                            <label class="form-check-label" for="isCheckRsiBan">
+                                                Kiểm tra RSI > 80
+                                            </label>
+                                        </div>
+                                        <div class='col-12'>
+                                            <input class="form-check-input" type="checkbox" value="1" id="isCheckMACDBan" name='isCheckMACDBan'>
+                                            <label class="form-check-label" for="isCheckMACDBan">
+                                                Kiểm tra MACD
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class='col-12  m-3'>
+                                    <div data-toggle="collapse" data-target="#mocPriceSell" aria-expanded="false" aria-controls="mocPriceSell">
+                                        <input class="form-check-input" type="radio" name="chienLuocBan" id='chienLuocBanMoc' value="chienLuocBanMoc">
+                                        <label class="form-check-label" for="chienLuocBanMoc">
+                                            Bán mốc
+                                        </label>
+                                    </div>
+                                    <div id="mocPriceSell" class="collapse" data-parent="#settingBan">
+                                        <input class='form-control w-75 d-inline-block is-valid' type='number' name='mocPriceSell'/>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-12 text-center">
-                            <button class="btn btn-success" id='saveMarket' data-dismiss="modal">
-                                Save
-                            </button>
-                        </div>
-                    </form>
+                            <div class="col-12 text-center">
+                                <button class="btn btn-success" id='saveMarket' data-dismiss="modal">
+                                    Save
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<div id='historyModel' class='modal fade' aria-labelledby="smallModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <!-- Modal body -->
-            <div class="modal-body">
-                <table id="history" class="table table-striped col-lg-12"  >
-                    <thead>
-                        <tr>
-                            <th>STT</th>
-                            <th>Thị trường</th>
-                            <th>Giá mua</th>
-                            <th>Giá bán</th>
-                            <th>Số lượng</th>
-                            <th>BTC mua</th>
-                            <th>BTC bán</th>
-                            <th>Tỉ lệ</th>
-                            <th>Thời gian bán</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+    <div id='historyModel' class='modal fade' aria-labelledby="smallModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <table id="history" class="table table-striped col-lg-12"  >
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Thị trường</th>
+                                <th>Giá mua</th>
+                                <th>Giá bán</th>
+                                <th>Số lượng</th>
+                                <th>BTC mua</th>
+                                <th>BTC bán</th>
+                                <th>Tỉ lệ</th>
+                                <th>Thời gian bán</th>
+                            </tr>
+                        </thead>
+                        <tbody>
 
-                        <% for(var i in rows) { %>
-                        <% var price_sell = rows[i].price_sell; %>
-                        <% var price_buy = rows[i].price_buy; %>
-                        <% var amount = rows[i].amount; %>
-                        <% var market = rows[i].MarketName; %>
-                        <% var timestamp = rows[i].timestamp.toISOString(); %>
-                        <% var BTC_buy = price_buy * amount; %>
-                        <% var BTC_sell = price_sell * amount; %>
-                        <% var percent = rows[i].percent; %>
-                        <tr>
-                            <td><%= i %></td>
-                            <td> 
-                                <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data-symbol='<%= market %>'  data-dismiss="modal"><%= market %></a>
-                            </td>
-                            <td class="text-success"><%= price_buy.toFixed(10) %></td>
-                            <td class="text-danger"><%= price_sell.toFixed(10) %></td>
-                            <td><%= amount %></td>
-                            <td class="text-success"><%= BTC_buy.toFixed(10) %></td>
-                            <td class="text-danger"><%= BTC_sell.toFixed(10) %></td>
-                            <td class="text-success"><%= percent %>%</td>
-                            <td><%= timestamp %></td>
-                        </tr>
-                        <% } %>
+                            <% for(var i in rows) { %>
+                            <% var price_sell = rows[i].price_sell; %>
+                            <% var price_buy = rows[i].price_buy; %>
+                            <% var amount = rows[i].amount; %>
+                            <% var market = rows[i].MarketName; %>
+                            <% var timestamp = rows[i].timestamp.toISOString(); %>
+                            <% var BTC_buy = price_buy * amount; %>
+                            <% var BTC_sell = price_sell * amount; %>
+                            <% var percent = rows[i].percent; %>
+                            <tr>
+                                <td><%= i %></td>
+                                <td> 
+                                    <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data-symbol='<%= market %>'  data-dismiss="modal"><%= market %></a>
+                                </td>
+                                <td class="text-success"><%= price_buy.toFixed(10) %></td>
+                                <td class="text-danger"><%= price_sell.toFixed(10) %></td>
+                                <td><%= amount %></td>
+                                <td class="text-success"><%= BTC_buy.toFixed(10) %></td>
+                                <td class="text-danger"><%= BTC_sell.toFixed(10) %></td>
+                                <td class="text-success"><%= percent %>%</td>
+                                <td><%= timestamp %></td>
+                            </tr>
+                            <% } %>
 
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-</div>
-<!-- container-scroller -->
-<!-- plugins:js -->
-<script src="../others/jquery/dist/jquery.min.js"></script>
-<script src="../others/popper.js/dist/umd/popper.min.js"></script>
-<script src="../others/bootstrap/dist/js/bootstrap.min.js"></script>
-<script src="../others/fancybox/jquery.fancybox.min.js"></script>
-<script type="text/javascript" src="../js/moment.js"></script>
-<!-- endinject -->
-<!-- Plugin js for this page-->
-<!-- End plugin js for this page-->
-<!-- inject:js -->
-<script src="../js/off-canvas.js"></script>
-<script src="../js/color-hash.js"></script>
-<script src="../js/misc.js"></script>
-<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <!-- plugins:js -->
+    <script type="text/javascript">
+        var primaryCoin = '<%= primaryCoin %>';
+    </script>
+    <script src="../others/jquery/dist/jquery.min.js"></script>
+    <script src="../others/popper.js/dist/umd/popper.min.js"></script>
+    <script src="../others/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="../others/fancybox/jquery.fancybox.min.js"></script>
+    <script type="text/javascript" src="../js/moment.js"></script>
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    <script src="../js/off-canvas.js"></script>
+    <script src="../js/color-hash.js"></script>
+    <script src="../js/misc.js"></script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script type="text/javascript" src="../iguanachart/dependencies/uikit/js/uikit.min.js"></script>
 
-<!--<link rel="stylesheet" href="../iguanachart/dependencies/uikit/css/uikit.min.css" media="all">-->
-<script type="text/javascript" src="../iguanachart/dependencies/uikit/js/uikit.min.js"></script>
+    <script type="text/javascript" src="../iguanachart/dependencies/jquery.event.move.js"></script>
+    <script type="text/javascript" src="../iguanachart/dependencies/jquery.mousewheel.min.js"></script>
+    <script type="text/javascript" src="../iguanachart/dependencies/hammer.min.js"></script>
+    <script type="text/javascript" src="../iguanachart/dependencies/jquery.hammer.js"></script>
+    <script type="text/javascript" src="../iguanachart/dependencies/jsrender.min.js"></script>
 
-<script type="text/javascript" src="../iguanachart/dependencies/jquery.event.move.js"></script>
-<script type="text/javascript" src="../iguanachart/dependencies/jquery.mousewheel.min.js"></script>
-<script type="text/javascript" src="../iguanachart/dependencies/hammer.min.js"></script>
-<script type="text/javascript" src="../iguanachart/dependencies/jquery.hammer.js"></script>
-<script type="text/javascript" src="../iguanachart/dependencies/jsrender.min.js"></script>
+    <link rel="stylesheet" href="../iguanachart/dependencies/jquery.qtip.min.css" media="all">
+    <script type="text/javascript" src="../iguanachart/dependencies/jquery.qtip.min.js"></script>
 
-<link rel="stylesheet" href="../iguanachart/dependencies/jquery.qtip.min.css" media="all">
-<script type="text/javascript" src="../iguanachart/dependencies/jquery.qtip.min.js"></script>
+    <link rel="stylesheet" href="../iguanachart/dependencies/jquery-minicolors/jquery.minicolors.css" media="all">
+    <script type="text/javascript" src="../iguanachart/dependencies/jquery-minicolors/jquery.minicolors.min.js"></script>
 
-<link rel="stylesheet" href="../iguanachart/dependencies/jquery-minicolors/jquery.minicolors.css" media="all">
-<script type="text/javascript" src="../iguanachart/dependencies/jquery-minicolors/jquery.minicolors.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../iguanachart/iguanachart.min.css" media="all"/>
 
-<link rel="stylesheet" type="text/css" href="../iguanachart/iguanachart.min.css" media="all"/>
+    <script type="text/javascript" src="../iguanachart/i18n.js"></script>
+    <script type="text/javascript" src="../iguanachart/iguanachart.js"></script>
+    <script type="text/javascript" src="../js/socket.io.js"></script>
+    <link rel="stylesheet" type="text/css" href="DataTables/datatables.min.css"/>
 
-<script type="text/javascript" src="../iguanachart/i18n.js"></script>
-<script type="text/javascript" src="../iguanachart/iguanachart.js"></script>
-<script type="text/javascript" src="../js/socket.io.js"></script>
-<link rel="stylesheet" type="text/css" href="DataTables/datatables.min.css"/>
-
-<script type="text/javascript" src="DataTables/datatables.min.js"></script>
-<script type='text/javascript'>
-
-    var primaryCoin = '<%= primaryCoin %>';
-    var tzOffsetMoscow=3600*7;
-    var socket = io();
-    socket.on("start", function () {
-        socket.emit("join", {room: "market"});
-        socket.emit("join", {room: "interval"});
-    });
-    socket.on("hotMarket", function (data) {
-        var symbol = data.symbol;
-        var price = data.last;
-        var title = symbol + " Pump";
-        var body = "Price : " + price;
-        var tag = "hotMarket";
-        var noti = thenotification(title, body, tag);
-    })
-    socket.on("market", function (data) {
-        let {symbol: symbol, last: last, orderBook_bids_sum: orderBook_bids_sum, orderBook_asks_sum: orderBook_asks_sum, count_buy: count_buy, count_sell: count_sell, trades_bids_sum: trades_bids_sum, trades_asks_sum: trades_asks_sum} = data;
-        let price_buy = parseFloat($(".price_buy[data-symbol=" + symbol + "]").text());
-        let profit = 100 * (last - price_buy) / price_buy;
-        if (orderBook_asks_sum > orderBook_bids_sum) {
-            let rate_order = orderBook_asks_sum / orderBook_bids_sum;
-            $(".rate_order[data-symbol=" + symbol + "]").text(rate_order.toFixed(2) + "%").addClass("badge-danger").removeClass("badge-success");
-        } else {
-            let rate_order = orderBook_bids_sum / orderBook_asks_sum;
-            $(".rate_order[data-symbol=" + symbol + "]").text(rate_order.toFixed(2) + "%").removeClass("badge-danger").addClass("badge-success");
-        }
-        if (trades_asks_sum > trades_bids_sum) {
-            let rate_trades = trades_asks_sum / trades_bids_sum;
-            $(".rate_trades[data-symbol=" + symbol + "]").text(rate_trades.toFixed(2) + "%").addClass("badge-danger").removeClass("badge-success");
-        } else {
-            let rate_trades = trades_bids_sum / trades_asks_sum;
-            $(".rate_trades[data-symbol=" + symbol + "]").text(rate_trades.toFixed(2) + "%").removeClass("badge-danger").addClass("badge-success");
-        }
-        if (profit > 0) {
-            $(".profit[data-symbol=" + symbol + "]").removeClass("text-danger").addClass("text-success");
-        } else {
-            $(".profit[data-symbol=" + symbol + "]").addClass("text-danger").removeClass("text-success");
-        }
-        $(".profit[data-symbol=" + symbol + "]").text("(" + profit.toFixed(2) + "%)");
-        $(".price_last[data-symbol=" + symbol + "]").text(last);
-        $(".bids_q[data-symbol=" + symbol + "]").text(Math.round(orderBook_bids_sum));
-        $(".asks_q[data-symbol=" + symbol + "]").text(Math.round(orderBook_asks_sum));
-        $(".count_sell_l[data-symbol=" + symbol + "]").text(count_sell);
-        $(".count_buy_l[data-symbol=" + symbol + "]").text(count_buy);
-        $(".q_sell_l[data-symbol=" + symbol + "]").text(Math.round(trades_asks_sum));
-        $(".q_buy_l[data-symbol=" + symbol + "]").text(Math.round(trades_bids_sum));
-        $(".tr_market[data-symbol=" + symbol + "]").attr("data-volume_1m", count_sell + count_buy);
-    })
-    socket.on("interval", function (data) {
-        var symbol = data.symbol;
-        var interval = data.interval;
-        var chart = $("#tradingview1[data-interval='" + interval + "'][data-symbol='" + symbol + "']");
-        if (chart.length) {
-            var point = chart.data("iguanaChart").getLastPoint();
-            var time = data.time;
-            var open = data.data.open;
-            var close = data.data.close;
-            var high = data.data.high;
-            var low = data.data.low;
-            var volume = data.data.volume;
-            point.xSeries.LKOH[0] = time;
-            point.vl.LKOH[0] = volume;
-            point.hloc.LKOH[0] = [parseFloat(high), parseFloat(low), parseFloat(open), parseFloat(close)];
-            chart.iguanaChart("addPoint", point);
-        }
-        var count_sell = data.count_sell;
-        var count_buy = data.count_buy;
-        $(".count_sell[data-symbol=" + symbol + "][data-interval='" + interval + "']").text(count_sell);
-        $(".count_buy[data-symbol=" + symbol + "][data-interval='" + interval + "']").text(count_buy);
-        $(".tr_market[data-symbol=" + symbol + "]").attr("data-volume_" + interval, count_sell + count_buy);
-    });
-    socket.on("coin_update",function(data){
-        var coin = data.coin;
-        var amount = parseFloat(data.available) + parseFloat(data.onOrder);
-        $(".value_coin[data-coin='"+coin+"']").text(amount);
-    })
-    socket.on("market_update",function(data){
-        var market = data.market;
-        var symbol = market.MarketName;
-        var price_buy = market.priceBuyAvg;
-        if($("#tickets tbody tr[data-symbol='"+symbol+"']").length){
-            $(".price_buy[data-symbol='"+symbol+"']").text(price_buy);
-        }
-    });
-    socket.on("sellFinal",function(data){
-        var symbol = data.symbol;
-        $("#tickets tbody tr[data-symbol='"+symbol+"']").remove()
-    });
-    $(document).ready(function () {
-        //
-        $('#tickets').DataTable();
-        $('#history').DataTable();
-        $('#BTC-markets').DataTable({
-            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-            "iDisplayLength": -1
-        });
-        $("#refreshOrder").click(function () {
-            var symbol = $("#myModal").data("symbol");
-            $.ajax({
-                url: "/api/refreshorder",
-                dataType: "JSON",
-                data: {symbol: symbol},
-                type: "POST",
-                success: function (data) {
-                    $(".bids_q[data-symbol=" + symbol + "]").text(0);
-                    $(".asks_q[data-symbol=" + symbol + "]").text(0);
-                    $(".rate_order[data-symbol=" + symbol + "]").text("0%");
-                }
-            });
-        });
-        $("#refreshTrade").click(function () {
-            var symbol = $("#myModal").data("symbol");
-            $.ajax({
-                url: "/api/refreshtrade",
-                dataType: "JSON",
-                data: {symbol: symbol},
-                type: "POST",
-                success: function (data) {
-                    $(".count_sell_l[data-symbol=" + symbol + "]").text(0);
-                    $(".count_buy_l[data-symbol=" + symbol + "]").text(0);
-                    $(".q_sell_l[data-symbol=" + symbol + "]").text(0);
-                    $(".q_buy_l[data-symbol=" + symbol + "]").text(0);
-                    $(".rate_trades[data-symbol=" + symbol + "]").text("0%");
-                }
-            });
-        });
-        $(".order_by_trade").click(function (e) {
-            e.preventDefault();
-            var interval = $(this).attr("data-interval");
-            var parents = $("#BTC-markets tbody");
-            parents.children(".tr_market").sort(function (a, b) {
-                var volumea = parseInt($(a).attr("data-volume_" + interval));
-                var volumeb = parseInt($(b).attr("data-volume_" + interval));
-                if (volumea == volumeb)
-                    return 0;
-                return volumea < volumeb ? 1 : -1;
-            }).appendTo(parents);
-        })
-        $("#interval .btn").click(function (e) {
-            var symbol = $("#myModal").data("symbol");
-            var interval = $.trim($(this).text());
-            drawChart(symbol, interval);
-        });
-        $("#tradingview-buton").click(function (e) {
-            var symbol = $("#myModal").data("symbol");
-            $("#tradingview").empty();
-            var widget = new TradingView.widget({
-                autosize: true,
-                "symbol": "BINANCE:" + symbol,
-                "interval": "5",
-                "timezone": "Asia/Bangkok",
-                "theme": "Dark",
-                "style": "1",
-                "locale": "vi_VN",
-                "toolbar_bg": "#f1f3f6",
-                "enable_publishing": false,
-                "hide_side_toolbar": false,
-                "studies": [
-                "BB@tv-basicstudies",
-                "RSI@tv-basicstudies",
-                "MACD@tv-basicstudies"
-                ],
-                "allow_symbol_change": true,
-                "container_id": "tradingview"
-            });
-        })
-        $(".setting").click(function (e) {
-            e.preventDefault();
-            var symbol = $(this).attr("data-symbol");
-            $.ajax({
-                url: "/api/market?symbol=" + symbol,
-                dataType: "JSON",
-                success: function (data) {
-                    applyForm($("#formSetting"), data);
-                    console.log(data);
-                }
-            });
-        });
-        $("#saveMarket").click(function (e) {
-            e.preventDefault();
-            var data = $("#formSetting").serialize();
-            $.ajax({
-                url: "/api/market",
-                dataType: "JSON",
-                data: data,
-                type: "POST",
-                success: function (data) {
-                }
-            });
-        });
-        $("#percent").change(function(){
-            calculateBuyValue();
-        });
-        $("#sell_price").blur(function(){
-            calculateSellProfit();
-        });
-        $("#buy_price").blur(function(){
-            calculateBuyValue();
-        });
-        $("#sell_profit").blur(function(){
-            calculateSellPrice();
-        });
-        $("#BuySellTable .price_last").click(function(){
-            var price = $(this).text();
-            $("#sell_price").val(price);
-            $("#buy_price").val(price);
-            calculateSellProfit();
-            calculateBuyValue();
-        })
-        $(document).on('click', ".fancybox", function (e) {
-            e.preventDefault();
-            var symbol = $(this).attr("data-symbol");
-            var price_buy = $(".price_buy[data-symbol="+symbol+"]").first().text() || "";
-            /*
-            * RESET
-            */
-            $("#buy_price").val("");
-            $("#sell_price").val("");
-            $("#myModal [data-symbol]").attr("data-symbol", symbol).text("");
-
-            $(".price_buy[data-symbol="+symbol+"]").text(price_buy);
-            /*
-            * Lay my Balances
-            */
-            getBalances(symbol);
-            
-            /*
-            * Ve Chart
-            */
-            $("#myModal").data("symbol", symbol);
-            drawChart(symbol, "1h");
-        });
-        $(".search").keyup(function () {
-            var search = $(this).val().toUpperCase();
-            var parents = $(this).parents(".card");
-            if (search == '') {
-                $(".ticket-card", parents).show();
-                return
-            }
-            $(".ticket-card", parents).hide();
-            $(".ticket-card", parents).each(function () {
-                var text = $(this).text().replace(/\s/ig, "").toUpperCase();
-                console.log(text);
-                if (text.indexOf(search) != -1) {
-                    $(this).show();
-                }
-            })
-        });
-        $("#buy_coin").click(function(){
-            var percent = $("#percent").val();
-            var price = $("#buy_price").val();
-            var symbol = $("#myModal").data("symbol");
-            $.ajax({
-                url: "/api/buy",
-                data: {symbol: symbol,quantity_per:percent,price:price},
-                type: "POST",
-                dataType: "JSON",
-                success: function (data) {
-                    if(!data.success){
-                        alert(data.error);
-                    }else{
-                        alert("Ok!");
-                    }
-                }
-            });
-        });
-        $("#autobuy_coin").click(function(){
-            var percent = $("#percent").val();
-            var symbol = $("#myModal").data("symbol");
-            $.ajax({
-                url: "/api/buymarket",
-                data: {symbol: symbol,quantity_per:percent},
-                type: "POST",
-                dataType: "JSON",
-                success: function (data) {
-                    if(!data.success){
-                        alert(data.error);
-                    }else{
-                        alert("Ok!");
-                    }
-                }
-            });
-        });
-        $("#sell_coin").click(function(){
-            var percent = $("#percent").val();
-            var price = $("#sell_price").val();
-            var symbol = $("#myModal").data("symbol");
-            $.ajax({
-                url: "/api/sell",
-                data: {symbol: symbol,quantity_per:percent,price:price},
-                type: "POST",
-                dataType: "JSON",
-                success: function (data) {
-                    if(!data.success){
-                        alert(data.error);
-                    }else{
-                        alert("Ok!");
-                    }
-                }
-            });
-        });
-        $("#autosell_coin").click(function(){
-            var percent = $("#percent").val();
-            var symbol = $("#myModal").data("symbol");
-            $.ajax({
-                url: "/api/sellmarket",
-                data: {symbol: symbol,quantity_per:percent},
-                type: "POST",
-                dataType: "JSON",
-                success: function (data) {
-                    if(!data.success){
-                        alert(data.error);
-                    }else{
-                        alert("Ok!");
-                    }
-                }
-            });
-        });
-        $("#stopmua").click(function(){
-            if($(this).hasClass("badge-danger")){
-                $(this).removeClass("badge-danger").addClass("badge-success");
-                value = 0;
-            }else{
-                $(this).addClass("badge-danger").removeClass("badge-success");
-                value = 1;
-            }
-            $.ajax({
-                url: "/api/stopmua",
-                data: {value: value},
-                type: "POST",
-                dataType: "JSON",
-                success: function (data) {
-                }
-            });
-        })
-    });
-function getBalances(symbol){
-    var altcoin = symbol.replace(primaryCoin,"");
-    $("#primaryCoin [data-coin]").attr("data-coin",primaryCoin);
-    $("#altcoin [data-coin]").attr("data-coin",altcoin);
-    $("#primaryCoin .name_coin").text(primaryCoin);
-    $("#altcoin .name_coin").text(altcoin);
-
-    $.ajax({
-        url: "/api/balance",
-        data:{coin:primaryCoin},
-        dataType: "JSON",
-        success: function (data) {
-            var value = parseFloat(data.available) + parseFloat(data.onOrder);
-            $("#primaryCoin .value_coin").text(value);
-        }
-    });
-    $.ajax({
-        url: "/api/balance",
-        data:{coin:altcoin},
-        dataType: "JSON",
-        success: function (data) {
-            var value = parseFloat(data.available) + parseFloat(data.onOrder);
-            $("#altcoin .value_coin").text(value);
-        }
-    });
-}
-function calculateBuyValue(){
-    var buy_price = $("#buy_price").val();
-    var percent = $("#percent").val();
-    var coin = $("#primaryCoin .value_coin").text();
-    var amount = coin * percent / 100;
-    var quantity_buy =  Math.round(amount / buy_price);
-    $("#buy_value").val(quantity_buy);
-}
-function calculateSellProfit(){
-    var price_sell = $("#sell_price").val();
-    var price_buy = $("#BuySellTable .price_buy").text();
-    var profit = 100 * (parseFloat(price_sell) - parseFloat(price_buy)) / parseFloat(price_buy);
-    $("#sell_profit").val(profit.toFixed(2));
-}
-function calculateSellPrice(){
-    var sell_profit = $("#sell_profit").val();
-    var price_buy = $("#BuySellTable .price_buy").text();
-    var price_sell = parseFloat(price_buy) + (parseFloat(price_buy) * parseFloat(sell_profit) / 100);
-    $("#sell_price").val(price_sell.toFixed(10));
-}
-function drawChart(symbol, interval) {
-    var interval1 = "D1";
-    var sub = 30;
-    if (interval == "5m") {
-        interval1 = "I5";
-        sub = 1;
-    } else if (interval == "1h") {
-        interval1 = "H1";
-        sub = 4;
-    } else if (interval == "1d") {
-        interval1 = "D1";
-        sub = 30;
-    }
-    $("#tradingview").empty();
-    $("#tradingview").append("<div id='tradingview1' data-symbol='" + symbol + "' data-interval='" + interval + "'/>");
-    $.ajax({
-        url: "/api/candle?interval=" + interval + "&symbol=" + symbol,
-        dataType: "JSON",
-        success: function (data) {
-            var pointFormatter = function () {
-                var time = moment(this.x, "x").format("YYYY-MM-DD HH:mm:ss");
-                return "<div><p>"+time+"</p>"+this.text+": " + this.y + "</div>";
-            }
-            for (var i in data.events) {
-                data.events[i].pointFormatter = pointFormatter;
-            }
-            $("#tradingview1").on("iguanaChartEvents", function (e, name, data) {
-                if (name == "chartDataReady") {
-                    $("#tradingview1").data("iguanaChart").TA.BBANDS(1, 1, {TimePeriod: 20});
-                }
-            }).iguanaChart({
-                ticker: "MICEXINDEXCF",
-                events: data.events,
-                chartOptions: {
-                    minHeight: $("#tradingview").height(),
-                    futureAmount: 1
-                },
-                dataSource: {
-                    data: data.data,
-                    dataSettings: {
-                        useHash: false,
-                        date_from: moment().subtract(sub, "d").format("DD.MM.YYYY HH:mm:ss"),
-                        date_to: moment().format("DD.MM.YYYY HH:mm:ss"),
-                        start: moment().subtract(sub, "d").format("DD.MM.YYYY HH:mm:ss"),
-                        end: moment().format("DD.MM.YYYY HH:mm:ss"),
-                        hash: "",
-                        id: "LKOH",
-                        interval: interval1
-                    }
-                }
-            }).iguanaChart("setTheme", "Dark");
-        }
-    });
-}
-function applyForm(form, data) {
-    $('input, select, textarea', form).each(function () {
-        var type = $(this).attr('type');
-        var value = "";
-        if (data[$(this).attr('name')])
-            value = data[$(this).attr('name')];
-        switch (type) {
-            case 'checkbox':
-            $(this).prop('checked', false);
-            if (value == true || value == 'true' || value == 1) {
-                $(this).prop('checked', true);
-            }
-            break;
-            case 'text':
-            case 'number':
-            case 'email':
-            case 'email':
-            $(this).val(value);
-            break;
-            case 'radio':
-            $(this).removeAttr('checked', 'checked');
-            var rdvalue = $(this).val();
-            if (rdvalue == value) {
-                $(this).prop('checked', true);
-            }
-            break;
-            default:
-            $(this).val(value);
-            break;
-        }
-    });
-}
-
-function thenotification(title, body, tag, icon) {
-    var defaulticon = "https://assets.coingecko.com/coins/images/1/large/bitcoin.png";
-    icon = icon || defaulticon;
-    body = $('<div>' + body + '</div>').text();
-    var notification;
-    if (Notification && Notification.permission === "granted") {
-        var options = {
-            body: body,
-            tag: tag,
-            icon: icon,
-            sound: 'alert.mp3'
-        }
-        notification = new Notification(title, options);
-        $("body").append("<audio autoplay><source src='alert.mp3' type='audio/mp3'></audio>");
-                    //                                    setTimeout(notification.close.bind(notification), 4000);
-                } else if (Notification && Notification.permission !== "denied") {
-                    // Request permission
-                    Notification.requestPermission(function (status) {
-
-                        // Change based on user's decision
-                        if (Notification.permission !== status) {
-                            Notification.permission = status;
-                        }
-
-                        // If it's granted show the notification
-                        if (status === "granted") {
-                            var options = {
-                                body: body,
-                                tag: tag,
-                                icon: icon,
-                                sound: 'alert.mp3'
-                            }
-                            notification = new Notification(title, options);
-                            $("body").append("<audio autoplay><source src='alert.mp3' type='audio/mp3'></audio>");
-                            //                                            setTimeout(notification.close.bind(notification), 4000);
-                        } else {
-                            console.log("This browser does not support system notifications");
-                        }
-                    });
-                } else {
-                    console.log("This browser does not support system notifications");
-                }
-                return notification;
-            }
-        </script>
-        <!-- endinject -->
-        <!-- Custom js for this page-->
-        <!-- End custom js for this page-->
-    </body>
-    </html>
+    <script type="text/javascript" src="DataTables/datatables.min.js"></script>
+    <script type="text/javascript" src="../js/client.js"></script>
+    <script type="text/javascript" src="../js/main.js"></script>
+    <script type="text/javascript" src="../js/public.js"></script>
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <!-- End custom js for this page-->
+</body>
+</html>
