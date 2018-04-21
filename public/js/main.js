@@ -244,4 +244,40 @@
             }
         });
     })
+    $(".stopmuacoin").click(function(){
+        var coin = $(this).attr("data-coin");
+        if($(this).hasClass("badge-danger")){
+            $(this).removeClass("badge-danger").addClass("badge-success");
+            value = 0;
+        }else{
+            $(this).addClass("badge-danger").removeClass("badge-success");
+            value = 1;
+        }
+        $.ajax({
+            url: "/api/stopmuacoin",
+            data: {value: value,coin:coin},
+            type: "POST",
+            dataType: "JSON",
+            success: function (data) {
+            }
+        });
+    })
+    $(".stopmuaMaket").click(function(){
+        var symbol = $(this).attr("data-symbol");
+        if($(this).hasClass("badge-danger")){
+            $(this).removeClass("badge-danger").addClass("badge-success");
+            value = 0;
+        }else{
+            $(this).addClass("badge-danger").removeClass("badge-success");
+            value = 1;
+        }
+        $.ajax({
+            url: "/api/stopmuamarket",
+            data: {value: value,symbol:symbol},
+            type: "POST",
+            dataType: "JSON",
+            success: function (data) {
+            }
+        });
+    })
 });

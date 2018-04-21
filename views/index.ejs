@@ -58,6 +58,7 @@
                                                     <% var self = markets[market]; %> 
                                                     <% var i_1h = markets[market].indicator_1h; %>
                                                     <% var i_5m = markets[market].indicator_5m; %>
+                                                    <% var stopmuaMaket = self.stopmua; %>
                                                     <% var pattern_1h = i_1h.pattern.pattern; %>
                                                     <% var probability_1h = Math.round(i_1h.pattern.probability); %>
                                                     <% var pattern_5m = i_5m.pattern.pattern; %>
@@ -111,7 +112,7 @@
                                                         </td>
                                                         <td> 
                                                             <span class="p-2 setting icon-settings alert alert-primary" data-toggle="modal" data-target="#settingModal" data-symbol='<%= market %>'data-dismiss="modal"></span>
-                                                            <span class="badge badge-danger" data-symbol='<%= market %>'>Sell</span>
+                                                            <span class='badge stopmuaMaket <%= stopmuaMaket ? "badge-danger" : "badge-success" %>' data-symbol='<%= market %>'>Auto buy</span>
                                                         </td>
                                                     </tr>
                                                     <% } %>
@@ -208,6 +209,7 @@
                                                     <% var self = markets[market]; %> 
                                                     <% var i_1h = markets[market].indicator_1h; %>
                                                     <% var i_5m = markets[market].indicator_5m; %>
+                                                    <% var stopmuaMaket = self.stopmua; %>
                                                     <% var pattern_1h = i_1h.pattern.pattern; %>
                                                     <% var probability_1h = Math.round(i_1h.pattern.probability); %>
                                                     <% var pattern_5m = i_5m.pattern.pattern; %>
@@ -258,7 +260,7 @@
                                                         </td>
                                                         <td> 
                                                             <span class="p-2 setting icon-settings alert alert-primary" data-toggle="modal" data-target="#settingModal" data-symbol='<%= market %>'data-dismiss="modal"></span>
-                                                            <span class="badge badge-danger" data-symbol='<%= market %>'>Sell</span>
+                                                            <span class='badge stopmuaMaket <%= stopmuaMaket ? "badge-danger" : "badge-success" %>' data-symbol='<%= market %>'>Auto buy</span>
                                                         </td>
                                                     </tr>
                                                     <% } %>
@@ -363,8 +365,8 @@
                                             <tr>
                                                 <th scope="col">
                                                     <div id="primaryCoin">
-                                                        <span class='d-block name_coin' data-coin='<%= primaryCoin %>'><%= primaryCoin %></span>
-                                                        <span class='value_coin' data-coin='<%= primaryCoin %>'>0</span>
+                                                        <span class='d-block name_coin' data-coin=''></span>
+                                                        <span class='value_coin' data-coin=''>0</span>
                                                     </div>
                                                 </th>
                                                 <th scope="col">
@@ -557,9 +559,6 @@
         </div>
     </div>
     <!-- plugins:js -->
-    <script type="text/javascript">
-        var primaryCoin = '<%= primaryCoin %>';
-    </script>
     <script src="../others/jquery/dist/jquery.min.js"></script>
     <script src="../others/popper.js/dist/umd/popper.min.js"></script>
     <script src="../others/bootstrap/dist/js/bootstrap.min.js"></script>

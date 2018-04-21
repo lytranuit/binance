@@ -1,26 +1,23 @@
 var tzOffsetMoscow=3600*7;
 function getBalances(symbol){
-    var altcoin = symbol.replace(primaryCoin,"");
-    $("#primaryCoin [data-coin]").attr("data-coin",primaryCoin);
-    $("#altcoin [data-coin]").attr("data-coin",altcoin);
-    $("#primaryCoin .name_coin").text(primaryCoin);
-    $("#altcoin .name_coin").text(altcoin);
-
     $.ajax({
-        url: "/api/balance",
-        data:{coin:primaryCoin},
+        url: "/api/marketbalance",
+        data:{symbol:symbol},
         dataType: "JSON",
         success: function (data) {
-            var value = parseFloat(data.available) + parseFloat(data.onOrder);
+            var dataPrimary = data.primaryCoin;
+            var dataAlt = data.altCoin;
+            $("#primaryCoin [data-coin]").attr("data-coin",dataPrimary.name);
+            $("#altcoin [data-coin]").attr("data-coin",dataAlt.name);
+            $("#primaryCoin .name_coin").text(dataPrimary.name);
+            $("#altcoin .name_coin").text(dataAlt.name);
+            var available = dataPrimary.value.available || 0;
+            var onOrder = dataPrimary.value.onOrder || 0;
+            var value = parseFloat(available) + parseFloat(onOrder);
             $("#primaryCoin .value_coin").text(value);
-        }
-    });
-    $.ajax({
-        url: "/api/balance",
-        data:{coin:altcoin},
-        dataType: "JSON",
-        success: function (data) {
-            var value = parseFloat(data.available) + parseFloat(data.onOrder);
+            var available = dataAlt.value.available || 0;
+            var onOrder = dataAlt.value.onOrder || 0;
+            var value = parseFloat(available) + parseFloat(onOrder);
             $("#altcoin .value_coin").text(value);
         }
     });

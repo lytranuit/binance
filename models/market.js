@@ -11,6 +11,9 @@ var numberType = {type: Number, default: 0};
 var Market = new SchemaObject({
     MarketName: NotEmptyString,
     last: numberType,
+    primaryCoin:NotEmptyString,
+    altCoin:NotEmptyString,
+    stopmua:{type: Boolean, default: false},
     periodTime: numberType,
     indicator_1m: Object,
     indicator_5m: Object,
@@ -47,12 +50,13 @@ var Market = new SchemaObject({
         checkmua: function (price) {
             var self = this;
             var MarketName = self.MarketName;
-            if (stopmua) {
+            var stopmuaPrimaryCoin = "stopmua" + primaryCoin;
+            if (stopmua || global[stopmuaPrimaryCoin] || self.stopmua) {
                 return;
             }
             if (MarketName == "BTCUSDT" || MarketName == "BNBBTC")
                 return;
-            if (process.env.NODE_ENV == "production" && myBalances[primaryCoin].available <= self.amountbuy)
+            if (process.env.NODE_ENV == "production" && myBalances[self.primaryCoin].available <= self.amountbuy)
                 return;
             if (!self.hasDataChiso())
                 return;
@@ -185,8 +189,7 @@ var Market = new SchemaObject({
              console.log(clc.red('Order'), self.MarketName + " price:" + price);
              if (process.env.NODE_ENV == "production") {
                 self.onOrder = true;
-                var coin = self.MarketName.replace(primaryCoin, "");
-                binance.sell(self.MarketName, myBalances[coin].available, price, (error, response) => {
+                binance.sell(self.MarketName, myBalances[self.altCoin].available, price, (error, response) => {
                     if (error) {
                         self.onOrder = false;
                         binance.marketSell(self.MarketName, myBalances[coin].available);
@@ -197,7 +200,6 @@ var Market = new SchemaObject({
                     binance.cancelOrders(self.MarketName);
                 }, 60000);
             } else {
-                var coin = self.MarketName.replace(primaryCoin, "");
                 self.save_db_ban(price,1);
             }
         },

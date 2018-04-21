@@ -132,10 +132,9 @@ binance.options({
     APISECRET:process.env.APISECRET
 });
 global.currentTime = null;
-global.primaryCoin = "BTC";
+global.primaryCoin = ["BTC","USDT"];
 global.myBalances = {};
 global.ignoreCoin = ["BNB","BTC"];
-global.stopmua = false;
 
 
 /******************
@@ -155,13 +154,17 @@ pool.query("select * from options").then(function(rows, err){
         var value = rows[i]['value'];
         switch(key){
             case "primaryCoin":
-            primaryCoin = value;
+            primaryCoin = value.split(",");
             break;
             case "ignoreCoin":
             ignoreCoin = value.split(",");
             break;
-            case 'stopmua':
-            stopmua = stringtoBoolean(value);
+            default:
+            if(key.indexOf("stopmua") != -1){
+                global[key] = stringtoBoolean(value);
+            }else{
+                global[key] = value;
+            }
             break;
         }
     }
@@ -178,6 +181,10 @@ pool.query("select * from options").then(function(rows, err){
                 "BTC":{
                     available:10,
                     onOrder:0
+                },
+                USDT:{
+                    available:10000,
+                    onOrder:0
                 }
             };
         }
@@ -189,77 +196,94 @@ pool.query("select * from options").then(function(rows, err){
             for (var i in ticker) {
                 var market = i;
                 var last = ticker[i];
-                if (market.indexOf(primaryCoin) != -1) {
-                    var chiso1y = new ChisoModel({interval:1,type_interval:"y"});
-                    var chiso6M = new ChisoModel({interval:6,type_interval:"M"});
-                    var chiso3M = new ChisoModel({interval:3,type_interval:"M"});
-                    var chiso1M = new ChisoModel({interval:1,type_interval:"M"});
-                    var chiso1w = new ChisoModel({interval:1,type_interval:"w"});
-                    var chiso1d = new ChisoModel({interval:1,type_interval:"d"});
-                    var chiso1h = new ChisoModel({interval:1,type_interval:"h"});
-                    var chiso5m = new ChisoModel({interval:5,type_interval:"m"});
-                    var chiso1m = new ChisoModel({interval:1,type_interval:"m"});
-                    var obj = {
-                        MarketName: market,
-                        last: last,
-                        indicator_1y: chiso1y,
-                        indicator_6M: chiso6M,
-                        indicator_3M: chiso3M,
-                        indicator_1M: chiso1M,
-                        indicator_1w: chiso1w,
-                        indicator_1d: chiso1d,
-                        indicator_1h: chiso1h,
-                        indicator_5m: chiso5m,
-                        indicator_1m: chiso1m
-                    };
-                    markets[market] = new MarketModel(obj);
-                    array_market.push(market);
-                    markets[market].sync_quantity();
-                    if (process.env.NODE_ENV == "production") {
-                        markets[market].syncTrade();
+                var primary = "";
+                var alt = "";
+                if(market != "BTCUSDT"){
+                    for(var j in primaryCoin){
+                        var coin = primaryCoin[j];
+                        if (market.indexOf(coin) != -1){
+                            primary = coin;
+                            alt = market.replace(coin,"");
+                        }
                     }
+                }else{
+                    primary = "USDT";
+                    alt = "BTC";
+                }
+                if(primary == "")
+                    continue;
+                var chiso1y = new ChisoModel({interval:1,type_interval:"y"});
+                var chiso6M = new ChisoModel({interval:6,type_interval:"M"});
+                var chiso3M = new ChisoModel({interval:3,type_interval:"M"});
+                var chiso1M = new ChisoModel({interval:1,type_interval:"M"});
+                var chiso1w = new ChisoModel({interval:1,type_interval:"w"});
+                var chiso1d = new ChisoModel({interval:1,type_interval:"d"});
+                var chiso1h = new ChisoModel({interval:1,type_interval:"h"});
+                var chiso5m = new ChisoModel({interval:5,type_interval:"m"});
+                var chiso1m = new ChisoModel({interval:1,type_interval:"m"});
+                var obj = {
+                    MarketName: market,
+                    last: last,
+                    primaryCoin:primary,
+                    altCoin:alt,
+                    indicator_1y: chiso1y,
+                    indicator_6M: chiso6M,
+                    indicator_3M: chiso3M,
+                    indicator_1M: chiso1M,
+                    indicator_1w: chiso1w,
+                    indicator_1d: chiso1d,
+                    indicator_1h: chiso1h,
+                    indicator_5m: chiso5m,
+                    indicator_1m: chiso1m
+                };
+                markets[market] = new MarketModel(obj);
+                array_market.push(market);
+                // markets[market].sync_quantity();
+                if (process.env.NODE_ENV == "production") {
+                    markets[market].syncTrade();
                 }
             }
-        // return;
-        binance.websockets.chart(array_market, "1h", (market, interval, results) => {
-            if (Object.keys(results).length === 0)
-                return;
-            let tick = binance.last(results);
-            var last = results[tick].close;
-            if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
+            // console.log(array_market);
+            // return;
+            binance.websockets.chart(array_market, "1h", (market, interval, results) => {
+                if (Object.keys(results).length === 0)
+                    return;
+                let tick = binance.last(results);
+                var last = results[tick].close;
+                if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
 
-            } else {
-                markets[market].save_db_quantity();
-                markets[market].refreshTrade();
-                markets[market]['indicator_' + interval].setIndicator(results);
-                markets[market]['indicator_' + interval].count_buy = 0;
-                markets[market]['indicator_' + interval].count_sell = 0;
-                markets[market]['indicator_' + interval].sumquantity = 0;
-                markets[market].isHotMarket = false;
-            }
-            markets[market]['indicator_' + interval].periodTime = tick;
-            io.to("interval").emit("interval", {symbol: market, interval: interval, time: tick, data: results[tick], count_buy: markets[market]['indicator_' + interval].count_buy, count_sell: markets[market]['indicator_' + interval].count_sell});
-        });
-        binance.websockets.chart(array_market, "5m", (market, interval, results) => {
-            if (Object.keys(results).length === 0)
-                return;
-            let tick = binance.last(results);
-            var last = results[tick].close;
-            if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
-                markets[market].last = last;
-                markets[market].checkmua(last);
-                markets[market].checkban(last);
-                markets[market].checkHotMarket(results);
-            } else {
-                if (currentTime != tick) {
-                    global.currentTime = tick;
-                    console.log("Bắt đầu phiên:", moment(tick, "x").format());
+                } else {
+                    markets[market].save_db_quantity();
+                    markets[market].refreshTrade();
+                    markets[market]['indicator_' + interval].setIndicator(results);
+                    markets[market]['indicator_' + interval].count_buy = 0;
+                    markets[market]['indicator_' + interval].count_sell = 0;
+                    markets[market]['indicator_' + interval].sumquantity = 0;
+                    markets[market].isHotMarket = false;
                 }
-                
-                markets[market]['indicator_' + interval].setIndicator(results);
-                markets[market]['indicator_' + interval].count_buy = 0;
-                markets[market]['indicator_' + interval].count_sell = 0;
-            }
+                markets[market]['indicator_' + interval].periodTime = tick;
+                io.to("interval").emit("interval", {symbol: market, interval: interval, time: tick, data: results[tick], count_buy: markets[market]['indicator_' + interval].count_buy, count_sell: markets[market]['indicator_' + interval].count_sell});
+            });
+            binance.websockets.chart(array_market, "5m", (market, interval, results) => {
+                if (Object.keys(results).length === 0)
+                    return;
+                let tick = binance.last(results);
+                var last = results[tick].close;
+                if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
+                    markets[market].last = last;
+                    markets[market].checkmua(last);
+                    markets[market].checkban(last);
+                    markets[market].checkHotMarket(results);
+                } else {
+                    if (currentTime != tick) {
+                        global.currentTime = tick;
+                        console.log("Bắt đầu phiên:", moment(tick, "x").format());
+                    }
+
+                    markets[market]['indicator_' + interval].setIndicator(results);
+                    markets[market]['indicator_' + interval].count_buy = 0;
+                    markets[market]['indicator_' + interval].count_sell = 0;
+                }
             /*
             * RESET 1 m
             */
@@ -295,67 +319,67 @@ pool.query("select * from options").then(function(rows, err){
             io.to("market").emit("market", {symbol: market, last: last, orderBook_bids_sum: orderBook_bids_sum, orderBook_asks_sum: orderBook_asks_sum, count_sell: count_sell, count_buy: count_buy, trades_bids_sum: trades_bids_sum, trades_asks_sum: trades_asks_sum});
         });
 
-        binance.websockets.trades(array_market, (trades) => {
-            let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
-            if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
-                if (maker) {
-                    markets[symbol]['indicator_1h'].sumquantity -= parseFloat(quantity);
-                    markets[symbol].trades.asks.push({price: price, quantity: quantity});
-                    markets[symbol]['indicator_1h'].count_sell++;
-                    markets[symbol]['indicator_5m'].count_sell++;
-                    markets[symbol]['indicator_1m'].count_sell++;
-                } else {
-                    markets[symbol]['indicator_1h'].sumquantity += parseFloat(quantity);
-                    markets[symbol].trades.bids.push({price: price, quantity: quantity});
-                    markets[symbol]['indicator_1h'].count_buy++;
-                    markets[symbol]['indicator_5m'].count_buy++;
-                    markets[symbol]['indicator_1m'].count_buy++;
-                }
-            }
-        });
-        binance.websockets.depth(array_market, (depth) => {
-            let {e: eventType, E: eventTime, s: symbol, u: updateId, b: bidDepth, a: askDepth} = depth;
-            if (typeof bidDepth !== 'undefined') {
-                for (var obj of bidDepth) {
-                    if (obj[1] === '0.00000000') {
-                        if (markets[symbol].orderBook.bids[obj[0]])
-                            delete markets[symbol].orderBook.bids[obj[0]];
+            binance.websockets.trades(array_market, (trades) => {
+                let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
+                if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
+                    if (maker) {
+                        markets[symbol]['indicator_1h'].sumquantity -= parseFloat(quantity);
+                        markets[symbol].trades.asks.push({price: price, quantity: quantity});
+                        markets[symbol]['indicator_1h'].count_sell++;
+                        markets[symbol]['indicator_5m'].count_sell++;
+                        markets[symbol]['indicator_1m'].count_sell++;
                     } else {
-                        markets[symbol].orderBook.bids[obj[0]] = parseFloat(obj[1]);
+                        markets[symbol]['indicator_1h'].sumquantity += parseFloat(quantity);
+                        markets[symbol].trades.bids.push({price: price, quantity: quantity});
+                        markets[symbol]['indicator_1h'].count_buy++;
+                        markets[symbol]['indicator_5m'].count_buy++;
+                        markets[symbol]['indicator_1m'].count_buy++;
                     }
                 }
-            }
-            if (typeof askDepth !== 'undefined') {
-                for (var obj of askDepth) {
-                    if (obj[1] === '0.00000000') {
-                        if (markets[symbol].orderBook.asks[obj[0]])
-                            delete markets[symbol].orderBook.asks[obj[0]];
-                    } else {
-                        markets[symbol].orderBook.asks[obj[0]] = parseFloat(obj[1]);
+            });
+            binance.websockets.depth(array_market, (depth) => {
+                let {e: eventType, E: eventTime, s: symbol, u: updateId, b: bidDepth, a: askDepth} = depth;
+                if (typeof bidDepth !== 'undefined') {
+                    for (var obj of bidDepth) {
+                        if (obj[1] === '0.00000000') {
+                            if (markets[symbol].orderBook.bids[obj[0]])
+                                delete markets[symbol].orderBook.bids[obj[0]];
+                        } else {
+                            markets[symbol].orderBook.bids[obj[0]] = parseFloat(obj[1]);
+                        }
                     }
                 }
-            }
-        });
-        var where = "where 1=1 and id_session IS NULL and deleted = 0";
-        var query = pool.query("SELECT * FROM trade " + where).then(function (rows, err) {
-            if (err) {
-                console.log(err);
-            }
-            for (var i in rows) {
-                var market = rows[i].MarketName;
-                var price = rows[i].price;
-                var time = moment(rows[i].timestamp, "x");
-                var amount = rows[i].amount;
-                var isBuyer = rows[i].isBuyer;
-                if(isBuyer){
-                    markets[market].mua(price,amount, time);
-                }else {
-                    markets[market].ban(price,amount,time);
+                if (typeof askDepth !== 'undefined') {
+                    for (var obj of askDepth) {
+                        if (obj[1] === '0.00000000') {
+                            if (markets[symbol].orderBook.asks[obj[0]])
+                                delete markets[symbol].orderBook.asks[obj[0]];
+                        } else {
+                            markets[symbol].orderBook.asks[obj[0]] = parseFloat(obj[1]);
+                        }
+                    }
                 }
-            }
+            });
+            var where = "where 1=1 and id_session IS NULL and deleted = 0";
+            var query = pool.query("SELECT * FROM trade " + where).then(function (rows, err) {
+                if (err) {
+                    console.log(err);
+                }
+                for (var i in rows) {
+                    var market = rows[i].MarketName;
+                    var price = rows[i].price;
+                    var time = moment(rows[i].timestamp, "x");
+                    var amount = rows[i].amount;
+                    var isBuyer = rows[i].isBuyer;
+                    if(isBuyer){
+                        markets[market].mua(price,amount, time);
+                    }else {
+                        markets[market].ban(price,amount,time);
+                    }
+                }
+            });
+            console.log("Price of BTC: ", ticker.BTCUSDT);
         });
-        console.log("Price of BTC: ", ticker.BTCUSDT);
-    });
 
 });
 });

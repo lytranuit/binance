@@ -17,9 +17,7 @@ router.get('/', ensureAuthenticated,async function (req, res, next) {
 
     var sumBTC = 0;
     var sumUSDT = 0;
-    var available = 0
     if(process.env.NODE_ENV == "production"){
-        available = myBalances["BTC"].available ;
         for (var coin in myBalances) {
             var ava = myBalances[coin].available;
             var order = myBalances[coin].onOrder;
@@ -43,7 +41,7 @@ router.get('/', ensureAuthenticated,async function (req, res, next) {
         where += ' AND is_test = 1';
     }
     var rows = await pool.query("SELECT *,ROUND(100 * (price_sell-price_buy) / price_buy,2) as percent,FROM_UNIXTIME(FLOOR(TIMESTAMP / 1000)) as timestamp FROM trade_session  ORDER BY timestamp desc")
-    res.render('index', {title: 'Express', sumBTC: sumBTC, sumUSDT: sumUSDT, available: available, marketHot: marketHot, marketBuy: marketBuy, rows: rows});
+    res.render('index', {title: 'Express', sumBTC: sumBTC, sumUSDT: sumUSDT, marketHot: marketHot, marketBuy: marketBuy, rows: rows});
 });
 
 router.get('/login', function (req, res, next) {

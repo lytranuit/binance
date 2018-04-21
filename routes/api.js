@@ -11,6 +11,13 @@ router.get('/balance', ensureAuthenticated,function (req, res, next) {
 	var coin = req.query.coin || "BTC";
 	res.json(myBalances[coin]);
 });
+router.get('/marketbalance', ensureAuthenticated,function (req, res, next) {
+	var symbol = req.query.symbol || "BTCUSDT";
+	var altCoin = markets[symbol].altCoin;
+	var primaryCoin = markets[symbol].primaryCoin;
+
+	res.json({primaryCoin:{name:primaryCoin,value:myBalances[primaryCoin]},altCoin:{name:altCoin,value:myBalances[altCoin]}});
+});
 router.get('/candle',ensureAuthenticated, async function (req, res, next) {
 	var symbol = req.query.symbol || "BTCUSDT";
 	var interval = req.query.interval || "1d";
@@ -260,6 +267,34 @@ router.post('/stopmua',ensureAuthenticated, function (req, res, next) {
 	}).catch(function(){
 		res.json({success:0});
 	});
+});
+router.post('/stopmuacoin',ensureAuthenticated, function (req, res, next) {
+	var value = req.body.value;
+	var primaryCoin = req.body.coin;
+	var name = 'stopmua'+primaryCoin;
+	global[name] = stringtoBoolean(value);
+	var update = {
+		value:value
+	}
+	pool.query("UPDATE options SET ? WHERE `key` = '"+name+"'",update).then(function(){
+		res.json({success:1});
+	}).catch(function(){
+		res.json({success:0});
+	});
+});
+router.post('/stopmuamarket',ensureAuthenticated, function (req, res, next) {
+	var value = req.body.value;
+	var symbol = req.body.symbol;
+	markets[symbol].stopmua = stringtoBoolean(value);
+	var update = {
+		value:value
+	}
+	res.json({success:1});
+	// pool.query("UPDATE options SET ? WHERE `key` = 'stopmua'",update).then(function(){
+	// 	res.json({success:1});
+	// }).catch(function(){
+	// 	res.json({success:0});
+	// });
 });
 function stringtoBoolean(value){
 	if(!value)
