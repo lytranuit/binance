@@ -4,11 +4,11 @@ var router = express.Router();
 /* GET home page. */
 router.get('/', ensureAuthenticated,async function (req, res, next) {
     var lastBTC = markets['BTCUSDT'].last;
-    var marketBuy = {};
+    var marketBuy = [];
     var marketHot = {"BTCUSDT": markets['BTCUSDT']};
     for (var market in markets) {
         if (markets[market].isBuy) {
-            marketBuy[market] = markets[market];
+            marketBuy.push(markets[market]);
         }
         if (markets[market].isHotMarket) {
             marketHot[market] = markets[market];

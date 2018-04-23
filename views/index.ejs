@@ -53,11 +53,11 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <% var i = 1; %>
-                                                    <% for(market in marketBuy) { %>
-                                                    <% var self = markets[market]; %> 
-                                                    <% var i_1h = markets[market].indicator_1h; %>
-                                                    <% var i_5m = markets[market].indicator_5m; %>
+                                                    <% for(i in marketBuy) { %>
+                                                    <% var market = marketBuy[i]['MarketName']; %> 
+                                                    <% var self = marketBuy[i]; %> 
+                                                    <% var i_1h = self.indicator_1h; %>
+                                                    <% var i_5m = self.indicator_5m; %>
                                                     <% var stopmuaMaket = self.stopmua; %>
                                                     <% var pattern_1h = i_1h.pattern.pattern; %>
                                                     <% var probability_1h = Math.round(i_1h.pattern.probability); %>
@@ -73,7 +73,7 @@
                                                     <% var bids_q = 0; %>
                                                     <% var asks_q = 0; %>
                                                     <% var rate = 0; %>
-                                                    <% var profit = markets[market].last - price_buy; %>
+                                                    <% var profit = self.last - price_buy; %>
                                                     <% var percent = profit / price_buy * 100; %>
                                                     <% var classess = ''; %>
                                                     <% if(percent > 0){ %> 
