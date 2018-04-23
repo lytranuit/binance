@@ -20,7 +20,7 @@ router.get('/', ensureAuthenticated,async function (req, res, next) {
         var timeBuyNextb = b.timeBuyNext;
         if(timeBuyNexta == timeBuyNextb)
             return 0;
-        return timeBuyNexta > timeBuyNextb ? 1 : -1;
+        return timeBuyNexta < timeBuyNextb ? 1 : -1;
     });
     var sumBTC = 0;
     var sumUSDT = 0;

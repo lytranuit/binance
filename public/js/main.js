@@ -74,8 +74,8 @@
             "allow_symbol_change": true,
             "container_id": "tradingview"
         });
-    })
-    $(".setting").click(function (e) {
+    });
+    $(document).off("click",".setting").on('click', ".setting", function (e) {
         e.preventDefault();
         var symbol = $(this).attr("data-symbol");
         $.ajax({
@@ -118,7 +118,7 @@
         calculateSellProfit();
         calculateBuyValue();
     })
-    $(document).on('click', ".fancybox", function (e) {
+    $(document).off("click",".fancybox").on('click', ".fancybox", function (e) {
         e.preventDefault();
         var symbol = $(this).attr("data-symbol");
         var price_buy = $(".price_buy[data-symbol="+symbol+"]").first().text() || "";
@@ -244,7 +244,8 @@
             }
         });
     })
-    $(".stopmuacoin").click(function(){
+
+    $(document).off("click",".stopmuacoin").on('click', ".stopmuacoin", function (e) {
         var coin = $(this).attr("data-coin");
         if($(this).hasClass("badge-danger")){
             $(this).removeClass("badge-danger").addClass("badge-success");
@@ -262,7 +263,8 @@
             }
         });
     })
-    $(".stopmuaMaket").click(function(){
+
+    $(document).off("click",".stopmuaMaket").on('click', ".stopmuaMaket", function (e) {
         var symbol = $(this).attr("data-symbol");
         if($(this).hasClass("badge-danger")){
             $(this).removeClass("badge-danger").addClass("badge-success");
