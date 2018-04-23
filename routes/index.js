@@ -15,6 +15,13 @@ router.get('/', ensureAuthenticated,async function (req, res, next) {
         }
     }
 
+    marketBuy.sort(function(a, b){
+        var timeBuyNexta = a.timeBuyNext;
+        var timeBuyNextb = b.timeBuyNext;
+        if(timeBuyNexta == timeBuyNextb)
+            return 0;
+        return timeBuyNexta > timeBuyNextb ? 1 : -1;
+    });
     var sumBTC = 0;
     var sumUSDT = 0;
     if(process.env.NODE_ENV == "production"){
