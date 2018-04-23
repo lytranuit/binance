@@ -383,29 +383,40 @@ var Market = new SchemaObject({
         },
         checkHotMarket: function (candles) {
             var self = this;
+            if(self.isHotMarket)
+                return
             if (self.MarketName == "BTCUSDT")
                 return;
             var entries = Object.entries(candles);
             var candle1 = entries[entries.length - 1];
             var candle2 = entries[entries.length - 2];
+            var is_volume_large = candle1[1].volume > candle2[1].volume * 10;
             var input = {
                 close: [candle1[1].close],
                 open: [candle1[1].open],
                 high: [candle1[1].high],
                 low: [candle1[1].low],
             }
+
             var is_bullishmarubozu = technical.bullishmarubozu(input);
-            // if(is_bullishmarubozu)
-            //     console.log(self.MarketName,candle1,candle2);
-            var is_volume_large = candle1[1].volume > candle2[1].volume * 10;
             var is_price_increase = candle1[1].close > candle2[1].high * 1.02;
-            if (!self.isHotMarket && ((self.indicator_1m.count_buy > 200 && self.indicator_1m.count_sell > 200 && is_price_increase) || (is_bullishmarubozu && is_volume_large && is_price_increase))) {
+            if ((self.indicator_1m.count_buy > 200 && self.indicator_1m.count_sell > 200 && is_price_increase) || (is_bullishmarubozu && is_volume_large && is_price_increase)) {
                 self.isHotMarket = true;
-                
-                // console.log(clc.green("HOT"), clc.red("HOT"), self.MarketName);
                 var html = "<p>" + self.MarketName + "</p><p>Current Price:" + self.last + "</p>";
-                Mail.sendmail("[HOT]" + self.MarketName + " PUMP", html);
-                io.emit("hotMarket", {symbol: self.MarketName, last: self.last});
+                Mail.sendmail("[PUMP]" + self.MarketName + " PUMP", html);
+                io.emit("hotMarket", {symbol: self.MarketName, last: self.last,type:1});
+                return;
+            }
+
+            var is_bearishmarubozu = technical.bearishmarubozu(input);
+            var is_price_decrease = candle1[1].close < candle2[1].high * 1.02;
+            
+            if ((self.indicator_1m.count_buy > 200 && self.indicator_1m.count_sell > 200 && is_price_decrease) || (is_bearishmarubozu && is_volume_large && is_price_decrease)) {
+                self.isHotMarket = true;
+                var html = "<p>" + self.MarketName + "</p><p>Current Price:" + self.last + "</p>";
+                Mail.sendmail("[DUMP]" + self.MarketName + " DUMP", html);
+                io.emit("hotMarket", {symbol: self.MarketName, last: self.last,type:2});
+                return;
             }
         },
         save_db_quantity:function(){

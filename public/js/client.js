@@ -7,7 +7,11 @@ socket.on("start", function () {
 socket.on("hotMarket", function (data) {
     var symbol = data.symbol;
     var price = data.last;
-    var title = symbol + " Pump";
+    var type = data.type;
+    var title = symbol + " PUMP";
+    if(type == 2){
+        title = symbol + " DUMP";
+    }
     var body = "Price : " + price;
     var tag = "hotMarket";
     var noti = thenotification(title, body, tag);
