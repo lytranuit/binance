@@ -50,7 +50,7 @@ var Market = new SchemaObject({
         checkmua: function (price) {
             var self = this;
             var MarketName = self.MarketName;
-            var stopmuaPrimaryCoin = "stopmua" + primaryCoin;
+            var stopmuaPrimaryCoin = "stopmua" + self.primaryCoin;
             if (stopmua || global[stopmuaPrimaryCoin] || self.stopmua) {
                 return;
             }
