@@ -163,6 +163,7 @@ router.post('/buy',ensureAuthenticated, function (req, res, next) {
         * Cancle all order
         */
         binance.cancelOrders(symbol);
+        var primaryCoin = markets[symbol].primaryCoin;
         var primaryCoin_value = parseFloat(myBalances[primaryCoin].available) + parseFloat(myBalances[primaryCoin].onOrder);
         var amount = primaryCoin_value * quantity_per /100;
         var quantity = Math.ceil(amount / price);
@@ -185,6 +186,7 @@ router.post('/buymarket',ensureAuthenticated, function (req, res, next) {
         */
         binance.cancelOrders(symbol);       
 
+        var primaryCoin = markets[symbol].primaryCoin;
         var primaryCoin_value = parseFloat(myBalances[primaryCoin].available) + parseFloat(myBalances[primaryCoin].onOrder);
         var amount = primaryCoin_value * quantity_per /100;
         var quantity = Math.ceil(amount / markets[symbol].last);
@@ -215,7 +217,7 @@ router.post('/sell',ensureAuthenticated, function (req, res, next) {
         */
         binance.cancelOrders(symbol);
 
-        var altcoin = symbol.replace(primaryCoin, "");
+        var altcoin = markets[symbol].altCoin;
         var altcoin_value = parseFloat(myBalances[altcoin].available) + parseFloat(myBalances[altcoin].onOrder);
         var quantity = Math.ceil(altcoin_value * quantity_per /100);
         var amount = quantity * price;
@@ -240,7 +242,7 @@ router.post('/sellmarket',ensureAuthenticated, function (req, res, next) {
         */
         binance.cancelOrders(symbol);
 
-        var altcoin = symbol.replace(primaryCoin, "");
+        var altcoin = markets[symbol].altCoin;
         var altcoin_value = parseFloat(myBalances[altcoin].available) + parseFloat(myBalances[altcoin].onOrder);
         var quantity = Math.ceil(altcoin_value * quantity_per /100);
         binance.marketSell(symbol, quantity, (error, response) => {
