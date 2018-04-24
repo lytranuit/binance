@@ -29,10 +29,10 @@ socket.on("market", function (data) {
     }
     if (trades_asks_sum > trades_bids_sum) {
         let rate_trades = trades_asks_sum / trades_bids_sum;
-        $(".rate_trades[data-symbol=" + symbol + "]").text(round(rate_order,2) + "%").addClass("badge-danger").removeClass("badge-success");
+        $(".rate_trades[data-symbol=" + symbol + "]").text(round(rate_trades,2) + "%").addClass("badge-danger").removeClass("badge-success");
     } else {
         let rate_trades = trades_bids_sum / trades_asks_sum;
-        $(".rate_trades[data-symbol=" + symbol + "]").text(round(rate_order,2) + "%").removeClass("badge-danger").addClass("badge-success");
+        $(".rate_trades[data-symbol=" + symbol + "]").text(round(rate_trades,2) + "%").removeClass("badge-danger").addClass("badge-success");
     }
     if (profit > 0) {
         $(".profit[data-symbol=" + symbol + "]").removeClass("text-danger").addClass("text-success");

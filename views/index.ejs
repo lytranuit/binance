@@ -89,7 +89,7 @@
                                                             <a class="fancybox" data-toggle="modal" data-target="#myModal"  href='#' data-symbol='<%= market %>'><%= market %></a>
                                                         </td>
                                                         <td>
-                                                            <span class="price_buy" data-symbol='<%= market %>'><%= price_buy %></span>
+                                                            <span class="price_buy" data-symbol='<%= market %>'><%= round(price_buy,8) %></span>
                                                         </td>
                                                         <td>
                                                             <span class='mr-2 price_last' data-symbol='<%= market %>'><%= markets[market].last %></span><span class="profit <%= percent > 0 ? 'text-success' : 'text-danger' %>" data-symbol='<%= market %>'>(<%= round(percent,2) %>%)</span>
