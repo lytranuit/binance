@@ -166,8 +166,8 @@ router.post('/buy',ensureAuthenticated, function (req, res, next) {
         var primaryCoin = markets[symbol].primaryCoin;
         var primaryCoin_value = parseFloat(myBalances[primaryCoin].available) + parseFloat(myBalances[primaryCoin].onOrder);
         var amount = primaryCoin_value * quantity_per /100;
-        var quantity = Math.ceil(amount / price);
-        if(amount < 0.001){
+        var quantity = Math.floor(amount / price);
+        if(quantity * price < 0.001){
         	res.json({success:0,error: 'Total must be > 0.001 BTC'});
         	return;
         }
@@ -189,7 +189,7 @@ router.post('/buymarket',ensureAuthenticated, function (req, res, next) {
         var primaryCoin = markets[symbol].primaryCoin;
         var primaryCoin_value = parseFloat(myBalances[primaryCoin].available) + parseFloat(myBalances[primaryCoin].onOrder);
         var amount = primaryCoin_value * quantity_per /100;
-        var quantity = Math.ceil(amount / markets[symbol].last);
+        var quantity = Math.floor(amount / markets[symbol].last);
         binance.marketBuy(symbol, quantity, (error, response) => {
         	if (error) {
         		res.json({success:0,error: "Fail!"}); 
@@ -219,7 +219,7 @@ router.post('/sell',ensureAuthenticated, function (req, res, next) {
 
         var altcoin = markets[symbol].altCoin;
         var altcoin_value = parseFloat(myBalances[altcoin].available) + parseFloat(myBalances[altcoin].onOrder);
-        var quantity = Math.ceil(altcoin_value * quantity_per /100);
+        var quantity = Math.floor(altcoin_value * quantity_per /100);
         var amount = quantity * price;
         if(amount < 0.001){
         	res.json({success:0,error: 'Total must be > 0.001 BTC'});
