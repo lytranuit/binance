@@ -92,12 +92,12 @@
                                                             <span class="price_buy" data-symbol='<%= market %>'><%= price_buy %></span>
                                                         </td>
                                                         <td>
-                                                            <span class='mr-2 price_last' data-symbol='<%= market %>'><%= markets[market].last %></span><span class="profit <%= percent > 0 ? 'text-success' : 'text-danger' %>" data-symbol='<%= market %>'>(<%= percent.toFixed(2) %>%)</span>
+                                                            <span class='mr-2 price_last' data-symbol='<%= market %>'><%= markets[market].last %></span><span class="profit <%= percent > 0 ? 'text-success' : 'text-danger' %>" data-symbol='<%= market %>'>(<%= round(percent,2) %>%)</span>
                                                         </td>
                                                         <td class="text-center">
-                                                            <b class="mr-2 text-success bids_q" data-symbol='<%= market %>'><%= bids_q.toFixed(5) %></b>
-                                                            <b class="text-danger asks_q" data-symbol='<%= market %>'><%= asks_q.toFixed(5) %></b>
-                                                            <p class='d-block'><span class='rate_order badge <%= bids_q > asks_q ? "badge-success" : "badge-danger" %>' data-symbol='<%= market %>'><%= rate.toFixed(2) %>%</span></p>
+                                                            <b class="mr-2 text-success bids_q" data-symbol='<%= market %>'><%= round(bids_q,5) %></b>
+                                                            <b class="text-danger asks_q" data-symbol='<%= market %>'><%= round(asks_q,5) %></b>
+                                                            <p class='d-block'><span class='rate_order badge <%= bids_q > asks_q ? "badge-success" : "badge-danger" %>' data-symbol='<%= market %>'><%= round(rate,2) %>%</span></p>
                                                         </td>
                                                         <td class="text-center">
                                                             <b class="text-danger count_sell" data-symbol='<%= market %>' data-interval='1h'><%= count_sell_1h %></b>
@@ -243,9 +243,9 @@
                                                             <span class='mr-2 price_last' data-symbol='<%= market %>'><%= markets[market].last %></span>
                                                         </td>
                                                         <td class="text-center">
-                                                            <b class="mr-2 text-success bids_q" data-symbol='<%= market %>'><%= bids_q.toFixed(5) %></b>
-                                                            <b class="text-danger asks_q" data-symbol='<%= market %>'><%= asks_q.toFixed(5) %></b>
-                                                            <p class='d-block'><span class='rate_order badge <%= bids_q > asks_q ? "badge-success" : "badge-danger" %>' data-symbol='<%= market %>'><%= rate.toFixed(2) %>%</span></p>
+                                                            <b class="mr-2 text-success bids_q" data-symbol='<%= market %>'><%= round(bids_q,5) %></b>
+                                                            <b class="text-danger asks_q" data-symbol='<%= market %>'><%= round(asks_q,5) %></b>
+                                                            <p class='d-block'><span class='rate_order badge <%= bids_q > asks_q ? "badge-success" : "badge-danger" %>' data-symbol='<%= market %>'><%= round(rate,2) %>%</span></p>
                                                         </td>
                                                         <td class="text-center">
                                                             <b class="text-danger count_sell" data-symbol='<%= market %>' data-interval='1h'><%= count_sell_1h %></b>
@@ -542,11 +542,11 @@
                                 <td> 
                                     <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data-symbol='<%= market %>'  data-dismiss="modal"><%= market %></a>
                                 </td>
-                                <td class="text-success"><%= price_buy.toFixed(8) %></td>
-                                <td class="text-danger"><%= price_sell.toFixed(8) %></td>
+                                <td class="text-success"><%= round(price_buy,2) %></td>
+                                <td class="text-danger"><%= round(price_sell,2) %></td>
                                 <td><%= amount %></td>
-                                <td class="text-success"><%= BTC_buy.toFixed(8) %></td>
-                                <td class="text-danger"><%= BTC_sell.toFixed(8) %></td>
+                                <td class="text-success"><%= round(BTC_buy,2) %></td>
+                                <td class="text-danger"><%= round(BTC_sell,2) %></td>
                                 <td class="text-success"><%= percent %>%</td>
                                 <td><%= timestamp %></td>
                             </tr>

@@ -111,7 +111,9 @@ app.use(function (err, req, res, next) {
     res.status(err.status || 500);
     res.render('error');
 });
-
+app.locals.round = function(value,decimals) {
+  return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
+};
 module.exports = app;
 
 
@@ -388,15 +390,15 @@ pool.query("select * from options").then(function(rows, err){
 
 
 /******************
- * 
- * CONFIG APACHE
- * 
- *****************/
- var port = process.env.PORT || 3000;
- app.set('port', port);
- var server = http.createServer(app);
- global.io = require('socket.io')(server);
- io.on('connection', function (socket) {
+* 
+* CONFIG APACHE
+* 
+*****************/
+var port = process.env.PORT || 3000;
+app.set('port', port);
+var server = http.createServer(app);
+global.io = require('socket.io')(server);
+io.on('connection', function (socket) {
     console.log('a user connected');
     socket.emit("start");
     socket.on("join", function (data) {

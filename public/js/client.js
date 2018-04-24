@@ -22,24 +22,24 @@ socket.on("market", function (data) {
     let profit = 100 * (last - price_buy) / price_buy;
     if (orderBook_asks_sum > orderBook_bids_sum) {
         let rate_order = orderBook_asks_sum / orderBook_bids_sum;
-        $(".rate_order[data-symbol=" + symbol + "]").text(rate_order.toFixed(2) + "%").addClass("badge-danger").removeClass("badge-success");
+        $(".rate_order[data-symbol=" + symbol + "]").text(round(rate_order,2) + "%").addClass("badge-danger").removeClass("badge-success");
     } else {
         let rate_order = orderBook_bids_sum / orderBook_asks_sum;
-        $(".rate_order[data-symbol=" + symbol + "]").text(rate_order.toFixed(2) + "%").removeClass("badge-danger").addClass("badge-success");
+        $(".rate_order[data-symbol=" + symbol + "]").text(round(rate_order,2) + "%").removeClass("badge-danger").addClass("badge-success");
     }
     if (trades_asks_sum > trades_bids_sum) {
         let rate_trades = trades_asks_sum / trades_bids_sum;
-        $(".rate_trades[data-symbol=" + symbol + "]").text(rate_trades.toFixed(2) + "%").addClass("badge-danger").removeClass("badge-success");
+        $(".rate_trades[data-symbol=" + symbol + "]").text(round(rate_order,2) + "%").addClass("badge-danger").removeClass("badge-success");
     } else {
         let rate_trades = trades_bids_sum / trades_asks_sum;
-        $(".rate_trades[data-symbol=" + symbol + "]").text(rate_trades.toFixed(2) + "%").removeClass("badge-danger").addClass("badge-success");
+        $(".rate_trades[data-symbol=" + symbol + "]").text(round(rate_order,2) + "%").removeClass("badge-danger").addClass("badge-success");
     }
     if (profit > 0) {
         $(".profit[data-symbol=" + symbol + "]").removeClass("text-danger").addClass("text-success");
     } else {
         $(".profit[data-symbol=" + symbol + "]").addClass("text-danger").removeClass("text-success");
     }
-    $(".profit[data-symbol=" + symbol + "]").text("(" + profit.toFixed(2) + "%)");
+    $(".profit[data-symbol=" + symbol + "]").text("(" + round(profit,2) + "%)");
     $(".price_last[data-symbol=" + symbol + "]").text(last);
     $(".bids_q[data-symbol=" + symbol + "]").text(Math.round(orderBook_bids_sum));
     $(".asks_q[data-symbol=" + symbol + "]").text(Math.round(orderBook_asks_sum));
