@@ -40,7 +40,7 @@ function calculateSellPrice(){
     var sell_profit = $("#sell_profit").val();
     var price_buy = $("#BuySellTable .price_buy").text();
     var price_sell = parseFloat(price_buy) + (parseFloat(price_buy) * parseFloat(sell_profit) / 100);
-    $("#sell_price").val(price_sell.toFixed(10));
+    $("#sell_price").val(price_sell.toFixed(8));
 }
 function drawChart(symbol, interval) {
     var interval1 = "D1";
