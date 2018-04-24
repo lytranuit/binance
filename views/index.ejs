@@ -542,11 +542,11 @@
                                 <td> 
                                     <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data-symbol='<%= market %>'  data-dismiss="modal"><%= market %></a>
                                 </td>
-                                <td class="text-success"><%= round(price_buy,2) %></td>
-                                <td class="text-danger"><%= round(price_sell,2) %></td>
+                                <td class="text-success"><%= round(price_buy,8) %></td>
+                                <td class="text-danger"><%= round(price_sell,8) %></td>
                                 <td><%= amount %></td>
-                                <td class="text-success"><%= round(BTC_buy,2) %></td>
-                                <td class="text-danger"><%= round(BTC_sell,2) %></td>
+                                <td class="text-success"><%= round(BTC_buy,8) %></td>
+                                <td class="text-danger"><%= round(BTC_sell,8) %></td>
                                 <td class="text-success"><%= percent %>%</td>
                                 <td><%= timestamp %></td>
                             </tr>
