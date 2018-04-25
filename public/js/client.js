@@ -17,21 +17,28 @@ socket.on("hotMarket", function (data) {
     var noti = thenotification(title, body, tag);
 })
 socket.on("market", function (data) {
-    let {symbol: symbol, last: last, orderBook_bids_sum: orderBook_bids_sum, orderBook_asks_sum: orderBook_asks_sum, count_buy: count_buy, count_sell: count_sell, trades_bids_sum: trades_bids_sum, trades_asks_sum: trades_asks_sum} = data;
-    let price_buy = parseFloat($(".price_buy[data-symbol=" + symbol + "]").text());
-    let profit = 100 * (last - price_buy) / price_buy;
+    var symbol = data.symbol;
+    var last = data.last;
+    var orderBook_bids_sum = data.orderBook_bids_sum;
+    var orderBook_asks_sum = data.orderBook_asks_sum;
+    var count_buy = data.count_buy;
+    var count_sell = data.count_sell;
+    var trades_bids_sum = data.trades_bids_sum;
+    var trades_asks_sum = data.trades_asks_sum;
+    var price_buy = parseFloat($(".price_buy[data-symbol=" + symbol + "]").text());
+    var profit = 100 * (last - price_buy) / price_buy;
     if (orderBook_asks_sum > orderBook_bids_sum) {
-        let rate_order = orderBook_asks_sum / orderBook_bids_sum;
+        var rate_order = orderBook_asks_sum / orderBook_bids_sum;
         $(".rate_order[data-symbol=" + symbol + "]").text(round(rate_order,2) + "%").addClass("badge-danger").removeClass("badge-success");
     } else {
-        let rate_order = orderBook_bids_sum / orderBook_asks_sum;
+        var rate_order = orderBook_bids_sum / orderBook_asks_sum;
         $(".rate_order[data-symbol=" + symbol + "]").text(round(rate_order,2) + "%").removeClass("badge-danger").addClass("badge-success");
     }
     if (trades_asks_sum > trades_bids_sum) {
-        let rate_trades = trades_asks_sum / trades_bids_sum;
+        var rate_trades = trades_asks_sum / trades_bids_sum;
         $(".rate_trades[data-symbol=" + symbol + "]").text(round(rate_trades,2) + "%").addClass("badge-danger").removeClass("badge-success");
     } else {
-        let rate_trades = trades_bids_sum / trades_asks_sum;
+        var rate_trades = trades_bids_sum / trades_asks_sum;
         $(".rate_trades[data-symbol=" + symbol + "]").text(round(rate_trades,2) + "%").removeClass("badge-danger").addClass("badge-success");
     }
     if (profit > 0) {
