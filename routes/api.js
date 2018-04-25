@@ -175,18 +175,17 @@ router.post('/buy',ensureAuthenticated, function (req, res, next) {
         /*
         * Cancle all order
         */
-        binance.cancelOrders(symbol,(error, response, symbol) => {
-        	var primaryCoin = markets[symbol].primaryCoin;
-        	var primaryCoin_value = parseFloat(myBalances[primaryCoin].available) + parseFloat(myBalances[primaryCoin].onOrder);
-        	var amount = primaryCoin_value * quantity_per /100;
-        	var quantity = Math.floor(amount / price);
-        	if(quantity * price < 0.001){
-        		res.json({success:0,error: 'Total must be > 0.001 BTC'});
-        		return;
-        	}
-        	binance.buy(symbol, quantity, price);
-        	res.json({success: 1});
-        });
+        binance.cancelOrders(symbol);
+        var primaryCoin = markets[symbol].primaryCoin;
+        var primaryCoin_value = parseFloat(myBalances[primaryCoin].available) + parseFloat(myBalances[primaryCoin].onOrder);
+        var amount = primaryCoin_value * quantity_per /100;
+        var quantity = Math.floor(amount / price);
+        if(quantity * price < 0.001){
+        	res.json({success:0,error: 'Total must be > 0.001 BTC'});
+        	return;
+        }
+        binance.buy(symbol, quantity, price);
+        res.json({success: 1});
     }else{
     	markets[symbol].save_db_mua(price,1);
     	res.json({success: 1});
@@ -199,18 +198,17 @@ router.post('/buymarket',ensureAuthenticated, function (req, res, next) {
         /*
         * Cancle all order
         */
-        binance.cancelOrders(symbol,(error, response, symbol) => {
-        	var primaryCoin = markets[symbol].primaryCoin;
-        	var primaryCoin_value = parseFloat(myBalances[primaryCoin].available) + parseFloat(myBalances[primaryCoin].onOrder);
-        	var amount = primaryCoin_value * quantity_per /100;
-        	var quantity = Math.floor(amount / markets[symbol].last);
-        	binance.marketBuy(symbol, quantity, (error, response) => {
-        		if (error) {
-        			res.json({success:0,error: "Fail!"}); 
-        			return;
-        		}
-        		res.json({success: 1});
-        	});
+        binance.cancelOrders(symbol);
+        var primaryCoin = markets[symbol].primaryCoin;
+        var primaryCoin_value = parseFloat(myBalances[primaryCoin].available) + parseFloat(myBalances[primaryCoin].onOrder);
+        var amount = primaryCoin_value * quantity_per /100;
+        var quantity = Math.floor(amount / markets[symbol].last);
+        binance.marketBuy(symbol, quantity, (error, response) => {
+        	if (error) {
+        		res.json({success:0,error: "Fail!"}); 
+        		return;
+        	}
+        	res.json({success: 1});
         });
     }else{
     	markets[symbol].save_db_mua(markets[symbol].last,1);
@@ -229,19 +227,17 @@ router.post('/sell',ensureAuthenticated, function (req, res, next) {
         /*
         * Cancle all order
         */
-        binance.cancelOrders(symbol,(error, response, symbol) => {
-        	var altcoin = markets[symbol].altCoin;
-        	var altcoin_value = parseFloat(myBalances[altcoin].available) + parseFloat(myBalances[altcoin].onOrder);
-        	var quantity = Math.floor(altcoin_value * quantity_per /100);
-        	var amount = quantity * price;
-        	if(amount < 0.001){
-        		res.json({success:0,error: 'Total must be > 0.001 BTC'});
-        		return;
-        	}
-        	binance.sell(symbol, quantity, price);
-        	res.json({success: 1});
-        });
-
+        binance.cancelOrders(symbol);
+        var altcoin = markets[symbol].altCoin;
+        var altcoin_value = parseFloat(myBalances[altcoin].available) + parseFloat(myBalances[altcoin].onOrder);
+        var quantity = Math.floor(altcoin_value * quantity_per /100);
+        var amount = quantity * price;
+        if(amount < 0.001){
+        	res.json({success:0,error: 'Total must be > 0.001 BTC'});
+        	return;
+        }
+        binance.sell(symbol, quantity, price);
+        res.json({success: 1});
         
     }else{
     	markets[symbol].save_db_ban(price,1);
@@ -257,17 +253,16 @@ router.post('/sellmarket',ensureAuthenticated, function (req, res, next) {
         /*
         * Cancle all order
         */
-        binance.cancelOrders(symbol,(error, response, symbol) => {
-        	var altcoin = markets[symbol].altCoin;
-        	var altcoin_value = parseFloat(myBalances[altcoin].available) + parseFloat(myBalances[altcoin].onOrder);
-        	var quantity = Math.ceil(altcoin_value * quantity_per /100);
-        	binance.marketSell(symbol, quantity, (error, response) => {
-        		if (error) {
-        			res.json({success:0,error: "Fail!"}); 
-        			return;
-        		}
-        		res.json({success: 1});
-        	});
+        binance.cancelOrders(symbol);
+        var altcoin = markets[symbol].altCoin;
+        var altcoin_value = parseFloat(myBalances[altcoin].available) + parseFloat(myBalances[altcoin].onOrder);
+        var quantity = Math.ceil(altcoin_value * quantity_per /100);
+        binance.marketSell(symbol, quantity, (error, response) => {
+        	if (error) {
+        		res.json({success:0,error: "Fail!"}); 
+        		return;
+        	}
+        	res.json({success: 1});
         });
     }else{
     	markets[symbol].save_db_ban(markets[symbol].last,1);
