@@ -26,6 +26,8 @@ var Chiso = new SchemaObject({
     dt: booleanType,
     tu: booleanType,
     td: booleanType,
+    can_buy:booleanType,
+    can_sell:booleanType,
     rsi: Number,
     mfi: Number,
     MACD: Object,
@@ -38,13 +40,15 @@ var Chiso = new SchemaObject({
             var argl = [];
             var argv = [];
             var argc = [];
+            var argo = [];
             for (var key in results) {
                 argh.push(parseFloat(results[key]['high']));
                 argl.push(parseFloat(results[key]['low']));
                 argv.push(parseFloat(results[key]['volume']));
                 argc.push(parseFloat(results[key]['close']));
+                argo.push(parseFloat(results[key]['open']));
+                
             }
-
             if (argc.length > 250) {
                 var input = {
                     values: argc
@@ -68,10 +72,10 @@ var Chiso = new SchemaObject({
                 self.td = true;
             }
             /*
-             * MACD
-             */
-             var MACD = technical.MACD;
-             var input = {
+            * MACD
+            */
+            var MACD = technical.MACD;
+            var input = {
                 values: argc,
                 fastPeriod: 12,
                 slowPeriod: 26,
@@ -82,10 +86,10 @@ var Chiso = new SchemaObject({
             var array_MACD = MACD.calculate(input);
             self.MACD = array_MACD[array_MACD.length - 1];
             /*
-             * RSI
-             */
-             var rsi = technical.RSI;
-             var input = {
+            * RSI
+            */
+            var rsi = technical.RSI;
+            var input = {
                 values: argc,
                 period: 14
             };
@@ -115,6 +119,50 @@ var Chiso = new SchemaObject({
             };
             var array_bb = bb.calculate(input);
             self.bb = array_bb[array_bb.length - 1];
+
+            
+            /*
+            * doi chart
+            */
+            self.can_buy = false;
+            self.can_sell = false;
+            
+            var input = {
+                open : argo,
+                high : argh,
+                low : argl,
+                close: argc
+            }
+            var heikinAshi = technical.HeikinAshi;
+            var array_heikinAshi = heikinAshi.calculate(input);
+            var array_high = array_heikinAshi['high'];
+            var array_low = array_heikinAshi['low'];
+            var array_open = array_heikinAshi['open'];
+            var array_close = array_heikinAshi['close'];
+            
+            var candle1 = {
+                high:[array_high.pop()],
+                low:[array_low.pop()],
+                open:[array_open.pop()],
+                close:[array_close.pop()],
+            }
+            var candle2 = {
+                high:[array_high.pop()],
+                low:[array_low.pop()],
+                open:[array_open.pop()],
+                close:[array_close.pop()],
+            }
+            var is_bullish1 = candle1.close > candle1.open;
+            var is_bullish2 = candle2.close > candle2.open;
+
+            var is_bearish1 = candle1.close < candle1.open;
+            var is_bearish2 = candle2.close < candle2.open;
+            if(is_bullish1 && is_bearish2){
+                self.can_buy = true;
+            }
+            if(is_bearish1 && is_bullish2){
+                self.can_sell = true;
+            }
         }
     }
 });

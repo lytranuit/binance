@@ -120,10 +120,10 @@ module.exports = app;
 
 
 /******************
- * 
- * END CONFIG SERVER
- * 
- *****************/
+* 
+* END CONFIG SERVER
+* 
+*****************/
 
 
 /******************
@@ -174,7 +174,7 @@ pool.query("select * from options").then(function(rows, err){
     }
     return true;
 }).then(function(){
-    binance.useServerTime(function () {
+    binance.useServerTime(() =>{
         if (process.env.NODE_ENV == "production") {
             binance.balance((error, balances) => {
                 myBalances = balances;
@@ -243,13 +243,10 @@ pool.query("select * from options").then(function(rows, err){
                 };
                 markets[market] = new MarketModel(obj);
                 array_market.push(market);
-                // markets[market].sync_quantity();
                 if (process.env.NODE_ENV == "production") {
                     markets[market].syncTrade();
                 }
             }
-            // console.log(array_market);
-            // return;
             binance.websockets.chart(array_market, "1h", (market, interval, results) => {
                 if (Object.keys(results).length === 0)
                     return;
@@ -283,46 +280,46 @@ pool.query("select * from options").then(function(rows, err){
                     if (currentTime != tick) {
                         global.currentTime = tick;
                         console.log("Bắt đầu phiên:", moment(tick, "x").format());
-                    }
-
+                    };
+                    delete results[tick];
                     markets[market]['indicator_' + interval].setIndicator(results);
                     markets[market]['indicator_' + interval].count_buy = 0;
                     markets[market]['indicator_' + interval].count_sell = 0;
                 }
-            /*
-            * RESET 1 m
-            */
-            if (moment().format("ss") < 10) {
-                markets[market]['indicator_1m'].count_buy = 0;
-                markets[market]['indicator_1m'].count_sell = 0;
-            }
-            /*
-            * Tinh bid ask volume
-            */
-            let orderBook = markets[market].orderBook;
-            let orderBook_bids = orderBook.bids;
-            let orderBook_asks = orderBook.asks;
-            let orderBook_bids_sum = Object.values(orderBook_bids).reduce(function (sum, value) {
-                return sum + parseFloat(value);
-            }, 0);
-            let orderBook_asks_sum = Object.values(orderBook_asks).reduce(function (sum, value) {
-                return sum + parseFloat(value);
-            }, 0);
-            let trades = markets[market].trades;
-            let trades_bids = trades.bids;
-            let trades_asks = trades.asks;
-            let count_buy = trades_bids.length;
-            let count_sell = trades_asks.length;
-            let trades_bids_sum = trades_bids.reduce(function (sum, value) {
-                return sum + parseFloat(value.quantity);
-            }, 0);
-            let trades_asks_sum = trades_asks.reduce(function (sum, value) {
-                return sum + parseFloat(value.quantity);
-            }, 0);
-            markets[market]['indicator_' + interval].periodTime = tick;
-            io.to("interval").emit("interval", {symbol: market, interval: interval, time: tick, data: results[tick], count_buy: markets[market]['indicator_' + interval].count_buy, count_sell: markets[market]['indicator_' + interval].count_sell});
-            io.to("market").emit("market", {symbol: market, last: last, orderBook_bids_sum: orderBook_bids_sum, orderBook_asks_sum: orderBook_asks_sum, count_sell: count_sell, count_buy: count_buy, trades_bids_sum: trades_bids_sum, trades_asks_sum: trades_asks_sum});
-        });
+                /*
+                * RESET 1 m
+                */
+                if (moment().format("ss") < 10) {
+                    markets[market]['indicator_1m'].count_buy = 0;
+                    markets[market]['indicator_1m'].count_sell = 0;
+                }
+                /*
+                * Tinh bid ask volume
+                */
+                let orderBook = markets[market].orderBook;
+                let orderBook_bids = orderBook.bids;
+                let orderBook_asks = orderBook.asks;
+                let orderBook_bids_sum = Object.values(orderBook_bids).reduce(function (sum, value) {
+                    return sum + parseFloat(value);
+                }, 0);
+                let orderBook_asks_sum = Object.values(orderBook_asks).reduce(function (sum, value) {
+                    return sum + parseFloat(value);
+                }, 0);
+                let trades = markets[market].trades;
+                let trades_bids = trades.bids;
+                let trades_asks = trades.asks;
+                let count_buy = trades_bids.length;
+                let count_sell = trades_asks.length;
+                let trades_bids_sum = trades_bids.reduce(function (sum, value) {
+                    return sum + parseFloat(value.quantity);
+                }, 0);
+                let trades_asks_sum = trades_asks.reduce(function (sum, value) {
+                    return sum + parseFloat(value.quantity);
+                }, 0);
+                markets[market]['indicator_' + interval].periodTime = tick;
+                io.to("interval").emit("interval", {symbol: market, interval: interval, time: tick, data: results[tick], count_buy: markets[market]['indicator_' + interval].count_buy, count_sell: markets[market]['indicator_' + interval].count_sell});
+                io.to("market").emit("market", {symbol: market, last: last, orderBook_bids_sum: orderBook_bids_sum, orderBook_asks_sum: orderBook_asks_sum, count_sell: count_sell, count_buy: count_buy, trades_bids_sum: trades_bids_sum, trades_asks_sum: trades_asks_sum});
+            });
 
             binance.websockets.trades(array_market, (trades) => {
                 let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
@@ -385,7 +382,6 @@ pool.query("select * from options").then(function(rows, err){
             });
             console.log("Price of BTC: ", ticker.BTCUSDT);
         });
-
 });
 });
 
