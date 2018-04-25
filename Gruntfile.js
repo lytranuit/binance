@@ -2,6 +2,9 @@ module.exports = function(grunt) {
   grunt.initConfig({
     uglify: {
       gopjs: {
+        options:{
+          sourceMap:true
+        },
         src: [
         'public/others/jquery/dist/jquery.min.js',
         'public/others/popper.js/dist/umd/popper.min.js',
@@ -31,6 +34,9 @@ module.exports = function(grunt) {
     },
     cssmin:{
       gopcss: {
+        options:{
+          sourceMap:true
+        },
         src: [
         'pulbic/others/mdi/css/materialdesignicons.min.css',
         'public/others/simple-line-icons/css/simple-line-icons.css',
