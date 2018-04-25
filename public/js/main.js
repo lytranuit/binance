@@ -1,10 +1,53 @@
  $(document).ready(function () {
-    $('#tickets').DataTable();
     $('#history').DataTable();
-    $('#BTC-markets').DataTable({
+    $('#tickets').DataTable({
         "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         "iDisplayLength": -1
     });
+    $.ajax({
+        url: "/api/allmarket",
+        dataType: "JSON",
+        success: function (data) {
+            marketName = data.marketName;
+        }
+    });
+    $("#showhot").click(function(){
+        $("#volumn .ticket-card").not(".draw").each(function(){
+            $(this).css("height","300px");
+            var symbol = $(this).attr("data-symbol");
+            var ele = $(this).attr("id");
+            drawTradingview(symbol,ele);
+        });
+    });
+    $("#volumn .ticket-card").dblclick(function(){
+        var symbol = $(this).attr("data-symbol");
+        $("body").append('<a class="fancybox d-none" data-toggle="modal" data-target="#myModal"  href="#" data-symbol="'+symbol+'"></a>')
+        $(".fancybox[data-symbol='"+symbol+"']").first().trigger("click");
+    })
+    $(".hotmarket").click(function(){
+        var symbol = $(this).attr("data-symbol");
+        var value = +!$(this).hasClass("btn-warning");
+        var self = $(this);
+        $.ajax({
+            url: "/api/hotmarket",
+            dataType: "JSON",
+            type: "POST",
+            data:{symbol:symbol,value:value},
+            success: function (data) {
+                if(value){
+                    self.addClass("btn-warning");
+                    var append = "<div class='col-6 ticket-card p-2' style='height: 300px;' id='market"+symbol+"' data-symbol='"+symbol+"'></div>";
+                    $("#volumn .row").append(append);
+                    var ele = "market"+symbol;
+                    drawTradingview(symbol,ele);
+                }else{
+                    self.removeClass("btn-warning");
+                    $("#market"+symbol).remove();
+                }
+            }
+        });
+        
+    })
     $("#refreshOrder").click(function () {
         var symbol = $("#myModal").data("symbol");
         $.ajax({
@@ -55,25 +98,7 @@
     $("#tradingview-buton").click(function (e) {
         var symbol = $("#myModal").data("symbol");
         $("#tradingview").empty();
-        var widget = new TradingView.widget({
-            autosize: true,
-            "symbol": "BINANCE:" + symbol,
-            "interval": "5",
-            "timezone": "Asia/Bangkok",
-            "theme": "Dark",
-            "style": "1",
-            "locale": "vi_VN",
-            "toolbar_bg": "#f1f3f6",
-            "enable_publishing": false,
-            "hide_side_toolbar": false,
-            "studies": [
-            "BB@tv-basicstudies",
-            "RSI@tv-basicstudies",
-            "MACD@tv-basicstudies"
-            ],
-            "allow_symbol_change": true,
-            "container_id": "tradingview"
-        });
+        drawTradingview(symbol,"tradingview");
     });
     $(document).off("click",".setting").on('click', ".setting", function (e) {
         e.preventDefault();
@@ -121,39 +146,22 @@
     $(document).off("click",".fancybox").on('click', ".fancybox", function (e) {
         e.preventDefault();
         var symbol = $(this).attr("data-symbol");
-        var price_buy = $(".price_buy[data-symbol="+symbol+"]").first().text() || "";
-                /*
-                * RESET
-                */
-                $("#buy_price").val("");
-                $("#sell_price").val("");
-                $("#myModal [data-symbol]").attr("data-symbol", symbol).text("");
-
-                $(".price_buy[data-symbol="+symbol+"]").text(price_buy);
-                /*
-                * Lay my Balances
-                */
-                getBalances(symbol);
-
-                /*
-                * Ve Chart
-                */
-                $("#myModal").data("symbol", symbol);
-                drawChart(symbol, "1h");
-            });
+        initpopup(symbol);
+    });
     $(".search").keyup(function () {
         var search = $(this).val().toUpperCase();
-        var parents = $(this).parents(".card");
         if (search == '') {
-            $(".ticket-card", parents).show();
+            $("#volumn").show();
+            $("#allmarket").hide();
             return
         }
-        $(".ticket-card", parents).hide();
-        $(".ticket-card", parents).each(function () {
-            var text = $(this).text().replace(/\s/ig, "").toUpperCase();
-            console.log(text);
-            if (text.indexOf(search) != -1) {
-                $(this).show();
+        $("#allmarket").show();
+        $("#volumn").hide();
+        $("#allmarket .row").empty();
+        $.each(marketName,function (k,v) {
+            var text = v.toUpperCase();
+            if(text.indexOf(search) != -1){
+                $("#allmarket .row").append('<a class="fancybox col-4" data-toggle="modal" data-target="#myModal" href="#" data-symbol="'+text+'">'+text+'</a>')
             }
         })
     });

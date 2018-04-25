@@ -1,4 +1,5 @@
 var tzOffsetMoscow=3600*7;
+var marketName = [];
 function getBalances(symbol){
     $.ajax({
         url: "/api/marketbalance",
@@ -11,14 +12,20 @@ function getBalances(symbol){
             $("#altcoin [data-coin]").attr("data-coin",dataAlt.name);
             $("#primaryCoin .name_coin").text(dataPrimary.name);
             $("#altcoin .name_coin").text(dataAlt.name);
-            var available = dataPrimary.value.available || 0;
-            var onOrder = dataPrimary.value.onOrder || 0;
+            var available = dataPrimary.value ? dataPrimary.value.available : 0;
+            var onOrder = dataPrimary.value ? dataPrimary.value.onOrder : 0;
             var value = parseFloat(available) + parseFloat(onOrder);
             $("#primaryCoin .value_coin").text(value);
-            var available = dataAlt.value.available || 0;
-            var onOrder = dataAlt.value.onOrder || 0;
+            var available = dataAlt.value ? dataAlt.value.available : 0;
+            var onOrder = dataAlt.value ? dataAlt.value.onOrder : 0;
             var value = parseFloat(available) + parseFloat(onOrder);
             $("#altcoin .value_coin").text(value);
+            var isHotMarket = data.isHotMarket;
+            if(isHotMarket){
+                $(".hotmarket").addClass("btn-warning")
+            }else{
+                $(".hotmarket").removeClass("btn-warning")
+            }
         }
     });
 }
@@ -96,6 +103,49 @@ function drawChart(symbol, interval) {
         }
     });
 }
+function drawTradingview(symbol,element){
+    $("#"+element).addClass("draw");
+    var widget = new TradingView.widget({
+        autosize: true,
+        "symbol": "BINANCE:" + symbol,
+        "interval": "5",
+        "timezone": "Asia/Bangkok",
+        "theme": "Dark",
+        "style": "1",
+        "locale": "vi_VN",
+        "toolbar_bg": "#f1f3f6",
+        "enable_publishing": false,
+        "hide_side_toolbar": false,
+        "studies": [
+        "BB@tv-basicstudies",
+        "RSI@tv-basicstudies",
+        "MACD@tv-basicstudies"
+        ],
+        "allow_symbol_change": true,
+        "container_id": element
+    });
+}
+function initpopup(symbol){
+
+    $("#myModal").data("symbol", symbol);
+    var price_buy = $(".price_buy[data-symbol="+symbol+"]").first().text() || "";
+    /*
+    * RESET
+    */
+    $("#buy_price").val("");
+    $("#sell_price").val("");
+    $("#myModal [data-symbol]").attr("data-symbol", symbol).text("");
+
+    $(".price_buy[data-symbol="+symbol+"]").text(price_buy);
+    /*
+    * Lay my Balances
+    */
+    getBalances(symbol);
+    /*
+    * Ve Chart
+    */
+    drawTradingview(symbol,"tradingview");
+}
 function applyForm(form, data) {
     $('input, select, textarea', form).each(function () {
         var type = $(this).attr('type');
@@ -129,7 +179,7 @@ function applyForm(form, data) {
     });
 }
 function thenotification(title, body, tag, icon) {
-    var defaulticon = "https://wigo.tech/application/templates/admin/default/images/WiGOLogo-127x43.png";
+    var defaulticon = "https://assets.coingecko.com/coins/images/1/large/bitcoin.png";
     icon = icon || defaulticon;
     body = $('<div>' + body + '</div>').text();
     var notification;
@@ -137,21 +187,32 @@ function thenotification(title, body, tag, icon) {
         var options = {
             body: body,
             tag: tag,
-            icon: icon
+            icon: icon,
+            sound: 'alert.mp3'
         }
         notification = new Notification(title, options);
+        $("body").append("<audio autoplay><source src='alert.mp3' type='audio/mp3'></audio>");
+        //                                    setTimeout(notification.close.bind(notification), 4000);
     } else if (Notification && Notification.permission !== "denied") {
+        // Request permission
         Notification.requestPermission(function (status) {
+
+            // Change based on user's decision
             if (Notification.permission !== status) {
                 Notification.permission = status;
             }
+
+            // If it's granted show the notification
             if (status === "granted") {
                 var options = {
                     body: body,
                     tag: tag,
-                    icon: icon
+                    icon: icon,
+                    sound: 'alert.mp3'
                 }
                 notification = new Notification(title, options);
+                $("body").append("<audio autoplay><source src='alert.mp3' type='audio/mp3'></audio>");
+                //                                            setTimeout(notification.close.bind(notification), 4000);
             } else {
                 console.log("This browser does not support system notifications");
             }

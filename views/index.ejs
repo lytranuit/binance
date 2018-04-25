@@ -129,7 +129,7 @@
                             <div class="card">
                                 <div class="card-body">
                                     <div class="form-group row">
-                                        <h5 class="col-9 card-title">HOT Market</h5>
+                                        <h5 class="col-9 card-title" id='showhot'>HOT Market</h5>
                                         <div class="col-3">
                                             <input type="email" class="form-control search" placeholder="Search">
                                         </div>
@@ -138,134 +138,14 @@
                                     <div class="fluid-container" id="volumn">
                                         <div class="row">
                                             <% for(market in marketHot) { %>
-                                            <% var self = markets[market]; %> 
-                                            <% var i_1h = markets[market].indicator_1h; %>
-                                            <% var i_5m = markets[market].indicator_5m; %>
-                                            <% var pattern_1h = i_1h.pattern.pattern; %>
-                                            <% var probability_1h = Math.round(i_1h.pattern.probability); %>
-                                            <% var pattern_5m = i_5m.pattern.pattern; %>
-                                            <% var probability_5m = Math.round(i_5m.pattern.probability); %>
-                                            <% var count_buy_1h = i_1h.count_buy; %>
-                                            <% var count_sell_1h = i_1h.count_sell; %>
-                                            <% var count_buy_5m = i_5m.count_buy; %>
-                                            <% var count_sell_5m = i_5m.count_sell; %>
-                                            <% var classess = ''; %>
-                                            <div class='col-3 ticket-card mt-3 pb-2 border-bottom'>
-                                                <div class="col-12">
-                                                    <a class="fancybox" data-toggle="modal" data-target="#myModal" href='#' data-symbol='<%= market %>' data-dismiss="modal"><%= market %></a>
-                                                    <a class="setting icon-settings" data-toggle="modal" data-target="#settingModal"  href='#' data='<%= market %>' data-dismiss="modal"></a>
-                                                </div>
-                                                <div class="ticket-details col-10">
-                                                    <div class="d-flex">
-                                                        <p>Current price: <%= markets[market].last %></p>
-                                                    </div>
-                                                    <div class="row text-muted d-flex">
-                                                        <div class="col-12 d-flex">
-                                                            <p class="mb-0 mr-2">1h:</p>
-                                                            <p class="mr-2 mb-0 text-primary"><%= pattern_1h %>(<%= probability_1h %>)</p>
-                                                            <p class="mr-2 mb-0 text-danger"><%= count_sell_1h %></p>
-                                                            <p class="mr-2 mb-0 text-success"><%= count_buy_1h %></p> 
-                                                        </div>
-                                                        <div class="col-12 d-flex">
-                                                            <p class="mb-0 mr-2">5m:</p>
-                                                            <p class="mr-2 mb-0 text-primary"><%= pattern_5m %>(<%= probability_5m %>)</p>
-                                                            <p class="mr-2 mb-0 text-danger"><%= count_sell_5m %></p>
-                                                            <p class="mr-2 mb-0 text-success"><%= count_buy_5m %></p> 
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                            <div class='col-6 ticket-card p-2' id="market<%= market %>" data-symbol='<%= market %>'>
+                                                <div><%= market %>: <span class='mr-2 price_last' data-symbol='<%= market %>'></span></div>
                                             </div>
                                             <% } %>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="form-group row">
-                                        <h5 class="col-8 card-title">Coin</h5>
-                                        <div class="col-4 small">
-                                            Sắp xếp theo: <a href="#" class="order_by_trade" data-interval='1h'>Lượt giao dịch 1h</a> | <a href="#" class="order_by_trade" data-interval='5m'>Lượt giao dịch 5m</a> | <a href="#" class="order_by_trade" data-interval='1m'>Lượt giao dịch 1m</a>
-                                        </div>
-                                    </div>
-
-                                    <div class="fluid-container">
-                                        <div class="row" style='zoom: 0.85;'>
-                                            <table id="BTC-markets" class="table table-hover" style="width:100%;">
-                                                <thead class="thead-light">
-                                                    <tr>
-                                                        <th>STT</th>
-                                                        <th>Thị trường</th>
-                                                        <th>Giá hiện tại</th>
-                                                        <th>Volume Rate</th>
-                                                        <th>Chỉ số 1h</th>
-                                                        <th>Chỉ số 5m</th>
-                                                        <th>Hành động</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <% var i = 1; %>
-                                                    <% for(market in markets) { %>
-                                                    <% var self = markets[market]; %> 
-                                                    <% var i_1h = markets[market].indicator_1h; %>
-                                                    <% var i_5m = markets[market].indicator_5m; %>
-                                                    <% var stopmuaMaket = self.stopmua; %>
-                                                    <% var pattern_1h = i_1h.pattern.pattern; %>
-                                                    <% var probability_1h = Math.round(i_1h.pattern.probability); %>
-                                                    <% var pattern_5m = i_5m.pattern.pattern; %>
-                                                    <% var probability_5m = Math.round(i_5m.pattern.probability); %>
-                                                    <% var count_buy_1h = i_1h.count_buy; %>
-                                                    <% var count_sell_1h = i_1h.count_sell; %>
-                                                    <% var rate_1h = i_1h.rate; %>
-                                                    <% var count_buy_5m = i_5m.count_buy; %>
-                                                    <% var count_sell_5m = i_5m.count_sell; %>
-                                                    <% var rate_5m = i_5m.rate; %>
-                                                    <% var price_buy = self.priceBuyAvg; %>
-                                                    <% var bids_q = 0; %>
-                                                    <% var asks_q = 0; %>
-                                                    <% var rate = 0; %>
-                                                    <% var profit = markets[market].last - price_buy; %>
-                                                    <% var percent = profit / price_buy * 100; %>
-                                                    <% var classess = ''; %>
-                                                    <% if(percent > 0){ %> 
-                                                    <% classess = 'text-success'; %> 
-                                                    <% }else{ %> 
-                                                    <% classess = 'text-danger'; %> 
-                                                    <% } %> 
-                                                    <tr class='tr_market' data-symbol='<%= market %>' data-volume_1m='0' data-volume_5m='0' data-volume_1h='0'>
-                                                        <td>
-                                                            <%= i++ %>
-                                                        </td>
-                                                        <td>
-                                                            <a class="fancybox" data-toggle="modal" data-target="#myModal"  href='#' data-symbol='<%= market %>'><%= market %></a>
-                                                        </td>
-                                                        <td>
-                                                            <span class='mr-2 price_last' data-symbol='<%= market %>'><%= markets[market].last %></span>
-                                                        </td>
-                                                        <td class="text-center">
-                                                            <b class="mr-2 text-success bids_q" data-symbol='<%= market %>'><%= bids_q.toFixed(5) %></b>
-                                                            <b class="text-danger asks_q" data-symbol='<%= market %>'><%= asks_q.toFixed(5) %></b>
-                                                            <p class='d-block'><span class='rate_order badge <%= bids_q > asks_q ? "badge-success" : "badge-danger" %>' data-symbol='<%= market %>'><%= rate.toFixed(2) %>%</span></p>
-                                                        </td>
-                                                        <td class="text-center">
-                                                            <b class="text-danger count_sell" data-symbol='<%= market %>' data-interval='1h'><%= count_sell_1h %></b>
-                                                            <b class="text-success count_buy" data-symbol='<%= market %>' data-interval='1h'><%= count_buy_1h %></b> 
-                                                            <b class="d-block text-primary pattern" data-symbol='<%= market %>' data-interval='1h'><%= pattern_1h %>(<%= probability_1h %>)</b>
-
-                                                        </td>
-                                                        <td class="text-center">
-                                                            <b class="text-danger count_sell" data-symbol='<%= market %>' data-interval='5m'><%= count_sell_5m %></b>
-                                                            <b class="text-success count_buy" data-symbol='<%= market %>' data-interval='5m'><%= count_buy_5m %></b> 
-                                                            <b class="d-block text-primary pattern" data-symbol='<%= market %>' data-interval='5m'><%= pattern_5m %>(<%= probability_5m %>)</b>
-                                                        </td>
-                                                        <td> 
-                                                            <span class="p-2 setting icon-settings alert alert-primary" data-toggle="modal" data-target="#settingModal" data-symbol='<%= market %>'data-dismiss="modal"></span>
-                                                            <span class='badge stopmuaMaket <%= stopmuaMaket ? "badge-danger" : "badge-success" %>' data-symbol='<%= market %>'>Auto buy</span>
-                                                        </td>
-                                                    </tr>
-                                                    <% } %>
-                                                </tbody>
-                                            </table>
+                                    <div class="fluid-container" id="allmarket">
+                                        <div class="row">
 
                                         </div>
                                     </div>
@@ -306,6 +186,8 @@
                                         </label>
                                     </div>
                                     <button type="button" class="btn" id="tradingview-buton">Tradingview</button>
+                                    <button type="button" class="btn  setting icon-settings" data-symbol='' data-toggle="modal" data-target="#settingModal" href='#' data-dismiss="modal"></button>
+                                    <button type="button" class="btn hotmarket icon-star" data-symbol=''></button>
                                 </div>
                                 <div id="tradingview" class="col-12" style="height: 550px;"></div>
                             </div>
@@ -594,9 +476,9 @@
     <link rel="stylesheet" type="text/css" href="DataTables/datatables.min.css"/>
 
     <script type="text/javascript" src="DataTables/datatables.min.js"></script>
+    <script type="text/javascript" src="../js/public.js"></script>
     <script type="text/javascript" src="../js/client.js"></script>
     <script type="text/javascript" src="../js/main.js"></script>
-    <script type="text/javascript" src="../js/public.js"></script>
     <!-- endinject -->
     <!-- Custom js for this page-->
     <!-- End custom js for this page-->

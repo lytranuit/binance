@@ -16,7 +16,14 @@ router.get('/marketbalance', ensureAuthenticated,function (req, res, next) {
 	var altCoin = markets[symbol].altCoin;
 	var primaryCoin = markets[symbol].primaryCoin;
 
-	res.json({primaryCoin:{name:primaryCoin,value:myBalances[primaryCoin]},altCoin:{name:altCoin,value:myBalances[altCoin]}});
+	res.json({isHotMarket:markets[symbol].isHotMarket,primaryCoin:{name:primaryCoin,value:myBalances[primaryCoin]},altCoin:{name:altCoin,value:myBalances[altCoin]}});
+});
+router.get('/allmarket', ensureAuthenticated,function (req, res, next) {
+	var marketName = [];
+	for (var market in markets) {
+		marketName.push(market);
+	}
+	res.json({marketName:marketName});
 });
 router.get('/candle',ensureAuthenticated, async function (req, res, next) {
 	var symbol = req.query.symbol || "BTCUSDT";
@@ -131,6 +138,12 @@ router.get('/candle',ensureAuthenticated, async function (req, res, next) {
 /*
 * POST
 */
+router.post('/hotmarket',ensureAuthenticated, function (req, res, next) {
+	var symbol = req.body.symbol;
+	var value = req.body.value;
+	markets[symbol].isHotMarket = stringtoBoolean(value);
+	res.json({success:1});
+});
 router.post('/market',ensureAuthenticated, function (req, res, next) {
 	var data = req.body;
 	data.mocPriceBuy = data.mocPriceBuy > 0 ? data.mocPriceBuy : 0;
