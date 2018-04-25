@@ -143,6 +143,99 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="form-group row">
+                                        <h5 class="col-8 card-title" id="refreshcheck">All market</h5>
+                                        <div class="col-4 small">
+                                            Sắp xếp theo: <a href="#" class="order_by_trade" data-interval='1h'>Lượt giao dịch 1h</a> | <a href="#" class="order_by_trade" data-interval='5m'>Lượt giao dịch 5m</a> | <a href="#" class="order_by_trade" data-interval='1m'>Lượt giao dịch 1m</a>| <a href="#" class="order_by_change">% thay đổi</a>
+                                        </div>
+                                    </div>
+                                    <div class="fluid-container">
+                                        <div class="row" style='zoom: 0.85;'>
+                                            <table id="BTC-market" class="table table-hover" style="width:100%;">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>STT</th>
+                                                        <th>Thị trường</th>
+                                                        <th>Giá check</th>
+                                                        <th>Giá hiện tại</th>
+                                                        <th>Volume Rate</th>
+                                                        <th>Chỉ số 1h</th>
+                                                        <th>Chỉ số 5m</th>
+                                                        <th>Hành động</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody> 
+                                                    <% var i =1; %>
+                                                    <% for(market in markets) { %>
+                                                    <% var self = markets[market]; %> 
+                                                    <% var i_1h = self.indicator_1h; %>
+                                                    <% var i_5m = self.indicator_5m; %>
+                                                    <% var stopmuaMaket = self.stopmua; %>
+                                                    <% var pattern_1h = i_1h.pattern.pattern; %>
+                                                    <% var probability_1h = Math.round(i_1h.pattern.probability); %>
+                                                    <% var pattern_5m = i_5m.pattern.pattern; %>
+                                                    <% var probability_5m = Math.round(i_5m.pattern.probability); %>
+                                                    <% var count_buy_1h = i_1h.count_buy; %>
+                                                    <% var count_sell_1h = i_1h.count_sell; %>
+                                                    <% var rate_1h = i_1h.rate; %>
+                                                    <% var count_buy_5m = i_5m.count_buy; %>
+                                                    <% var count_sell_5m = i_5m.count_sell; %>
+                                                    <% var rate_5m = i_5m.rate; %>
+                                                    <% var price_check = self.price_check; %>
+                                                    <% var bids_q = 0; %>
+                                                    <% var asks_q = 0; %>
+                                                    <% var rate = 0; %>
+                                                    <% var profit = self.last - price_check; %>
+                                                    <% var percent = profit / price_check * 100; %>
+                                                    <% var classess = ''; %>
+                                                    <% if(percent > 0){ %> 
+                                                    <% classess = 'text-success'; %> 
+                                                    <% }else{ %> 
+                                                    <% classess = 'text-danger'; %> 
+                                                    <% } %> 
+                                                    <tr class='tr_market' data-symbol='<%= market %>' data-order='<%= round(percent,2) %>'>
+                                                        <td>
+                                                            <%= i++ %>
+                                                        </td>
+                                                        <td>
+                                                            <a class="fancybox" data-toggle="modal" data-target="#myModal"  href='#' data-symbol='<%= market %>'><%= market %></a>
+                                                        </td>
+                                                        <td>
+                                                            <span class="price_check" data-symbol='<%= market %>'><%= round(price_check,8) %></span>
+                                                        </td>
+                                                        <td>
+                                                            <span class='mr-2 price_last' data-symbol='<%= market %>'><%= markets[market].last %></span><span class="profit_check <%= percent > 0 ? 'text-success' : 'text-danger' %>" data-symbol='<%= market %>'>(<%= round(percent,2) %>%)</span>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <b class="mr-2 text-success bids_q" data-symbol='<%= market %>'><%= round(bids_q,5) %></b>
+                                                            <b class="text-danger asks_q" data-symbol='<%= market %>'><%= round(asks_q,5) %></b>
+                                                            <p class='d-block'><span class='rate_order badge <%= bids_q > asks_q ? "badge-success" : "badge-danger" %>' data-symbol='<%= market %>'><%= round(rate,2) %>%</span></p>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <b class="text-danger count_sell" data-symbol='<%= market %>' data-interval='1h'><%= count_sell_1h %></b>
+                                                            <b class="text-success count_buy" data-symbol='<%= market %>' data-interval='1h'><%= count_buy_1h %></b> 
+                                                            <b class="d-block text-primary pattern" data-symbol='<%= market %>' data-interval='1h'><%= pattern_1h %>(<%= probability_1h %>)</b>
+
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <b class="text-danger count_sell" data-symbol='<%= market %>' data-interval='5m'><%= count_sell_5m %></b>
+                                                            <b class="text-success count_buy" data-symbol='<%= market %>' data-interval='5m'><%= count_buy_5m %></b> 
+                                                            <b class="d-block text-primary pattern" data-symbol='<%= market %>' data-interval='5m'><%= pattern_5m %>(<%= probability_5m %>)</b>
+                                                        </td>
+                                                        <td> 
+                                                            <span class="p-2 setting icon-settings alert alert-primary" data-toggle="modal" data-target="#settingModal" data-symbol='<%= market %>'data-dismiss="modal"></span>
+                                                            <span class='badge stopmuaMaket <%= stopmuaMaket ? "badge-danger" : "badge-success" %>' data-symbol='<%= market %>'>Auto buy</span>
+                                                        </td>
+                                                    </tr>
+                                                    <% } %>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -433,7 +526,10 @@
         </div>
     </div>
     <!-- plugins:js -->
-    <script src="../dest/js/main.min.js"></script>
+    <script src="../dest/js/main.min.js"></script>  
+    <script src="../js/public.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/client.js"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </body>
 </html>

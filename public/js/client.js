@@ -26,7 +26,9 @@ socket.on("market", function (data) {
     var trades_bids_sum = data.trades_bids_sum;
     var trades_asks_sum = data.trades_asks_sum;
     var price_buy = parseFloat($(".price_buy[data-symbol=" + symbol + "]").text());
+    var price_check = parseFloat($(".price_check[data-symbol=" + symbol + "]").text());
     var profit = 100 * (last - price_buy) / price_buy;
+    var profit_check = 100 * (last - price_check) / price_check;
     if (orderBook_asks_sum > orderBook_bids_sum) {
         var rate_order = orderBook_asks_sum / orderBook_bids_sum;
         $(".rate_order[data-symbol=" + symbol + "]").text(round(rate_order,2) + "%").addClass("badge-danger").removeClass("badge-success");
@@ -46,7 +48,15 @@ socket.on("market", function (data) {
     } else {
         $(".profit[data-symbol=" + symbol + "]").addClass("text-danger").removeClass("text-success");
     }
+
+    if (profit_check > 0) {
+        $(".profit_check[data-symbol=" + symbol + "]").removeClass("text-danger").addClass("text-success");
+    } else {
+        $(".profit_check[data-symbol=" + symbol + "]").addClass("text-danger").removeClass("text-success");
+    }
+
     $(".profit[data-symbol=" + symbol + "]").text("(" + round(profit,2) + "%)");
+    $(".profit_check[data-symbol=" + symbol + "]").text("(" + round(profit_check,2) + "%)");
     $(".price_last[data-symbol=" + symbol + "]").text(last);
     $(".bids_q[data-symbol=" + symbol + "]").text(Math.round(orderBook_bids_sum));
     $(".asks_q[data-symbol=" + symbol + "]").text(Math.round(orderBook_asks_sum));
@@ -54,7 +64,7 @@ socket.on("market", function (data) {
     $(".count_buy_l[data-symbol=" + symbol + "]").text(count_buy);
     $(".q_sell_l[data-symbol=" + symbol + "]").text(Math.round(trades_asks_sum));
     $(".q_buy_l[data-symbol=" + symbol + "]").text(Math.round(trades_bids_sum));
-    $(".tr_market[data-symbol=" + symbol + "]").attr("data-volume_1m", count_sell + count_buy);
+    $(".tr_market[data-symbol=" + symbol + "]").attr("data-volume_1m", count_sell + count_buy).attr('data-order',round(profit_check,2));
 })
 socket.on("interval", function (data) {
     var symbol = data.symbol;

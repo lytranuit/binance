@@ -11,6 +11,7 @@ var numberType = {type: Number, default: 0};
 var Market = new SchemaObject({
     MarketName: NotEmptyString,
     last: numberType,
+    price_check:numberType,
     primaryCoin:NotEmptyString,
     altCoin:NotEmptyString,
     stopmua:{type: Boolean, default: false},

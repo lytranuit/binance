@@ -4,6 +4,11 @@
         "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         "iDisplayLength": -1
     });
+
+    $('#BTC-market').DataTable({
+        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        "iDisplayLength": -1
+    });
     $.ajax({
         url: "/api/allmarket",
         dataType: "JSON",
@@ -23,6 +28,17 @@
         var symbol = $(this).attr("data-symbol");
         $("body").append('<a class="fancybox d-none" data-toggle="modal" data-target="#myModal"  href="#" data-symbol="'+symbol+'"></a>')
         $(".fancybox[data-symbol='"+symbol+"']").first().trigger("click");
+    });
+    $("#refreshcheck").dblclick(function(){
+        console.log("1");
+        $.ajax({
+            url: "/api/refreshcheck",
+            dataType: "JSON",
+            type: "POST",
+            success: function (data) {
+                location.reload();
+            }
+        });
     })
     $(".hotmarket").click(function(){
         var symbol = $(this).attr("data-symbol");
@@ -46,7 +62,7 @@
                 }
             }
         });
-        
+
     })
     $("#refreshOrder").click(function () {
         var symbol = $("#myModal").data("symbol");
@@ -81,12 +97,27 @@
     $(".order_by_trade").click(function (e) {
         e.preventDefault();
         var interval = $(this).attr("data-interval");
-        var parents = $("#BTC-markets tbody");
+        var parents = $("#BTC-market tbody");
         parents.children(".tr_market").sort(function (a, b) {
-            var volumea = parseInt($(a).attr("data-volume_" + interval));
-            var volumeb = parseInt($(b).attr("data-volume_" + interval));
+            var volumea = parseFloat($(a).attr("data-volume_" + interval));
+            var volumeb = parseFloat($(b).attr("data-volume_" + interval));
             if (volumea == volumeb)
                 return 0;
+            if(!volumea)
+                return 1;
+            return volumea < volumeb ? 1 : -1;
+        }).appendTo(parents);
+    })
+    $(".order_by_change").click(function (e) {
+        e.preventDefault();
+        var parents = $("#BTC-market tbody");
+        parents.children(".tr_market").sort(function (a, b) {
+            var volumea = parseFloat($(a).attr("data-order"));
+            var volumeb = parseFloat($(b).attr("data-order"));
+            if (volumea == volumeb)
+                return 0;
+            if(!volumea)
+                return 1;
             return volumea < volumeb ? 1 : -1;
         }).appendTo(parents);
     })

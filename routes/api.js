@@ -310,6 +310,12 @@ router.post('/stopmuamarket',ensureAuthenticated, function (req, res, next) {
 	// 	res.json({success:0});
 	// });
 });
+router.post('/refreshcheck',ensureAuthenticated, function (req, res, next) {
+	for (var market in markets) {
+		markets[market].price_check = markets[market].last;
+	}
+	res.json({success:1});
+});
 function stringtoBoolean(value){
 	if(!value)
 		return value

@@ -228,6 +228,7 @@ pool.query("select * from options").then(function(rows, err){
                 var obj = {
                     MarketName: market,
                     last: last,
+                    price_check: last,
                     primaryCoin:primary,
                     altCoin:alt,
                     indicator_1y: chiso1y,

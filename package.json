@@ -4,8 +4,8 @@
   "version": "0.0.1",
   "scripts": {
     "start": "node app.js"
-  },
-  "dependencies": {
+},
+"dependencies": {
     "cli-color": "^1.2.0",
     "compression": "^1.7.2",
     "cookie-parser": "~1.4.3",
@@ -30,16 +30,16 @@
     "promise-mysql": "^3.2.1",
     "socket.io": "^2.1.0",
     "technicalindicators": "^1.1.8"
-  },
-  "main": "app.js",
-  "repository": {
+},
+"main": "app.js",
+"repository": {
     "type": "git",
     "url": "git+https://github.com/lytranuit/binance.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
+},
+"author": "",
+"license": "ISC",
+"bugs": {
     "url": "https://github.com/lytranuit/binance/issues"
-  },
-  "homepage": "https://github.com/lytranuit/binance#readme"
+},
+"homepage": "https://github.com/lytranuit/binance#readme"
 }
