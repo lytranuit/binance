@@ -41,13 +41,13 @@ function calculateSellProfit(){
     var price_sell = $("#sell_price").val();
     var price_buy = $("#BuySellTable .price_buy").text();
     var profit = 100 * (parseFloat(price_sell) - parseFloat(price_buy)) / parseFloat(price_buy);
-    $("#sell_profit").val(profit.toFixed(2));
+    $("#sell_profit").val(round(profit,2));
 }
 function calculateSellPrice(){
     var sell_profit = $("#sell_profit").val();
     var price_buy = $("#BuySellTable .price_buy").text();
     var price_sell = parseFloat(price_buy) + (parseFloat(price_buy) * parseFloat(sell_profit) / 100);
-    $("#sell_price").val(price_sell.toFixed(10));
+    $("#sell_price").val(round(price_sell,8));
 }
 function drawChart(symbol, interval) {
     var interval1 = "D1";
@@ -221,4 +221,7 @@ function thenotification(title, body, tag, icon) {
         console.log("This browser does not support system notifications");
     }
     return notification;
+}
+function round(value, decimals) {
+    return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
 }

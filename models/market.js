@@ -390,7 +390,7 @@ var Market = new SchemaObject({
             var entries = Object.entries(candles);
             var candle1 = entries[entries.length - 1];
             var candle2 = entries[entries.length - 2];
-            var is_volume_large = candle1[1].volume > candle2[1].volume * 10;
+            var is_volume_large = candle1[1].volume > candle2[1].volume * 2;
             var input = {
                 close: [candle1[1].close],
                 open: [candle1[1].open],
@@ -409,7 +409,7 @@ var Market = new SchemaObject({
             }
 
             var is_bearishmarubozu = technical.bearishmarubozu(input);
-            var is_price_decrease = candle1[1].close < candle2[1].low / 1.1;
+            var is_price_decrease = candle1[1].close < candle2[1].low / 1.05;
             
             if ((self.indicator_1m.count_buy > 200 && self.indicator_1m.count_sell > 200 && is_price_decrease) || (is_bearishmarubozu && is_volume_large && is_price_decrease)) {
                 self.isHotMarket = true;

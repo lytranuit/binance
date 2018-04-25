@@ -56,7 +56,6 @@ router.get('/', ensureAuthenticated,async function (req, res, next) {
 router.get('/login', function (req, res, next) {
     res.render('login');
 });
-
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) { return next(); }
   res.redirect('/login');

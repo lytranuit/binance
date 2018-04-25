@@ -13,7 +13,7 @@
 <% for(var i in primaryCoin){ %>
 <% var coin = primaryCoin[i]; %>
 <li class="nav-item m-3">
-<span class="menu-title"><%= coin %>: <span class="value_coin" data-coin="<%= coin %>"><%= myBalances[coin].available %></span>
+<span class="menu-title"><%= coin %>: <span class="value_coin" data-coin="<%= coin %>"><%= round(myBalances[coin].available,8) %></span>
 <span class="badge stopmuacoin <%= global['stopmua'+coin] ? "badge-danger" : "badge-success" %>" data-coin="<%= coin %>">Auto Buy</span></span>
 </li>
 <% } %>

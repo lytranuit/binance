@@ -252,7 +252,6 @@
             }
         });
     })
-
     $(document).off("click",".stopmuacoin").on('click', ".stopmuacoin", function (e) {
         var coin = $(this).attr("data-coin");
         if($(this).hasClass("badge-danger")){
