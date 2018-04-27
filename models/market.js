@@ -11,10 +11,10 @@ var numberType = {type: Number, default: 0};
 var Market = new SchemaObject({
     MarketName: NotEmptyString,
     last: numberType,
-    price_check:numberType,
-    primaryCoin:NotEmptyString,
-    altCoin:NotEmptyString,
-    stopmua:{type: Boolean, default: false},
+    price_check: numberType,
+    primaryCoin: NotEmptyString,
+    altCoin: NotEmptyString,
+    stopmua: {type: Boolean, default: false},
     periodTime: numberType,
     indicator_1m: Object,
     indicator_5m: Object,
@@ -30,9 +30,9 @@ var Market = new SchemaObject({
     isCheckRsiBan: {type: Boolean, default: true},
     isHotMarket: {type: Boolean, default: false},
     timeBuyNext: String,
-    trade_session: {type:Object,default: {trade_sell: [],trade_buy: []}},
+    trade_session: {type: Object, default: {trade_sell: [], trade_buy: []}},
     priceBuyAvg: numberType,
-    priceSellAvg:numberType,
+    priceSellAvg: numberType,
     minPriceSell: numberType,
     maxPriceSell: numberType,
     mocPriceSell: {type: Number, default: 500000},
@@ -58,7 +58,7 @@ var Market = new SchemaObject({
             if (markets['BTCUSDT']['indicator_5m']['mfi'] < 35) {
                 if (currentTime != markets['BTCUSDT'].periodTime)
                     // console.log(clc.black.bgYellow('Down'), " MFI:" + markets['BTCUSDT']['indicator_5m']['mfi']);
-                return;
+                    return;
             }
             if (self.indicator_1h.td || self.indicator_1h.dt) {
                 return;
@@ -82,7 +82,7 @@ var Market = new SchemaObject({
             } else if (self.chienLuocMua == "chienLuocMuaMoc") {
                 if (self.isMuaMoc())
                     self.orderMua(price);
-            } else if(self.chienLuocMua == "chienluocMuaHeikin"){
+            } else if (self.chienLuocMua == "chienluocMuaHeikin") {
                 if (self.indicator_1h.rsi > 40) {
                     return;
                 }
@@ -95,8 +95,8 @@ var Market = new SchemaObject({
             console.log(clc.green('Order'), self.MarketName + " price:" + price);
 
             /*
-            * VAO LENH
-            */
+             * VAO LENH
+             */
             if (process.env.NODE_ENV == "production") {
                 var amount = Math.ceil(self.amountbuy / price);
                 self.onOrder = true;
@@ -111,49 +111,49 @@ var Market = new SchemaObject({
                     binance.cancelOrders(self.MarketName);
                 }, 60000);
             } else {
-                self.save_db_mua(price,1);
+                self.save_db_mua(price, 1);
             }
         },
-        save_db_mua: async function (price,amount,id,time) {
+        save_db_mua: async function (price, amount, id, time) {
             var self = this;
             var time = time || moment();
             var insert = {
                 MarketName: self.MarketName,
                 price: price,
                 amount: amount,
-                id_trade:id,
+                id_trade: id,
                 timestamp: time.valueOf(),
-                isBuyer:1
+                isBuyer: 1
             };
             await pool.query('INSERT INTO trade SET ?', insert);
-            
-            self.mua(price,amount,time);
+
+            self.mua(price, amount, time);
         },
-        mua: function (price,amount, time) {
+        mua: function (price, amount, time) {
             var self = this;
             console.log(clc.bgGreen('Buy'), self.MarketName + " price:" + price);
             var time = time || moment();
             var timeBuyNext = time;
             var obj = {
-                time:time.valueOf(),
-                amount:amount,
-                price:price
+                time: time.valueOf(),
+                amount: amount,
+                price: price
             }
             self.trade_session.trade_buy.push(obj);
             self.countbuy--;
             self.isBuy = true;
             self.timeBuyNext = timeBuyNext.add(1, "h").format("YYYY-MM-DD HH:mm:ss.SSS");
             var trade_buy = self.trade_session.trade_buy;
-            
+
             var sumcoin = 0;
             var sumamount = 0;
-            for(var i in trade_buy){
+            for (var i in trade_buy) {
                 sumcoin += parseFloat(trade_buy[i].amount) * parseFloat(trade_buy[i].price);
                 sumamount += parseFloat(trade_buy[i].amount);
             }
             self.priceBuyAvg = parseFloat(sumcoin / sumamount);
             self.minPriceSell = parseFloat(self.priceBuyAvg) + parseFloat(self.priceBuyAvg * self.minGain / 100);
-            io.emit("market_update",{market:self});
+            io.emit("market_update", {market: self});
         },
         checkban: function (price) {
             var self = this;
@@ -173,13 +173,13 @@ var Market = new SchemaObject({
                  * CHeck chien luoc
                  */
 
-                 if (self.chienLuocBan == "chienLuocBanMin") {
+                if (self.chienLuocBan == "chienLuocBanMin") {
                     if (self.isBanMin() && (self.chienLuocBanRSI() || self.isBanMACD()))
                         self.orderBan(price);
                 } else if (self.chienLuocBan == "chienLuocBanMoc") {
                     if (self.isBanMoc())
                         self.orderBan(price);
-                } else if(self.chienLuocBan == "chienluocBanHeikin"){
+                } else if (self.chienLuocBan == "chienluocBanHeikin") {
                     if (self.isBanMin() && self.isBanHeikin())
                         self.orderBan(price);
                 }
@@ -189,9 +189,9 @@ var Market = new SchemaObject({
             /*
              * VAO LENH
              */
-             var self = this;
-             console.log(clc.red('Order'), self.MarketName + " price:" + price);
-             if (process.env.NODE_ENV == "production") {
+            var self = this;
+            console.log(clc.red('Order'), self.MarketName + " price:" + price);
+            if (process.env.NODE_ENV == "production") {
                 self.onOrder = true;
                 binance.sell(self.MarketName, myBalances[self.altCoin].available, price, (error, response) => {
                     if (error) {
@@ -204,37 +204,37 @@ var Market = new SchemaObject({
                     binance.cancelOrders(self.MarketName);
                 }, 60000);
             } else {
-                self.save_db_ban(price,1);
+                self.save_db_ban(price, 1);
             }
         },
-        save_db_ban: async function (price,amount,id,time) {
+        save_db_ban: async function (price, amount, id, time) {
             var time = time || moment();
             var self = this;
             var insert = {
                 MarketName: self.MarketName,
                 price: price,
                 amount: amount,
-                id_trade:id,
+                id_trade: id,
                 timestamp: time.valueOf(),
-                isBuyer:0
+                isBuyer: 0
             };
             await pool.query("INSERT INTO trade SET ? ", insert);
-            self.ban(price,amount,time);
+            self.ban(price, amount, time);
         },
-        ban: function (price,amount,time) {
+        ban: function (price, amount, time) {
             var time = time || moment();
             var self = this;
             console.log(clc.bgRed('Sell'), self.MarketName + " price:" + price);
             var obj = {
-                time:time.valueOf(),
-                amount:amount,
-                price:price
+                time: time.valueOf(),
+                amount: amount,
+                price: price
             }
             self.trade_session.trade_sell.push(obj);
             var trade_sell = self.trade_session.trade_sell;
             var sumcoin = 0;
             var sumamount = 0;
-            for(var i in trade_sell){
+            for (var i in trade_sell) {
                 sumcoin += parseFloat(trade_sell[i].amount) * parseFloat(trade_sell[i].price);
                 sumamount += parseFloat(trade_sell[i].amount);
             }
@@ -252,18 +252,18 @@ var Market = new SchemaObject({
 
             // }
             /*
-            * RESET
-            */
+             * RESET
+             */
             var trade_session = self.trade_session;
 
             var sumamount_buy = 0;
             var array_time = [];
-            for(var i in trade_session.trade_buy){
+            for (var i in trade_session.trade_buy) {
                 sumamount_buy += parseFloat(trade_session.trade_buy[i].amount);
                 array_time.push(moment(trade_session.trade_buy[i].time).valueOf());
             }
             var sumamount_sell = 0;
-            for(var i in trade_session.trade_sell){
+            for (var i in trade_session.trade_sell) {
                 sumamount_sell += parseFloat(trade_session.trade_sell[i].amount);
                 array_time.push(moment(trade_session.trade_sell[i].time).valueOf());
             }
@@ -276,52 +276,50 @@ var Market = new SchemaObject({
             //     console.log(sumamount_sell);
             //     console.log(sumamount_buy == sumamount_sell);
             // }
-            if(sumamount_buy <= sumamount_sell){
+            if (self.priceBuyAvg > 0 && sumamount_buy <= sumamount_sell) {
                 /*
-                * SAVE SESSION
-                */
-                var col_test = process.env.NODE_ENV == "production" ? 0:1;
+                 * SAVE SESSION
+                 */
                 var insert = {
                     MarketName: self.MarketName,
                     price_buy: self.priceBuyAvg,
                     price_sell: self.priceSellAvg,
                     amount: sumamount,
-                    is_test:col_test,
                     timestamp: time.valueOf()
                 };
-                pool.query("INSERT INTO trade_session SET ? ", insert).then(function(data){
+                pool.query("INSERT INTO trade_session SET ? ", insert).then(function (data) {
                     var id_session = data.insertId
                     var update = {
-                        id_session:id_session
+                        id_session: id_session
                     }
                     // if(self.MarketName == "IOTABTC"){
 
                     //     console.log("UPDATE trade SET ? WHERE MarketName = '"+self.MarketName+"' and timestamp IN('"+array_time.join("','")+"')");
                     // }
-                    pool.query("UPDATE trade SET ? WHERE MarketName = '"+self.MarketName+"' and timestamp IN('"+array_time.join("','")+"')",update);
+                    pool.query("UPDATE trade SET ? WHERE MarketName = '" + self.MarketName + "' and timestamp IN('" + array_time.join("','") + "')", update);
                 });
 
                 self.isBuy = false;
                 self.countbuy = 5;
                 self.priceBuyAvg = 0;
                 self.priceSellAvg = 0;
-                self.trade_session = {trade_buy:[],trade_sell:[]};
-                io.emit("sellFinal",{symbol:self.MarketName});
+                self.trade_session = {trade_buy: [], trade_sell: []};
+                io.emit("sellFinal", {symbol: self.MarketName});
             }
         },
-        is_final_session:function(){
+        is_final_session: function () {
             var self = this;
             var trade_session = self.trade_session;
 
             var sumamount_buy = 0;
-            for(var i in trade_session.trade_buy){
+            for (var i in trade_session.trade_buy) {
                 sumamount_buy += parseFloat(trade_session.trade_buy[i].amount);
             }
             var sumamount_sell = 0;
-            for(var i in trade_session.trade_sell){
+            for (var i in trade_session.trade_sell) {
                 sumamount_sell += parseFloat(trade_session.trade_sell[i].amount);
             }
-            if(sumamount_buy == sumamount_sell){
+            if (sumamount_buy == sumamount_sell) {
                 return true;
             }
             return false;
@@ -331,7 +329,7 @@ var Market = new SchemaObject({
             /*
              * RSI > 80
              */
-             if (!self.isCheckRsiBan || self.indicator_5m.rsi < 80)
+            if (!self.isCheckRsiBan || self.indicator_5m.rsi < 80)
                 return false;
             return true;
         },
@@ -340,7 +338,7 @@ var Market = new SchemaObject({
             /*
              * MACD < 0
              */
-             if (self.isCheckMACDBan && self.indicator_5m.MACD.histogram > 0)
+            if (self.isCheckMACDBan && self.indicator_5m.MACD.histogram > 0)
                 return false;
             return true;
         },
@@ -349,7 +347,7 @@ var Market = new SchemaObject({
             /*
              * price < min
              */
-             if (self.last < self.minPriceSell)
+            if (self.last < self.minPriceSell)
                 return false;
             return true;
         },
@@ -358,7 +356,7 @@ var Market = new SchemaObject({
             /*
              * price < moc
              */
-             if (self.last < self.mocPriceSell)
+            if (self.last < self.mocPriceSell)
                 return false;
             return true;
         },
@@ -373,11 +371,11 @@ var Market = new SchemaObject({
             /*
              * price < moc
              */
-             if (self.last > self.mocPriceBuy)
+            if (self.last > self.mocPriceBuy)
                 return false;
             return true;
         },
-        isMuaHeikin:function(){
+        isMuaHeikin: function () {
             var self = this;
             if (self.indicator_5m.can_buy && self.indicator_1h.can_buy)
                 return true;
@@ -389,17 +387,17 @@ var Market = new SchemaObject({
                 return false;
             return true;
         },
-        refreshTrade:function(){
+        refreshTrade: function () {
             var self = this;
             self.trades = {bids: [], asks: []};
         },
-        refreshOrder:function(){
+        refreshOrder: function () {
             var self = this;
             self.orderBook = {bids: {}, asks: {}};
         },
         checkHotMarket: function (candles) {
             var self = this;
-            if(self.isHotMarket)
+            if (self.isHotMarket)
                 return
             if (self.MarketName == "BTCUSDT")
                 return;
@@ -421,44 +419,44 @@ var Market = new SchemaObject({
                 var percent = 100 * (candle1[1].close - candle2[1].high) / candle2[2].high;
                 var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1[1].close + "</p><p>Check Price:" + candle2[1].high + "</p><p style='color:green;'>Percent:" + percent + "</p>";
                 Mail.sendmail("[PUMP]" + self.MarketName + " PUMP", html);
-                io.emit("hotMarket", {symbol: self.MarketName, last: self.last,type:1});
+                io.emit("hotMarket", {symbol: self.MarketName, last: self.last, type: 1});
                 return;
             }
 
             var is_bearishmarubozu = technical.bearishmarubozu(input);
             var is_price_decrease = candle1[1].close < candle2[1].low / 1.05;
-            
+
             if ((self.indicator_1m.count_buy > 200 && self.indicator_1m.count_sell > 200 && is_price_decrease) || (is_bearishmarubozu && is_volume_large && is_price_decrease)) {
                 self.isHotMarket = true;
                 var percent = 100 * (candle1[1].close - candle2[1].low) / candle2[2].high;
                 var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1[1].close + "</p><p>Check Price:" + candle2[1].low + "</p><p style='color:red;'>Percent:" + percent + "</p>";
                 Mail.sendmail("[DUMP]" + self.MarketName + " DUMP", html);
-                io.emit("hotMarket", {symbol: self.MarketName, last: self.last,type:2});
+                io.emit("hotMarket", {symbol: self.MarketName, last: self.last, type: 2});
                 return;
             }
         },
-        save_db_quantity:function(){
+        save_db_quantity: function () {
             var self = this;
             var time = moment().valueOf();
             var insert = {
                 MarketName: self.MarketName,
                 timestamp: time,
                 quantity: self.indicator_1h.sumquantity,
-                count_buy:self.indicator_1h.count_buy,
-                count_sell:self.indicator_1h.count_sell,
-                price:self.last
+                count_buy: self.indicator_1h.count_buy,
+                count_sell: self.indicator_1h.count_sell,
+                price: self.last
             };
-            return pool.query('INSERT INTO event_quantity SET ?', insert).catch(function(error){
+            return pool.query('INSERT INTO event_quantity SET ?', insert).catch(function (error) {
                 return false;
-            }).then(function(){
+            }).then(function () {
                 return true;
             });
         },
-        syncTrade: async function(){
+        syncTrade: async function () {
             var self = this;
             var market = self.MarketName;
-            var id_trade = await pool.query("select id_trade from trade WHERE MarketName = '" + market+"' ORDER BY timestamp DESC LIMIT 1").then(function(data){
-                if(data && data.length)
+            var id_trade = await pool.query("select id_trade from trade WHERE MarketName = '" + market + "' ORDER BY timestamp DESC LIMIT 1").then(function (data) {
+                if (data && data.length)
                     return data[0].id_trade + 1;
                 else
                     return 0;
@@ -467,48 +465,48 @@ var Market = new SchemaObject({
             // return;
             if (market == "BTCUSDT" || market == "BNBBTC")
                 return;
-            binance.trades(market, async (error, response,symbol)=>{
-                if(error){
+            binance.trades(market, async (error, response, symbol) => {
+                if (error) {
                     console.log(error);
                     self.syncTrade();
                     return;
                 }
-                for(var i in response){
+                for (var i in response) {
                     var trade = response[i];
                     var price = trade.price;
                     var quantity = trade.qty;
                     var id = trade.id;
                     var time = moment(trade.time, "x");
-                    if(trade.isBuyer){
-                        await self.save_db_mua(price,quantity,id,time);
-                    }else{
-                        await self.save_db_ban(price,quantity,id,time);
+                    if (trade.isBuyer) {
+                        await self.save_db_mua(price, quantity, id, time);
+                    } else {
+                        await self.save_db_ban(price, quantity, id, time);
                     }
                 }
-            },{fromId:id_trade});
+            }, {fromId: id_trade});
         },
-        sync_quantity:async function(){
+        sync_quantity: async function () {
             var self = this;
             var market = self.MarketName;
-            var rows = await pool.query("select * from event_quantity WHERE MarketName = '" + market+"' ORDER BY timestamp DESC LIMIT 1");
-            var quantity =0;
+            var rows = await pool.query("select * from event_quantity WHERE MarketName = '" + market + "' ORDER BY timestamp DESC LIMIT 1");
+            var quantity = 0;
             var timestamp = 0;
-            if(rows && rows.length){
+            if (rows && rows.length) {
                 var timestamp = rows[0].timestamp;
             }
-            if(timestamp != 0){
-                binance.aggTrades(self.MarketName,{startTime:timestamp,endTime:parseInt(timestamp) + 1440000},(error, response,symbol) =>{
-                    if(error){
+            if (timestamp != 0) {
+                binance.aggTrades(self.MarketName, {startTime: timestamp, endTime: parseInt(timestamp) + 1440000}, (error, response, symbol) => {
+                    if (error) {
                         console.log(error);
                         self.sync_quantity();
                         return;
                     }
-                    for(var i in response){
+                    for (var i in response) {
                         var trade = response[i];
                         let {p: price, q: quantity, m: maker, a: tradeId} = trade;
-                        if(maker){
+                        if (maker) {
                             self.indicator_5m.sumquantity -= parseFloat(quantity);
-                        }else{
+                        } else {
                             self.indicator_5m.sumquantity += parseFloat(quantity);
                         }
                     }
