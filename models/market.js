@@ -19,12 +19,6 @@ var Market = new SchemaObject({
     indicator_1m: Object,
     indicator_5m: Object,
     indicator_1h: Object,
-    indicator_1d: Object,
-    indicator_1w: Object,
-    indicator_1M: Object,
-    indicator_3M: Object,
-    indicator_6M: Object,
-    indicator_1y: Object,
     trades: {type: Object, default: {bids: [], asks: []}},
     orderBook: {type: Object, default: {bids: {}, asks: {}}},
     countbuy: {type: Number, default: 5},
@@ -43,8 +37,8 @@ var Market = new SchemaObject({
     maxPriceSell: numberType,
     mocPriceSell: {type: Number, default: 500000},
     mocPriceBuy: numberType,
-    chienLuocMua: {type: String, default: "chienLuocMuaDay"}, /// chienLuocMuaMoc
-    chienLuocBan: {type: String, default: "chienLuocBanMin"}, /// chienLuocBanMoc
+    chienLuocMua: {type: String, default: "chienluocMuaHeikin"}, /// chienLuocMuaMoc
+    chienLuocBan: {type: String, default: "chienluocBanHeikin"}, /// chienLuocBanMoc
     onOrder: {type: Boolean, default: false}
 }, {
     methods: {
@@ -87,6 +81,12 @@ var Market = new SchemaObject({
                 self.orderMua(price);
             } else if (self.chienLuocMua == "chienLuocMuaMoc") {
                 if (self.isMuaMoc())
+                    self.orderMua(price);
+            } else if(self.chienLuocMua == "chienluocMuaHeikin"){
+                if (self.indicator_1h.rsi > 40) {
+                    return;
+                }
+                if (self.isMuaHeikin())
                     self.orderMua(price);
             }
         },
@@ -178,6 +178,9 @@ var Market = new SchemaObject({
                         self.orderBan(price);
                 } else if (self.chienLuocBan == "chienLuocBanMoc") {
                     if (self.isBanMoc())
+                        self.orderBan(price);
+                } else if(self.chienLuocBan == "chienluocBanHeikin"){
+                    if (self.isBanMin() && self.isBanHeikin())
                         self.orderBan(price);
                 }
             }
@@ -359,6 +362,12 @@ var Market = new SchemaObject({
                 return false;
             return true;
         },
+        isBanHeikin: function () {
+            var self = this;
+            if (self.indicator_5m.can_sell && self.indicator_1h.can_sell)
+                return true;
+            return false;
+        },
         isMuaMoc: function () {
             var self = this;
             /*
@@ -367,6 +376,12 @@ var Market = new SchemaObject({
              if (self.last > self.mocPriceBuy)
                 return false;
             return true;
+        },
+        isMuaHeikin:function(){
+            var self = this;
+            if (self.indicator_5m.can_buy && self.indicator_1h.can_buy)
+                return true;
+            return false;
         },
         hasDataChiso: function () {
             var self = this;
@@ -403,7 +418,8 @@ var Market = new SchemaObject({
             var is_price_increase = candle1[1].close > candle2[1].high * 1.02;
             if ((self.indicator_1m.count_buy > 200 && self.indicator_1m.count_sell > 200 && is_price_increase) || (is_bullishmarubozu && is_volume_large && is_price_increase)) {
                 self.isHotMarket = true;
-                var html = "<p>" + self.MarketName + "</p><p>Current Price:" + self.last + "</p>";
+                var percent = 100 * (candle1[1].close - candle2[1].high) / candle2[2].high;
+                var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1[1].close + "</p><p>Check Price:" + candle2[1].high + "</p><p style='color:green;'>Percent:" + percent + "</p>";
                 Mail.sendmail("[PUMP]" + self.MarketName + " PUMP", html);
                 io.emit("hotMarket", {symbol: self.MarketName, last: self.last,type:1});
                 return;
@@ -414,7 +430,8 @@ var Market = new SchemaObject({
             
             if ((self.indicator_1m.count_buy > 200 && self.indicator_1m.count_sell > 200 && is_price_decrease) || (is_bearishmarubozu && is_volume_large && is_price_decrease)) {
                 self.isHotMarket = true;
-                var html = "<p>" + self.MarketName + "</p><p>Current Price:" + self.last + "</p>";
+                var percent = 100 * (candle1[1].close - candle2[1].low) / candle2[2].high;
+                var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1[1].close + "</p><p>Check Price:" + candle2[1].low + "</p><p style='color:red;'>Percent:" + percent + "</p>";
                 Mail.sendmail("[DUMP]" + self.MarketName + " DUMP", html);
                 io.emit("hotMarket", {symbol: self.MarketName, last: self.last,type:2});
                 return;

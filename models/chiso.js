@@ -124,9 +124,6 @@ var Chiso = new SchemaObject({
             /*
             * doi chart
             */
-            self.can_buy = false;
-            self.can_sell = false;
-            
             var input = {
                 open : argo,
                 high : argh,
@@ -146,22 +143,20 @@ var Chiso = new SchemaObject({
                 open:[array_open.pop()],
                 close:[array_close.pop()],
             }
-            var candle2 = {
-                high:[array_high.pop()],
-                low:[array_low.pop()],
-                open:[array_open.pop()],
-                close:[array_close.pop()],
-            }
+            var is_doji = technical.doji(candle1);
+            if(is_doji)
+                return;
             var is_bullish1 = candle1.close > candle1.open;
-            var is_bullish2 = candle2.close > candle2.open;
-
             var is_bearish1 = candle1.close < candle1.open;
-            var is_bearish2 = candle2.close < candle2.open;
-            if(is_bullish1 && is_bearish2){
+            if(is_bullish1){
                 self.can_buy = true;
+            }else{
+                self.can_buy = false;
             }
-            if(is_bearish1 && is_bullish2){
+            if(is_bearish1){
                 self.can_sell = true;
+            }else{
+                self.can_sell = false;
             }
         }
     }

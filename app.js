@@ -216,12 +216,12 @@ pool.query("select * from options").then(function(rows, err){
                 }
                 if(primary == "")
                     continue;
-                var chiso1y = new ChisoModel({interval:1,type_interval:"y"});
-                var chiso6M = new ChisoModel({interval:6,type_interval:"M"});
-                var chiso3M = new ChisoModel({interval:3,type_interval:"M"});
-                var chiso1M = new ChisoModel({interval:1,type_interval:"M"});
-                var chiso1w = new ChisoModel({interval:1,type_interval:"w"});
-                var chiso1d = new ChisoModel({interval:1,type_interval:"d"});
+                // var chiso1y = new ChisoModel({interval:1,type_interval:"y"});
+                // var chiso6M = new ChisoModel({interval:6,type_interval:"M"});
+                // var chiso3M = new ChisoModel({interval:3,type_interval:"M"});
+                // var chiso1M = new ChisoModel({interval:1,type_interval:"M"});
+                // var chiso1w = new ChisoModel({interval:1,type_interval:"w"});
+                // var chiso1d = new ChisoModel({interval:1,type_interval:"d"});
                 var chiso1h = new ChisoModel({interval:1,type_interval:"h"});
                 var chiso5m = new ChisoModel({interval:5,type_interval:"m"});
                 var chiso1m = new ChisoModel({interval:1,type_interval:"m"});
@@ -231,21 +231,15 @@ pool.query("select * from options").then(function(rows, err){
                     price_check: last,
                     primaryCoin:primary,
                     altCoin:alt,
-                    indicator_1y: chiso1y,
-                    indicator_6M: chiso6M,
-                    indicator_3M: chiso3M,
-                    indicator_1M: chiso1M,
-                    indicator_1w: chiso1w,
-                    indicator_1d: chiso1d,
                     indicator_1h: chiso1h,
                     indicator_5m: chiso5m,
                     indicator_1m: chiso1m
                 };
                 markets[market] = new MarketModel(obj);
                 array_market.push(market);
-                if (process.env.NODE_ENV == "production") {
-                    markets[market].syncTrade();
-                }
+                // if (process.env.NODE_ENV == "production") {
+                //     markets[market].syncTrade();
+                // }
             }
             binance.websockets.chart(array_market, "1h", (market, interval, results) => {
                 if (Object.keys(results).length === 0)
@@ -255,7 +249,7 @@ pool.query("select * from options").then(function(rows, err){
                 if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
 
                 } else {
-                    markets[market].save_db_quantity();
+                    // markets[market].save_db_quantity();
                     markets[market].refreshTrade();
                     markets[market]['indicator_' + interval].setIndicator(results);
                     markets[market]['indicator_' + interval].count_buy = 0;

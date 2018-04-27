@@ -64,53 +64,6 @@ router.get('/candle',ensureAuthenticated, async function (req, res, next) {
 		}
 		return events;
 	});
-
-	if(interval != "5m"){
-		var number = 1;
-		if(interval == "1d")
-			number = 24;
-		var events2 = await pool.query("SELECT MarketName,SUM(`quantity`) as quantity,SUM(count_sell) as count_sell,SUM(count_buy) as count_buy,ROUND(AVG(price),10) as price,FLOOR(TIMESTAMP/(3600000*"+number+")) * (3600000*"+number+") - (3600000*"+number+") as timestamp_group FROM event_quantity WHERE `MarketName` = '" + symbol + "' GROUP BY timestamp_group").then(function(rows, err) {
-			if (err) {
-				console.log(err);
-			}
-			var events = [];
-			for (var i in rows) {
-				var market = rows[i].MarketName;
-				var price= rows[i].price;
-				var time = rows[i].timestamp_group;
-				var quantity = rows[i].quantity;
-				if (quantity > 0) {
-					events.push({
-						x: time,
-						y: price,
-						text: "Quantity:"+quantity,
-						size: 2,
-						color: "#ff7109",
-						shape: "shape"
-					});
-				}else{
-					events.push({
-						x: time,
-						y: price,
-						text: "Quantity:"+quantity,
-						size: 2,
-						color: "#09c4ff",
-						shape: "shape"
-					});
-				}
-			}
-			return events;
-		});
-		events = events.concat(events2);
-		events.push({
-			x: Math.floor(moment().valueOf() / (3600000*number)) * (3600000*number),
-			y: markets[symbol].last,
-			text: "Quantity:"+markets[symbol].indicator_1h.sumquantity,
-			size: 2,
-			color: "#ff7109",
-			shape: "shape"
-		});
-	}
     // Intervals: 1m,3m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d,3d,1w,1M
     binance.candlesticks(symbol, interval, (error, ticks, symbol) => {
     	var data = {
