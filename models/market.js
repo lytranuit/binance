@@ -23,7 +23,7 @@ var Market = new SchemaObject({
     orderBook: {type: Object, default: {bids: {}, asks: {}}},
     countbuy: {type: Number, default: 5},
     amountbuy: {type: Number, default: 0.001},
-    minGain: {type: Number, default: 2},
+    minGain: {type: Number, default: 20},
     maxGain: {type: Number, default: 50},
     isBuy: {type: Boolean, default: false},
     isCheckMACDBan: {type: Boolean, default: true},
@@ -405,6 +405,7 @@ var Market = new SchemaObject({
             var candle1 = entries[entries.length - 1];
             var candle2 = entries[entries.length - 2];
             var is_volume_large = candle1[1].volume > candle2[1].volume * 2;
+
             var input = {
                 close: [candle1[1].close],
                 open: [candle1[1].open],
@@ -416,7 +417,7 @@ var Market = new SchemaObject({
             var is_price_increase = candle1[1].close > candle2[1].high * 1.02;
             if ((self.indicator_1m.count_buy > 200 && self.indicator_1m.count_sell > 200 && is_price_increase) || (is_bullishmarubozu && is_volume_large && is_price_increase)) {
                 self.isHotMarket = true;
-                var percent = 100 * (candle1[1].close - candle2[1].high) / candle2[2].high;
+                var percent = 100 * (candle1[1].close - candle2[1].high) / candle2[1].high;
                 var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1[1].close + "</p><p>Check Price:" + candle2[1].high + "</p><p style='color:green;'>Percent:" + percent + "</p>";
                 Mail.sendmail("[PUMP]" + self.MarketName + " PUMP", html);
                 io.emit("hotMarket", {symbol: self.MarketName, last: self.last, type: 1});
@@ -428,7 +429,7 @@ var Market = new SchemaObject({
 
             if ((self.indicator_1m.count_buy > 200 && self.indicator_1m.count_sell > 200 && is_price_decrease) || (is_bearishmarubozu && is_volume_large && is_price_decrease)) {
                 self.isHotMarket = true;
-                var percent = 100 * (candle1[1].close - candle2[1].low) / candle2[2].high;
+                var percent = 100 * (candle1[1].close - candle2[1].low) / candle2[1].low;
                 var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1[1].close + "</p><p>Check Price:" + candle2[1].low + "</p><p style='color:red;'>Percent:" + percent + "</p>";
                 Mail.sendmail("[DUMP]" + self.MarketName + " DUMP", html);
                 io.emit("hotMarket", {symbol: self.MarketName, last: self.last, type: 2});
