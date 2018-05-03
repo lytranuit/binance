@@ -24,7 +24,7 @@ var Mail = require("./models/mail");
  * CONFIG MYSQL
  * 
  *****************/
- global.pool = mysql.createPool({
+global.pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -32,16 +32,16 @@ var Mail = require("./models/mail");
     connectionLimit: 10
 });
 /******************
-*
-* END CONFIG MYSQL
-* 
-*****************/
+ *
+ * END CONFIG MYSQL
+ * 
+ *****************/
 
-passport.serializeUser(function(user, done) {
+passport.serializeUser(function (user, done) {
     done(null, user);
 });
 
-passport.deserializeUser(function(user, done) {
+passport.deserializeUser(function (user, done) {
     done(null, user);
 });
 passport.use(new LocalStrategy({
@@ -49,13 +49,13 @@ passport.use(new LocalStrategy({
     passwordField: 'password',
     session: true
 },
-function (username,password,done) {
-    if(username == "daotran" && password == "Asd1234")
-        return done(null,username);
-    else
-        return done(null, false);
-})
-);
+        function (username, password, done) {
+            if (username == "daotran" && password == "Asd1234")
+                return done(null, username);
+            else
+                return done(null, false);
+        })
+        );
 /******************
  * 
  * END CONFIG MAIL
@@ -63,17 +63,17 @@ function (username,password,done) {
  *****************/
 
 /******************
-* 
-* SERVER
-* 
-*****************/
+ * 
+ * SERVER
+ * 
+ *****************/
 var indexRouter = require('./routes/index');
 var apiRouter = require('./routes/api');
 var authRouter = require('./routes/auth');
 
 var app = express();
 
-app.use(compression());  
+app.use(compression());
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -82,12 +82,12 @@ app.set('view engine', 'ejs');
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public'),{ maxAge: 31557600 }));
+app.use(express.static(path.join(__dirname, 'public'), {maxAge: 31557600}));
 app.use(session({
-  secret : "secret",
-  saveUninitialized: true,
-  resave: true,
-  key:'sid'
+    secret: "secret",
+    saveUninitialized: true,
+    resave: true,
+    key: 'sid'
 }))
 
 app.use(passport.initialize());
@@ -107,88 +107,88 @@ app.use(function (req, res, next) {
 app.use(function (err, req, res, next) {
     // set locals, only providing error in development
     res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'production' ?  {}:err;
+    res.locals.error = req.app.get('env') === 'production' ? {} : err;
 
     // render the error page
     res.status(err.status || 500);
     res.render('error');
 });
-app.locals.round = function(value,decimals) {
-  return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
+app.locals.round = function (value, decimals) {
+    return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
 };
 module.exports = app;
 
 
 /******************
-* 
-* END CONFIG SERVER
-* 
-*****************/
+ * 
+ * END CONFIG SERVER
+ * 
+ *****************/
 
 
 /******************
-* 
-* CONFIG BINANCE
-* 
-*****************/
+ * 
+ * CONFIG BINANCE
+ * 
+ *****************/
 binance.options({
-    APIKEY:process.env.APIKEY,
-    APISECRET:process.env.APISECRET
+    APIKEY: process.env.APIKEY,
+    APISECRET: process.env.APISECRET
 });
 global.currentTime = null;
-global.primaryCoin = ["BTC","USDT"];
+global.primaryCoin = ["BTC", "USDT"];
 global.myBalances = {};
-global.ignoreCoin = ["BNB","BTC"];
+global.ignoreCoin = ["BNB", "BTC"];
 
 
 /******************
-* 
-* END CONFIG MAIL
-* 
-*****************/
+ * 
+ * END CONFIG MAIL
+ * 
+ *****************/
 var MarketModel = require('./models/market');
 var ChisoModel = require('./models/chiso');
 global.markets = {};
-pool.query("select * from options").then(function(rows, err){
+pool.query("select * from options").then(function (rows, err) {
     if (err) {
         console.log(err);
     }
     for (var i in rows) {
         var key = rows[i]['key'];
         var value = rows[i]['value'];
-        switch(key){
+        switch (key) {
             case "primaryCoin":
-            primaryCoin = value.split(",");
-            break;
+                primaryCoin = value.split(",");
+                break;
             case "ignoreCoin":
-            ignoreCoin = value.split(",");
-            break;
+                ignoreCoin = value.split(",");
+                break;
             default:
-            if(key.indexOf("stopmua") != -1){
-                global[key] = stringtoBoolean(value);
-            }else{
-                global[key] = value;
-            }
-            break;
+                if (key.indexOf("stopmua") != -1) {
+                    global[key] = stringtoBoolean(value);
+                } else {
+                    global[key] = value;
+                }
+                break;
         }
     }
     return true;
-}).then(function(){
-    binance.useServerTime(() =>{
+}).then(function () {
+    binance.useServerTime(() => {
         if (process.env.NODE_ENV == "production") {
             binance.balance((error, balances) => {
                 myBalances = balances;
             });
             binance.websockets.userData(balance_update, execution_update);
-        }else{
+        } else {
             myBalances = {
-                "BTC":{
-                    available:10,
-                    onOrder:0
+                "BTC": {
+                    available: 10,
+                    onOrder: 0
                 },
-                USDT:{
-                    available:10000,
-                    onOrder:0
+                USDT: {
+                    available: 10000,
+                    onOrder: 0
                 }
             };
         }
@@ -202,19 +202,19 @@ pool.query("select * from options").then(function(rows, err){
                 var last = ticker[i];
                 var primary = "";
                 var alt = "";
-                if(market != "BTCUSDT"){
-                    for(var j in primaryCoin){
+                if (market != "BTCUSDT") {
+                    for (var j in primaryCoin) {
                         var coin = primaryCoin[j];
-                        if (market.indexOf(coin) != -1){
+                        if (market.indexOf(coin) != -1) {
                             primary = coin;
-                            alt = market.replace(coin,"");
+                            alt = market.replace(coin, "");
                         }
                     }
-                }else{
+                } else {
                     primary = "USDT";
                     alt = "BTC";
                 }
-                if(primary == "")
+                if (primary == "")
                     continue;
                 // var chiso1y = new ChisoModel({interval:1,type_interval:"y"});
                 // var chiso6M = new ChisoModel({interval:6,type_interval:"M"});
@@ -222,15 +222,15 @@ pool.query("select * from options").then(function(rows, err){
                 // var chiso1M = new ChisoModel({interval:1,type_interval:"M"});
                 // var chiso1w = new ChisoModel({interval:1,type_interval:"w"});
                 // var chiso1d = new ChisoModel({interval:1,type_interval:"d"});
-                var chiso1h = new ChisoModel({interval:1,type_interval:"h"});
-                var chiso5m = new ChisoModel({interval:5,type_interval:"m"});
-                var chiso1m = new ChisoModel({interval:1,type_interval:"m"});
+                var chiso1h = new ChisoModel({interval: 1, type_interval: "h"});
+                var chiso5m = new ChisoModel({interval: 5, type_interval: "m"});
+                var chiso1m = new ChisoModel({interval: 1, type_interval: "m"});
                 var obj = {
                     MarketName: market,
                     last: last,
                     price_check: last,
-                    primaryCoin:primary,
-                    altCoin:alt,
+                    primaryCoin: primary,
+                    altCoin: alt,
                     indicator_1h: chiso1h,
                     indicator_5m: chiso5m,
                     indicator_1m: chiso1m
@@ -251,7 +251,7 @@ pool.query("select * from options").then(function(rows, err){
                 if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
 
                 } else {
-                    markets[market].save_db_quantity();
+//                    markets[market].save_db_quantity();
                     markets[market].refreshTrade();
                     markets[market].isHotMarket = false;
                     delete results[tick];
@@ -279,14 +279,14 @@ pool.query("select * from options").then(function(rows, err){
                     markets[market]['indicator_' + interval].setIndicator(results);
                 }
                 /*
-                * RESET 1 m
-                */
+                 * RESET 1 m
+                 */
                 if (moment().format("ss") < 10) {
                     markets[market]['indicator_1m'].refresh();
                 }
                 /*
-                * Tinh bid ask volume
-                */
+                 * Tinh bid ask volume
+                 */
                 let orderBook = markets[market].orderBook;
                 let orderBook_bids = orderBook.bids;
                 let orderBook_asks = orderBook.asks;
@@ -362,26 +362,26 @@ pool.query("select * from options").then(function(rows, err){
                     var time = moment(rows[i].timestamp, "x");
                     var amount = rows[i].amount;
                     var isBuyer = rows[i].isBuyer;
-                    if(isBuyer){
-                        markets[market].mua(price,amount, time);
-                    }else {
-                        markets[market].ban(price,amount,time);
+                    if (isBuyer) {
+                        markets[market].mua(price, amount, time);
+                    } else {
+                        markets[market].ban(price, amount, time);
                     }
                 }
             });
             console.log("Price of BTC: ", ticker.BTCUSDT);
         });
-});
+    });
 });
 
 
 
 
 /******************
-* 
-* CONFIG APACHE
-* 
-*****************/
+ * 
+ * CONFIG APACHE
+ * 
+ *****************/
 var port = process.env.PORT || 3000;
 app.set('port', port);
 var server = http.createServer(app);
@@ -405,15 +405,15 @@ io.on('connection', function (socket) {
     })
 });
 /**
-* Listen on provided port, on all network interfaces.
-*/
+ * Listen on provided port, on all network interfaces.
+ */
 
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 /*
-* Event listener for HTTP server "error" event.
-*/
+ * Event listener for HTTP server "error" event.
+ */
 
 function onError(error) {
     if (error.syscall !== 'listen') {
@@ -421,21 +421,21 @@ function onError(error) {
     }
 
     var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
+            ? 'Pipe ' + port
+            : 'Port ' + port;
 
     // handle specific listen errors with friendly messages
     switch (error.code) {
         case 'EACCES':
-        console.error(bind + ' requires elevated privileges');
-        process.exit(1);
-        break;
+            console.error(bind + ' requires elevated privileges');
+            process.exit(1);
+            break;
         case 'EADDRINUSE':
-        console.error(bind + ' is already in use');
-        process.exit(1);
-        break;
+            console.error(bind + ' is already in use');
+            process.exit(1);
+            break;
         default:
-        throw error;
+            throw error;
     }
 }
 
@@ -443,29 +443,33 @@ function onError(error) {
  * Event listener for HTTP server "listening" event.
  */
 
- function onListening() {
+function onListening() {
     var addr = server.address();
     var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
+            ? 'pipe ' + addr
+            : 'port ' + addr.port;
     console.log('Listening on ' + bind);
 }
 
 /******************
-* 
-* END CONFIG APACHE
-*
-*****************/
-function stringtoBoolean(value){
-    if(!value)
+ * 
+ * END CONFIG APACHE
+ *
+ *****************/
+function stringtoBoolean(value) {
+    if (!value)
         return value
-    switch(value){
-        case "1": case "true": case "yes":
-        return true;
-        break;
-        case "0": case "false": case "no":
-        return false;
-        break;
+    switch (value) {
+        case "1":
+        case "true":
+        case "yes":
+            return true;
+            break;
+        case "0":
+        case "false":
+        case "no":
+            return false;
+            break;
     }
 }
 
@@ -476,7 +480,7 @@ function balance_update(data) {
         let {a: asset, f: available, l: onOrder} = obj;
         myBalances[asset].available = available;
         myBalances[asset].onOrder = onOrder;
-        io.emit("coin_update",{coin:asset,available:available,onOrder:onOrder});
+        io.emit("coin_update", {coin: asset, available: available, onOrder: onOrder});
         if (available == "0.00000000" && onOrder == "0.00000000")
             continue;
         console.log(asset + "\tavailable: " + available + " (" + onOrder + " on order)");
@@ -484,7 +488,7 @@ function balance_update(data) {
 }
 function execution_update(data) {
     console.log(data);
-    let {x: executionType, s: symbol, p: price, q: quantity, S: side, o: orderType, i: orderId, X: orderStatus, L: priceMarket,t:tradeId} = data;
+    let {x: executionType, s: symbol, p: price, q: quantity, S: side, o: orderType, i: orderId, X: orderStatus, L: priceMarket, t: tradeId} = data;
     if (executionType == "NEW") {
         if (orderStatus == "REJECTED") {
             console.log("Order Failed! Reason: " + data.r);
@@ -502,7 +506,7 @@ function execution_update(data) {
             var html = "<p>" + symbol + "</p><p>Price Buy:" + price_buy + "</p><p>Price Sell:" + priceMarket + "</p><p style='color:green;'>Profit:" + percent.toFixed(2) + "%</p>";
             Mail.sendmail("[Sell]" + symbol, html);
 
-            markets[symbol].save_db_ban(priceMarket,quantity,tradeId);
+            markets[symbol].save_db_ban(priceMarket, quantity, tradeId);
         } else if (orderType == "LIMIT" && side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
 
             var price_buy = markets[symbol].priceBuyAvg;
@@ -511,19 +515,19 @@ function execution_update(data) {
             var html = "<p>" + symbol + "</p><p>Price Buy:" + price_buy + "</p><p>Price Sell:" + price + "</p><p style='color:green;'>Profit:" + percent.toFixed(2) + "%</p>";
             Mail.sendmail("[Sell]" + symbol, html);
 
-            markets[symbol].save_db_ban(price,quantity,tradeId);
-        }else if (orderType == "MARKET" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
+            markets[symbol].save_db_ban(price, quantity, tradeId);
+        } else if (orderType == "MARKET" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
 
             var html = "<p>" + symbol + "</p><p>Price:" + priceMarket + "</p>";
             Mail.sendmail("[Buy]" + symbol, html);
 
-            markets[symbol].save_db_mua(priceMarket,quantity,tradeId);
+            markets[symbol].save_db_mua(priceMarket, quantity, tradeId);
         } else if (orderType == "LIMIT" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
 
             var html = "<p>" + symbol + "</p><p>Price:" + price + "</p>";
             Mail.sendmail("[Buy]" + symbol, html);
 
-            markets[symbol].save_db_mua(priceMarket,quantity,tradeId);
+            markets[symbol].save_db_mua(priceMarket, quantity, tradeId);
         }
     }
     console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);
