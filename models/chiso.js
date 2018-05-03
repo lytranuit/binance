@@ -19,7 +19,7 @@ var Chiso = new SchemaObject({
     type_interval: {type: String, default: "m"},
     pattern: Object,
     candle: Array,
-    sumquantity:numberType,
+    volume:numberType,
     hs: booleanType,
     ihs: booleanType,
     db: booleanType,
@@ -119,7 +119,10 @@ var Chiso = new SchemaObject({
             };
             var array_bb = bb.calculate(input);
             self.bb = array_bb[array_bb.length - 1];
-
+            /*
+            * Refresh
+            */
+            self.refresh();
             
             /*
             * doi chart
@@ -158,6 +161,11 @@ var Chiso = new SchemaObject({
             }else{
                 self.can_sell = false;
             }
+        },
+        refresh:function(){
+            var self = this;
+            self.count_buy = 0;
+            self.count_sell = 0;
         }
     }
 });

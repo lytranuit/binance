@@ -246,16 +246,16 @@ pool.query("select * from options").then(function(rows, err){
                     return;
                 let tick = binance.last(results);
                 var last = results[tick].close;
+                var volume = results[tick].volume;
+                markets[market]['indicator_' + interval].volume = volume;
                 if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
 
                 } else {
-                    // markets[market].save_db_quantity();
+                    markets[market].save_db_quantity();
                     markets[market].refreshTrade();
-                    markets[market]['indicator_' + interval].setIndicator(results);
-                    markets[market]['indicator_' + interval].count_buy = 0;
-                    markets[market]['indicator_' + interval].count_sell = 0;
-                    markets[market]['indicator_' + interval].sumquantity = 0;
                     markets[market].isHotMarket = false;
+                    delete results[tick];
+                    markets[market]['indicator_' + interval].setIndicator(results);
                 }
                 markets[market]['indicator_' + interval].periodTime = tick;
                 io.to("interval").emit("interval", {symbol: market, interval: interval, time: tick, data: results[tick], count_buy: markets[market]['indicator_' + interval].count_buy, count_sell: markets[market]['indicator_' + interval].count_sell});
@@ -277,15 +277,12 @@ pool.query("select * from options").then(function(rows, err){
                     };
                     delete results[tick];
                     markets[market]['indicator_' + interval].setIndicator(results);
-                    markets[market]['indicator_' + interval].count_buy = 0;
-                    markets[market]['indicator_' + interval].count_sell = 0;
                 }
                 /*
                 * RESET 1 m
                 */
                 if (moment().format("ss") < 10) {
-                    markets[market]['indicator_1m'].count_buy = 0;
-                    markets[market]['indicator_1m'].count_sell = 0;
+                    markets[market]['indicator_1m'].refresh();
                 }
                 /*
                 * Tinh bid ask volume
@@ -319,13 +316,11 @@ pool.query("select * from options").then(function(rows, err){
                 let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
                 if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
                     if (maker) {
-                        markets[symbol]['indicator_1h'].sumquantity -= parseFloat(quantity);
                         markets[symbol].trades.asks.push({price: price, quantity: quantity});
                         markets[symbol]['indicator_1h'].count_sell++;
                         markets[symbol]['indicator_5m'].count_sell++;
                         markets[symbol]['indicator_1m'].count_sell++;
                     } else {
-                        markets[symbol]['indicator_1h'].sumquantity += parseFloat(quantity);
                         markets[symbol].trades.bids.push({price: price, quantity: quantity});
                         markets[symbol]['indicator_1h'].count_buy++;
                         markets[symbol]['indicator_5m'].count_buy++;
