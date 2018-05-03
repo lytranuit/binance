@@ -1,5 +1,6 @@
 var express = require('express');
 const moment = require('moment');
+const mysql = require('promise-mysql');
 var router = express.Router();
 /* GET home page. */
 router.get('/', ensureAuthenticated,async function (req, res, next) {
@@ -44,7 +45,11 @@ router.get('/', ensureAuthenticated,async function (req, res, next) {
     * HISTORY
     */
     var where = "WHERE 1=1 and deleted = 0";
-    var rows = await pool.query("SELECT *,ROUND(100 * (price_sell-price_buy) / price_buy,2) as percent,FROM_UNIXTIME(FLOOR(TIMESTAMP / 1000)) as timestamp FROM trade_session  ORDER BY timestamp desc")
+    var rows = await mysql.createConnection(options_sql).then(function (conn) {
+        var result = conn.query("SELECT *,ROUND(100 * (price_sell-price_buy) / price_buy,2) as percent,FROM_UNIXTIME(FLOOR(TIMESTAMP / 1000)) as timestamp FROM trade_session  ORDER BY timestamp desc");
+        conn.end();
+        return result;
+    })
     res.render('index', {title: 'Express',marketName:marketName, sumBTC: sumBTC, sumUSDT: sumUSDT, marketHot: marketHot, marketBuy: marketBuy, rows: rows});
 });
 

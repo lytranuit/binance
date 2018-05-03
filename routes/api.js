@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 const binance = require('node-binance-api');
 const moment = require('moment');
+const mysql = require('promise-mysql');
 /* GET api listing. */
 router.get('/market',ensureAuthenticated, function (req, res, next) {
 	var symbol = req.query.symbol || "BTCUSDT";
@@ -29,7 +30,11 @@ router.get('/candle',ensureAuthenticated, async function (req, res, next) {
 	var symbol = req.query.symbol || "BTCUSDT";
 	var interval = req.query.interval || "1d";
 	var events = [];
-	var events = await pool.query("select * from trade where MarketName = '" + symbol + "'").then(function (rows, err) {
+	var events = await mysql.createConnection(options_sql).then(function (conn) {
+		var result = conn.query("select * from trade where MarketName = '" + symbol + "'");
+		conn.end();
+		return result;
+	}).then(function (rows, err) {
 		if (err) {
 			console.log(err);
 		}
@@ -229,7 +234,11 @@ router.post('/stopmua',ensureAuthenticated, function (req, res, next) {
 	var update = {
 		value:value
 	}
-	pool.query("UPDATE options SET ? WHERE `key` = 'stopmua'",update).then(function(){
+	mysql.createConnection(options_sql).then(function (conn) {
+		var result = conn.query("UPDATE options SET ? WHERE `key` = 'stopmua'",update);
+		conn.end();
+		return result;
+	}).then(function(){
 		res.json({success:1});
 	}).catch(function(){
 		res.json({success:0});
@@ -243,7 +252,11 @@ router.post('/stopmuacoin',ensureAuthenticated, function (req, res, next) {
 	var update = {
 		value:value
 	}
-	pool.query("UPDATE options SET ? WHERE `key` = '"+name+"'",update).then(function(){
+	mysql.createConnection(options_sql).then(function (conn) {
+		var result = conn.query("UPDATE options SET ? WHERE `key` = '"+name+"'",update);
+		conn.end();
+		return result;
+	}).then(function(){
 		res.json({success:1});
 	}).catch(function(){
 		res.json({success:0});
@@ -257,11 +270,6 @@ router.post('/stopmuamarket',ensureAuthenticated, function (req, res, next) {
 		value:value
 	}
 	res.json({success:1});
-	// pool.query("UPDATE options SET ? WHERE `key` = 'stopmua'",update).then(function(){
-	// 	res.json({success:1});
-	// }).catch(function(){
-	// 	res.json({success:0});
-	// });
 });
 router.post('/refreshcheck',ensureAuthenticated, function (req, res, next) {
 	for (var market in markets) {

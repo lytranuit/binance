@@ -5,6 +5,7 @@ const clc = require('cli-color');
 const moment = require('moment');
 const binance = require('node-binance-api');
 var SchemaObject = require('node-schema-object');
+const mysql = require('promise-mysql');
 var Mail = require("./mail");
 var NotEmptyString = {type: String, minLength: 1};
 var numberType = {type: Number, default: 0};
@@ -125,7 +126,11 @@ var Market = new SchemaObject({
                 timestamp: time.valueOf(),
                 isBuyer: 1
             };
-            await pool.query('INSERT INTO trade SET ?', insert);
+            await mysql.createConnection(options_sql).then(function (conn) {
+                var result = conn.query('INSERT INTO trade SET ?', insert);
+                conn.end();
+                return result;
+            })
 
             self.mua(price, amount, time);
         },
@@ -218,7 +223,11 @@ var Market = new SchemaObject({
                 timestamp: time.valueOf(),
                 isBuyer: 0
             };
-            await pool.query("INSERT INTO trade SET ? ", insert);
+            await mysql.createConnection(options_sql).then(function (conn) {
+                var result = conn.query('INSERT INTO trade SET ?', insert);
+                conn.end();
+                return result;
+            });
             self.ban(price, amount, time);
         },
         ban: function (price, amount, time) {
@@ -287,18 +296,16 @@ var Market = new SchemaObject({
                     amount: sumamount,
                     timestamp: time.valueOf()
                 };
-                pool.query("INSERT INTO trade_session SET ? ", insert).then(function (data) {
-                    var id_session = data.insertId
-                    var update = {
-                        id_session: id_session
-                    }
-                    // if(self.MarketName == "IOTABTC"){
-
-                    //     console.log("UPDATE trade SET ? WHERE MarketName = '"+self.MarketName+"' and timestamp IN('"+array_time.join("','")+"')");
-                    // }
-                    pool.query("UPDATE trade SET ? WHERE MarketName = '" + self.MarketName + "' and timestamp IN('" + array_time.join("','") + "')", update);
-                });
-
+                mysql.createConnection(options_sql).then(function (conn) {
+                    return conn.query("INSERT INTO trade_session SET ? ", insert).then(function (data) {
+                        var id_session = data.insertId
+                        var update = {
+                            id_session: id_session
+                        }
+                        conn.query("UPDATE trade SET ? WHERE MarketName = '" + self.MarketName + "' and timestamp IN('" + array_time.join("','") + "')", update);
+                        conn.end();
+                    });
+                })
                 self.isBuy = false;
                 self.countbuy = 5;
                 self.priceBuyAvg = 0;
@@ -447,7 +454,11 @@ var Market = new SchemaObject({
                 count_sell: self.indicator_1h.count_sell,
                 price: self.last
             };
-            return pool.query('INSERT INTO event_quantity SET ?', insert).catch(function (error) {
+            return mysql.createConnection(options_sql).then(function (conn) {
+                var result = conn.query('INSERT INTO event_quantity SET ?', insert);
+                conn.end();
+                return result;
+            }).catch(function (error) {
                 return false;
             }).then(function () {
                 return true;
@@ -456,7 +467,11 @@ var Market = new SchemaObject({
         syncTrade: async function () {
             var self = this;
             var market = self.MarketName;
-            var id_trade = await pool.query("select id_trade from trade WHERE MarketName = '" + market + "' ORDER BY timestamp DESC LIMIT 1").then(function (data) {
+            var id_trade = await mysql.createConnection(options_sql).then(function (conn) {
+                var result = conn.query("select id_trade from trade WHERE MarketName = '" + market + "' ORDER BY timestamp DESC LIMIT 1");
+                conn.end();
+                return result;
+            }).then(function (data) {
                 if (data && data.length)
                     return data[0].id_trade + 1;
                 else
