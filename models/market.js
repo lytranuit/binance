@@ -38,8 +38,8 @@ var Market = new SchemaObject({
     maxPriceSell: numberType,
     mocPriceSell: {type: Number, default: 500000},
     mocPriceBuy: numberType,
-    chienLuocMua: {type: String, default: "chienluocMuaHeikin"}, /// chienLuocMuaMoc
-    chienLuocBan: {type: String, default: "chienluocBanHeikin"}, /// chienLuocBanMoc
+    chienLuocMua: {type: String, default: "chienluocMuaHeikin"}, /// chienLuocMuaMoc,chienLuocMuaDay
+    chienLuocBan: {type: String, default: "chienluocBanHeikin"}, /// chienLuocBanMoc,chienLuocBanMin
     onOrder: {type: Boolean, default: false}
 }, {
     methods: {

@@ -238,6 +238,13 @@ module.exports = app;
                     indicator_5m: chiso5m,
                     indicator_1m: chiso1m
                 };
+                if(global.chienLuocMua)
+                    obj.chienLuocMua = global.chienLuocMua;
+                if(global.chienLuocBan)
+                    obj.chienLuocBan = global.chienLuocBan;
+                if(global.minGain)
+                    obj.minGain = global.minGain;
+                
                 markets[market] = new MarketModel(obj);
                 array_market.push(market);
                 // if (process.env.NODE_ENV == "production") {
