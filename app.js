@@ -62,17 +62,32 @@ function (username, password, done) {
  *****************/
 
 /******************
- * 
- * SERVER
- * 
- *****************/
- var indexRouter = require('./routes/index');
- var apiRouter = require('./routes/api');
- var authRouter = require('./routes/auth');
+* 
+* SERVER
+* 
+*****************/
 
- var app = express();
+var production = process.env.NODE_ENV === 'production'
+if(!production) {
+    var chokidar = require('chokidar')
+    var watcher = chokidar.watch('./routes');
+    watcher.on('ready', function() {
+        watcher.on('all', function(path) {
+            console.log("Clearing routes module cache from server")
+            Object.keys(require.cache).forEach(function(id) {
+                if (/[\/\\]routes[\/\\]/.test(id)){
+                    delete require.cache[id];
+                } 
+            })
+        })
+    })
+}
+// var indexRouter = require('./routes/index');
+// var apiRouter = require('./routes/api');
+// var authRouter = require('./routes/auth');
 
- app.use(compression());
+var app = express();
+app.use(compression());
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -91,12 +106,15 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
-
-
-app.use('/', indexRouter);
-app.use('/api', apiRouter);
-app.use('/auth', authRouter);
-
+app.use('/',function (req, res, next) {
+    require('./routes/index')(req, res, next)
+})
+app.use('/api',function (req, res, next) {
+    require('./routes/api')(req, res, next)
+})
+app.use('/auth',function (req, res, next) {
+    require('./routes/auth')(req, res, next)
+})
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
     next(createError(404));
@@ -391,15 +409,15 @@ module.exports = app;
 
 
 /******************
- * 
- * CONFIG APACHE
- * 
- *****************/
- var port = process.env.PORT || 3000;
- app.set('port', port);
- var server = http.createServer(app);
- global.io = require('socket.io')(server);
- io.on('connection', function (socket) {
+* 
+* CONFIG APACHE
+* 
+*****************/
+var port = process.env.PORT || 3000;
+app.set('port', port);
+var server = http.createServer(app);
+global.io = require('socket.io')(server);
+io.on('connection', function (socket) {
     console.log('a user connected');
     socket.emit("start");
     socket.on("join", function (data) {
@@ -418,17 +436,17 @@ module.exports = app;
     })
 });
 /**
- * Listen on provided port, on all network interfaces.
- */
+* Listen on provided port, on all network interfaces.
+*/
 
- server.listen(port);
- server.on('error', onError);
- server.on('listening', onListening);
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
 /*
- * Event listener for HTTP server "error" event.
- */
+* Event listener for HTTP server "error" event.
+*/
 
- function onError(error) {
+function onError(error) {
     if (error.syscall !== 'listen') {
         throw error;
     }
