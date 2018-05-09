@@ -4,6 +4,7 @@ const clc = require('cli-color');
 const technical = require('technicalindicators');
 var SchemaObject = require('node-schema-object');
 
+const mysql = require('promise-mysql');
 const moment = require('moment');
 
 
@@ -18,7 +19,7 @@ var Chiso = new SchemaObject({
     interval: {type: Number, default: 1},
     type_interval: {type: String, default: "m"},
     pattern: Object,
-    candle: Array,
+    candles: Array,
     volume:numberType,
     hs: booleanType,
     ihs: booleanType,
@@ -166,6 +167,15 @@ var Chiso = new SchemaObject({
             var self = this;
             self.count_buy = 0;
             self.count_sell = 0;
+        },
+        save_db_candles: async function(keys,values){
+            return mysql.createConnection(options_sql).then(function (conn) {
+                var result = conn.query("INSERT INTO candles (`" + keys.join("`,`") + "`) VALUES ? ON DUPLICATE KEY UPDATE is_Final = 1,close = VALUES(close),high = VALUES(high),low = VALUES(low),volume = VALUES(volume)",[values]);
+                conn.end();
+                return result;
+            }).catch(function(){
+                return false;
+            })
         }
     }
 });

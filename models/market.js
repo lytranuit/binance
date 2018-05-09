@@ -500,6 +500,35 @@ var Market = new SchemaObject({
                     }
                 }
             }, {fromId: id_trade});
+        },
+        sync_candles:function(){
+            var self = this;
+            var market = self.MarketName;
+            mysql.createConnection(options_sql).then(function (conn) {
+                var result = conn.query("SELECT timestamp FROM candles where `symbol` = '"+market+"' and `interval` ='1h' and `is_Final` = 0 ORDER BY `timestamp` DESC LIMIT 1");
+                conn.end();
+                return result[0]['timestamp'];
+            }).catch(function(){
+                return 0;
+            }).then(function(timestamp){
+                var options = {limit:1000};
+                if(timestamp > 0)
+                    options['startTime'] = timestamp;
+                binance.candlesticks(market,"1h", (error, ticks, symbol)=>{
+                    var values = [];
+                    var keys = ['symbol','interval','timestamp','open','high','low','close','volume','is_Final'];
+                    if (binance.isIterable(ticks)) {
+                        for(let tick of ticks){
+                            let [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = tick;
+                            let candle = {open:open, high:high, low:low, close:close, volume:volume};
+                            markets[symbol]['indicator_1h'].candles[time] = candle;
+                            let is_Final = ticks[ticks.length - 1][0] == time ? 0:1;
+                            values.push([symbol,'1h',time,open,high,low,close,volume,is_Final]);
+                        }
+                        markets[symbol]['indicator_1h'].save_db_candles(keys,values);
+                    }
+                },options);
+            })
         }
     }
 });
