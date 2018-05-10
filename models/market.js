@@ -116,6 +116,7 @@ var Market = new SchemaObject({
             }
         },
         orderMuaHotMarket:function(){
+            var self = this
             console.log(clc.green('Order Hot'), self.MarketName + " price:" + price);
 
             self.setOptions({minGain:2,chienLuocBan:'chienLuocBanMinTrailingStop'});
