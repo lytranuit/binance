@@ -230,7 +230,8 @@ function marketdynamic() {
         url: "/api/marketdynamic",
         dataType: "JSON",
         success: function (scatterChartData) {
-            var scatterChartCanvas = $("#scatterChart").get(0).getContext("2d");
+            $("#scatterChart").html("<canvas></canvas>");
+            var scatterChartCanvas = $("#scatterChart canvas").get(0).getContext("2d");
             var scatterChart = new Chart(scatterChartCanvas, {
                 type: 'scatter',
                 data: scatterChartData,
@@ -272,11 +273,13 @@ function marketdynamic() {
                                 return label;
                             },
                             footer: function (tooltipItem, data) {
-                                var label = "Change 24h:" + tooltipItem[0].yLabel + '%';
+                                var price = round(data.datasets[tooltipItem[0].datasetIndex].data[0].price_24h, 8);
+                                var label = "24h:" + price + "(" + tooltipItem[0].yLabel + '%)';
                                 return label;
                             },
                             afterBody: function (tooltipItem, data) {
-                                var label = "Change 7 day:" + tooltipItem[0].xLabel + '%';
+                                var price = round(data.datasets[tooltipItem[0].datasetIndex].data[0].price_7day, 8);
+                                var label = "7 day: " + price + "(" + tooltipItem[0].xLabel + '%)';
                                 return label;
                             },
                         }
