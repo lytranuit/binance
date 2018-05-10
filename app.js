@@ -269,116 +269,116 @@ module.exports = app;
                 	markets[market].sync_candles();
                 }
             }
-            // binance.websockets.chart(array_market, "1h", (market, interval, results) => {
-            // 	if (Object.keys(results).length === 0)
-            // 		return;
-            // 	let tick = binance.last(results);
-            // 	var last = results[tick].close;
-            // 	var volume = results[tick].volume;
-            // 	markets[market]['indicator_' + interval].volume = volume;
-            // 	if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
+            binance.websockets.chart(array_market, "1h", (market, interval, results) => {
+            	if (Object.keys(results).length === 0)
+            		return;
+            	let tick = binance.last(results);
+            	var last = results[tick].close;
+            	var volume = results[tick].volume;
+            	markets[market]['indicator_' + interval].volume = volume;
+            	if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
 
-            // 	} else {
-            //         //markets[market].save_db_quantity();
-            //         markets[market].refreshTrade();
-            //         markets[market].isHotMarket = false;
-            //         delete results[tick];
-            //         markets[market]['indicator_' + interval].setIndicator(results);
-            //     }
-            //     markets[market]['indicator_' + interval].periodTime = tick;
-            //     io.to("interval").emit("interval", {symbol: market, interval: interval, time: tick, data: results[tick], count_buy: markets[market]['indicator_' + interval].count_buy, count_sell: markets[market]['indicator_' + interval].count_sell});
-            // });
-            // binance.websockets.chart(array_market, "5m", (market, interval, results) => {
-            // 	if (Object.keys(results).length === 0)
-            // 		return;
-            // 	let tick = binance.last(results);
-            // 	var last = results[tick].close;
-            // 	if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
-            // 		markets[market].last = last;
-            // 		markets[market].checkmua(last);
-            // 		markets[market].checkban(last);
-            // 		markets[market].checkHotMarket(results);
-            // 	} else {
-            // 		if (currentTime != tick) {
-            // 			global.currentTime = tick;
-            // 			console.log("Bắt đầu phiên:", moment(tick, "x").format());
-            // 		};
-            // 		delete results[tick];
-            // 		markets[market]['indicator_' + interval].setIndicator(results);
-            // 	}
-            //     /*
-            //      * RESET 1 m
-            //      */
-            //      if (moment().format("ss") < 10) {
-            //      	markets[market]['indicator_1m'].refresh();
-            //      }
-            //     /*
-            //      * Tinh bid ask volume
-            //      */
-            //      let orderBook = markets[market].orderBook;
-            //      let orderBook_bids = orderBook.bids;
-            //      let orderBook_asks = orderBook.asks;
-            //      let orderBook_bids_sum = Object.values(orderBook_bids).reduce(function (sum, value) {
-            //      	return sum + parseFloat(value);
-            //      }, 0);
-            //      let orderBook_asks_sum = Object.values(orderBook_asks).reduce(function (sum, value) {
-            //      	return sum + parseFloat(value);
-            //      }, 0);
-            //      let trades = markets[market].trades;
-            //      let trades_bids = trades.bids;
-            //      let trades_asks = trades.asks;
-            //      let count_buy = trades_bids.length;
-            //      let count_sell = trades_asks.length;
-            //      let trades_bids_sum = trades_bids.reduce(function (sum, value) {
-            //      	return sum + parseFloat(value.quantity);
-            //      }, 0);
-            //      let trades_asks_sum = trades_asks.reduce(function (sum, value) {
-            //      	return sum + parseFloat(value.quantity);
-            //      }, 0);
-            //      markets[market]['indicator_' + interval].periodTime = tick;
-            //      io.to("interval").emit("interval", {symbol: market, interval: interval, time: tick, data: results[tick], count_buy: markets[market]['indicator_' + interval].count_buy, count_sell: markets[market]['indicator_' + interval].count_sell});
-            //      io.to("market").emit("market", {symbol: market, last: last, orderBook_bids_sum: orderBook_bids_sum, orderBook_asks_sum: orderBook_asks_sum, count_sell: count_sell, count_buy: count_buy, trades_bids_sum: trades_bids_sum, trades_asks_sum: trades_asks_sum});
-            //  });
+            	} else {
+                    //markets[market].save_db_quantity();
+                    markets[market].refreshTrade();
+                    markets[market].isHotMarket = false;
+                    delete results[tick];
+                    markets[market]['indicator_' + interval].setIndicator(results);
+                }
+                markets[market]['indicator_' + interval].periodTime = tick;
+                io.to("interval").emit("interval", {symbol: market, interval: interval, time: tick, data: results[tick], count_buy: markets[market]['indicator_' + interval].count_buy, count_sell: markets[market]['indicator_' + interval].count_sell});
+            });
+            binance.websockets.chart(array_market, "5m", (market, interval, results) => {
+            	if (Object.keys(results).length === 0)
+            		return;
+            	let tick = binance.last(results);
+            	var last = results[tick].close;
+            	if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
+            		markets[market].last = last;
+            		markets[market].checkmua(last);
+            		markets[market].checkban(last);
+            		markets[market].checkHotMarket(results);
+            	} else {
+            		if (currentTime != tick) {
+            			global.currentTime = tick;
+            			console.log("Bắt đầu phiên:", moment(tick, "x").format());
+            		};
+            		delete results[tick];
+            		markets[market]['indicator_' + interval].setIndicator(results);
+            	}
+                /*
+                 * RESET 1 m
+                 */
+                 if (moment().format("ss") < 10) {
+                 	markets[market]['indicator_1m'].refresh();
+                 }
+                /*
+                 * Tinh bid ask volume
+                 */
+                 let orderBook = markets[market].orderBook;
+                 let orderBook_bids = orderBook.bids;
+                 let orderBook_asks = orderBook.asks;
+                 let orderBook_bids_sum = Object.values(orderBook_bids).reduce(function (sum, value) {
+                 	return sum + parseFloat(value);
+                 }, 0);
+                 let orderBook_asks_sum = Object.values(orderBook_asks).reduce(function (sum, value) {
+                 	return sum + parseFloat(value);
+                 }, 0);
+                 let trades = markets[market].trades;
+                 let trades_bids = trades.bids;
+                 let trades_asks = trades.asks;
+                 let count_buy = trades_bids.length;
+                 let count_sell = trades_asks.length;
+                 let trades_bids_sum = trades_bids.reduce(function (sum, value) {
+                 	return sum + parseFloat(value.quantity);
+                 }, 0);
+                 let trades_asks_sum = trades_asks.reduce(function (sum, value) {
+                 	return sum + parseFloat(value.quantity);
+                 }, 0);
+                 markets[market]['indicator_' + interval].periodTime = tick;
+                 io.to("interval").emit("interval", {symbol: market, interval: interval, time: tick, data: results[tick], count_buy: markets[market]['indicator_' + interval].count_buy, count_sell: markets[market]['indicator_' + interval].count_sell});
+                 io.to("market").emit("market", {symbol: market, last: last, orderBook_bids_sum: orderBook_bids_sum, orderBook_asks_sum: orderBook_asks_sum, count_sell: count_sell, count_buy: count_buy, trades_bids_sum: trades_bids_sum, trades_asks_sum: trades_asks_sum});
+             });
 
-            // binance.websockets.trades(array_market, (trades) => {
-            // 	let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
-            // 	if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
-            // 		if (maker) {
-            // 			markets[symbol].trades.asks.push({price: price, quantity: quantity});
-            // 			markets[symbol]['indicator_1h'].count_sell++;
-            // 			markets[symbol]['indicator_5m'].count_sell++;
-            // 			markets[symbol]['indicator_1m'].count_sell++;
-            // 		} else {
-            // 			markets[symbol].trades.bids.push({price: price, quantity: quantity});
-            // 			markets[symbol]['indicator_1h'].count_buy++;
-            // 			markets[symbol]['indicator_5m'].count_buy++;
-            // 			markets[symbol]['indicator_1m'].count_buy++;
-            // 		}
-            // 	}
-            // });
-            // binance.websockets.depth(array_market, (depth) => {
-            // 	let {e: eventType, E: eventTime, s: symbol, u: updateId, b: bidDepth, a: askDepth} = depth;
-            // 	if (typeof bidDepth !== 'undefined') {
-            // 		for (var obj of bidDepth) {
-            // 			if (obj[1] === '0.00000000') {
-            // 				if (markets[symbol].orderBook.bids[obj[0]])
-            // 					delete markets[symbol].orderBook.bids[obj[0]];
-            // 			} else {
-            // 				markets[symbol].orderBook.bids[obj[0]] = parseFloat(obj[1]);
-            // 			}
-            // 		}
-            // 	}
-            // 	if (typeof askDepth !== 'undefined') {
-            // 		for (var obj of askDepth) {
-            // 			if (obj[1] === '0.00000000') {
-            // 				if (markets[symbol].orderBook.asks[obj[0]])
-            // 					delete markets[symbol].orderBook.asks[obj[0]];
-            // 			} else {
-            // 				markets[symbol].orderBook.asks[obj[0]] = parseFloat(obj[1]);
-            // 			}
-            // 		}
-            // 	}
-            // });
+            binance.websockets.trades(array_market, (trades) => {
+            	let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
+            	if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
+            		if (maker) {
+            			markets[symbol].trades.asks.push({price: price, quantity: quantity});
+            			markets[symbol]['indicator_1h'].count_sell++;
+            			markets[symbol]['indicator_5m'].count_sell++;
+            			markets[symbol]['indicator_1m'].count_sell++;
+            		} else {
+            			markets[symbol].trades.bids.push({price: price, quantity: quantity});
+            			markets[symbol]['indicator_1h'].count_buy++;
+            			markets[symbol]['indicator_5m'].count_buy++;
+            			markets[symbol]['indicator_1m'].count_buy++;
+            		}
+            	}
+            });
+            binance.websockets.depth(array_market, (depth) => {
+            	let {e: eventType, E: eventTime, s: symbol, u: updateId, b: bidDepth, a: askDepth} = depth;
+            	if (typeof bidDepth !== 'undefined') {
+            		for (var obj of bidDepth) {
+            			if (obj[1] === '0.00000000') {
+            				if (markets[symbol].orderBook.bids[obj[0]])
+            					delete markets[symbol].orderBook.bids[obj[0]];
+            			} else {
+            				markets[symbol].orderBook.bids[obj[0]] = parseFloat(obj[1]);
+            			}
+            		}
+            	}
+            	if (typeof askDepth !== 'undefined') {
+            		for (var obj of askDepth) {
+            			if (obj[1] === '0.00000000') {
+            				if (markets[symbol].orderBook.asks[obj[0]])
+            					delete markets[symbol].orderBook.asks[obj[0]];
+            			} else {
+            				markets[symbol].orderBook.asks[obj[0]] = parseFloat(obj[1]);
+            			}
+            		}
+            	}
+            });
             var where = "where 1=1 and id_session IS NULL and deleted = 0";
             var query = mysql.createConnection(options_sql).then(function (conn) {
             	var result = conn.query("select * from trade " + where);

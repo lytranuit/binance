@@ -3,6 +3,7 @@ var router = express.Router();
 const binance = require('node-binance-api');
 const moment = require('moment');
 const mysql = require('promise-mysql');
+var ColorHash = require('color-hash');
 /* GET api listing. */
 router.get('/market',ensureAuthenticated, function (req, res, next) {
 	var symbol = req.query.symbol || "BTCUSDT";
@@ -25,6 +26,36 @@ router.get('/allmarket', ensureAuthenticated,function (req, res, next) {
 		marketName.push(market);
 	}
 	res.json({marketName:marketName});
+});
+router.get('/marketdynamic', ensureAuthenticated, async function (req, res, next) {
+	var data = await mysql.createConnection(options_sql).then(function (conn) {
+		var result = conn.query("SELECT symbol,SUM(IF(TIMESTAMP = (ROUND(UNIX_TIMESTAMP() / 3600) * 3600 - (24 * 3600)) * 1000,CLOSE,0)) AS price_1day_prev,SUM(IF(TIMESTAMP = (ROUND(UNIX_TIMESTAMP() / 3600) * 3600 - (7 *24 * 3600)) * 1000,CLOSE,0)) AS price_7day_prev FROM candles WHERE is_Final = 1 GROUP BY symbol,`interval`");
+		conn.end();
+		return result;
+	})
+	var datasets = [];
+
+	var colorHash = new ColorHash({lightness: 0.5});
+	for (var i in data) {
+		var row = data[i];
+		var symbol = row.symbol;
+		var price_current = markets[symbol].last;
+		var price_24h = row.price_1day_prev;
+		var price_7day = row.price_7day_prev;
+		var percent_24h = round((price_current - price_24h) / price_24h * 100,2);
+		var percent_7day = round((price_current - price_7day) / price_7day * 100,2);
+		datasets.push({
+			label: symbol,
+			pointBackgroundColor: colorHash.hex(symbol),
+			data: [{
+				x: percent_7day,
+				y: percent_24h,
+				price_24h:price_24h,
+				price_7day:price_7day
+			}]
+		})
+	}
+	res.json({datasets:datasets});
 });
 router.get('/candle',ensureAuthenticated, async function (req, res, next) {
 	var symbol = req.query.symbol || "BTCUSDT";
@@ -293,4 +324,8 @@ function ensureAuthenticated(req, res, next) {
 	if (req.isAuthenticated()) { return next(); }
 	res.json({success:0,code:500,error:'No Access'});
 }
+
+function round(value, decimals) {
+	return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
+};
 module.exports = router;

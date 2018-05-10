@@ -1,15 +1,15 @@
-var tzOffsetMoscow=3600*7;
+var tzOffsetMoscow = 3600 * 7;
 var marketName = [];
-function getBalances(symbol){
+function getBalances(symbol) {
     $.ajax({
         url: "/api/marketbalance",
-        data:{symbol:symbol},
+        data: {symbol: symbol},
         dataType: "JSON",
         success: function (data) {
             var dataPrimary = data.primaryCoin;
             var dataAlt = data.altCoin;
-            $("#primaryCoin [data-coin]").attr("data-coin",dataPrimary.name);
-            $("#altcoin [data-coin]").attr("data-coin",dataAlt.name);
+            $("#primaryCoin [data-coin]").attr("data-coin", dataPrimary.name);
+            $("#altcoin [data-coin]").attr("data-coin", dataAlt.name);
             $("#primaryCoin .name_coin").text(dataPrimary.name);
             $("#altcoin .name_coin").text(dataAlt.name);
             var available = dataPrimary.value ? dataPrimary.value.available : 0;
@@ -21,33 +21,33 @@ function getBalances(symbol){
             var value = parseFloat(available) + parseFloat(onOrder);
             $("#altcoin .value_coin").text(value);
             var isHotMarket = data.isHotMarket;
-            if(isHotMarket){
+            if (isHotMarket) {
                 $(".hotmarket").addClass("btn-warning")
-            }else{
+            } else {
                 $(".hotmarket").removeClass("btn-warning")
             }
         }
     });
 }
-function calculateBuyValue(){
+function calculateBuyValue() {
     var buy_price = $("#buy_price").val();
     var percent = $("#percent").val();
     var coin = $("#primaryCoin .value_coin").text();
     var amount = coin * percent / 100;
-    var quantity_buy =  Math.round(amount / buy_price);
+    var quantity_buy = Math.round(amount / buy_price);
     $("#buy_value").val(quantity_buy);
 }
-function calculateSellProfit(){
+function calculateSellProfit() {
     var price_sell = $("#sell_price").val();
     var price_buy = $("#BuySellTable .price_buy").text();
     var profit = 100 * (parseFloat(price_sell) - parseFloat(price_buy)) / parseFloat(price_buy);
-    $("#sell_profit").val(round(profit,2));
+    $("#sell_profit").val(round(profit, 2));
 }
-function calculateSellPrice(){
+function calculateSellPrice() {
     var sell_profit = $("#sell_profit").val();
     var price_buy = $("#BuySellTable .price_buy").text();
     var price_sell = parseFloat(price_buy) + (parseFloat(price_buy) * parseFloat(sell_profit) / 100);
-    $("#sell_price").val(round(price_sell,8));
+    $("#sell_price").val(round(price_sell, 8));
 }
 function drawChart(symbol, interval) {
     var interval1 = "D1";
@@ -70,7 +70,7 @@ function drawChart(symbol, interval) {
         success: function (data) {
             var pointFormatter = function () {
                 var time = moment(this.x, "x").format("YYYY-MM-DD HH:mm:ss");
-                return "<div><p>"+time+"</p>"+this.text+"</div>";
+                return "<div><p>" + time + "</p>" + this.text + "</div>";
             }
             for (var i in data.events) {
                 data.events[i].pointFormatter = pointFormatter;
@@ -103,8 +103,8 @@ function drawChart(symbol, interval) {
         }
     });
 }
-function drawTradingview(symbol,element){
-    $("#"+element).addClass("draw");
+function drawTradingview(symbol, element) {
+    $("#" + element).addClass("draw");
     var widget = new TradingView.widget({
         autosize: true,
         "symbol": "BINANCE:" + symbol,
@@ -117,34 +117,34 @@ function drawTradingview(symbol,element){
         "enable_publishing": false,
         "hide_side_toolbar": false,
         "studies": [
-        "BB@tv-basicstudies",
-        "RSI@tv-basicstudies",
-        "MACD@tv-basicstudies"
+            "BB@tv-basicstudies",
+            "RSI@tv-basicstudies",
+            "MACD@tv-basicstudies"
         ],
         "allow_symbol_change": true,
         "container_id": element
     });
 }
-function initpopup(symbol){
+function initpopup(symbol) {
 
     $("#myModal").data("symbol", symbol);
-    var price_buy = $(".price_buy[data-symbol="+symbol+"]").first().text() || "";
+    var price_buy = $(".price_buy[data-symbol=" + symbol + "]").first().text() || "";
     /*
-    * RESET
-    */
+     * RESET
+     */
     $("#buy_price").val("");
     $("#sell_price").val("");
     $("#myModal [data-symbol]").attr("data-symbol", symbol).text("");
 
-    $(".price_buy[data-symbol="+symbol+"]").text(price_buy);
+    $(".price_buy[data-symbol=" + symbol + "]").text(price_buy);
     /*
-    * Lay my Balances
-    */
+     * Lay my Balances
+     */
     getBalances(symbol);
     /*
-    * Ve Chart
-    */
-    drawTradingview(symbol,"tradingview");
+     * Ve Chart
+     */
+    drawTradingview(symbol, "tradingview");
 }
 function applyForm(form, data) {
     $('input, select, textarea', form).each(function () {
@@ -154,27 +154,27 @@ function applyForm(form, data) {
             value = data[$(this).attr('name')];
         switch (type) {
             case 'checkbox':
-            $(this).prop('checked', false);
-            if (value == true || value == 'true' || value == 1) {
-                $(this).prop('checked', true);
-            }
-            break;
+                $(this).prop('checked', false);
+                if (value == true || value == 'true' || value == 1) {
+                    $(this).prop('checked', true);
+                }
+                break;
             case 'text':
             case 'number':
             case 'email':
             case 'email':
-            $(this).val(value);
-            break;
+                $(this).val(value);
+                break;
             case 'radio':
-            $(this).removeAttr('checked', 'checked');
-            var rdvalue = $(this).val();
-            if (rdvalue == value) {
-                $(this).prop('checked', true);
-            }
-            break;
+                $(this).removeAttr('checked', 'checked');
+                var rdvalue = $(this).val();
+                if (rdvalue == value) {
+                    $(this).prop('checked', true);
+                }
+                break;
             default:
-            $(this).val(value);
-            break;
+                $(this).val(value);
+                break;
         }
     });
 }
@@ -224,4 +224,65 @@ function thenotification(title, body, tag, icon) {
 }
 function round(value, decimals) {
     return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
+}
+function marketdynamic() {
+    $.ajax({
+        url: "/api/marketdynamic",
+        dataType: "JSON",
+        success: function (scatterChartData) {
+            var scatterChartCanvas = $("#scatterChart").get(0).getContext("2d");
+            var scatterChart = new Chart(scatterChartCanvas, {
+                type: 'scatter',
+                data: scatterChartData,
+                options: {
+                    animation: false,
+                    legend: {
+                        position: 'none',
+                    },
+                    scales: {
+                        yAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: '24h Changed',
+                                    suffix: '%'
+                                },
+                                ticks: {
+                                    callback: function (value, index, values) {
+                                        return value + '%';
+                                    }
+                                }
+                            }], xAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: '7 days Changed'
+                                },
+                                ticks: {
+                                    callback: function (value, index, values) {
+                                        return value + '%';
+                                    }
+                                }
+                            }]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function (tooltipItem, data) {
+                                console.log(data);
+                                console.log(tooltipItem);
+                                var label = data.datasets[tooltipItem.datasetIndex].label || '';
+                                return label;
+                            },
+                            footer: function (tooltipItem, data) {
+                                var label = "Change 24h:" + tooltipItem[0].yLabel + '%';
+                                return label;
+                            },
+                            afterBody: function (tooltipItem, data) {
+                                var label = "Change 7 day:" + tooltipItem[0].xLabel + '%';
+                                return label;
+                            },
+                        }
+                    }
+                }
+            });
+        }
+    });
 }

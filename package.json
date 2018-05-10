@@ -8,6 +8,7 @@
     "dependencies": {
         "chokidar": "^2.0.3",
         "cli-color": "^1.2.0",
+        "color-hash": "^1.0.3",
         "compression": "^1.7.2",
         "cookie-parser": "~1.4.3",
         "debug": "~2.6.9",
