@@ -115,6 +115,16 @@ var Market = new SchemaObject({
                 self.save_db_mua(price, 1);
             }
         },
+        orderMuaHotMarket:function(){
+            console.log(clc.green('Order Hot'), self.MarketName + " price:" + price);
+
+            self.setOptions({minGain:2,chienLuocBan:'chienLuocBanMinTrailingStop'});
+            if (process.env.NODE_ENV == "production") {
+
+            }else{
+                self.save_db_mua(self.last, 1);
+            }
+        },
         save_db_mua: async function (price, amount, id, time) {
             var self = this;
             var time = time || moment();
@@ -175,10 +185,10 @@ var Market = new SchemaObject({
                 if (self.onOrder)
                     return;
                 /*
-                 * CHeck chien luoc
-                 */
+                * CHeck chien luoc
+                */
 
-                 if (self.chienLuocBan == "chienLuocBanMin") {
+                if (self.chienLuocBan == "chienLuocBanMin") {
                     if (self.isBanMin() && (self.chienLuocBanRSI() || self.isBanMACD()))
                         self.orderBan(price);
                 } else if (self.chienLuocBan == "chienLuocBanMoc") {
@@ -187,6 +197,16 @@ var Market = new SchemaObject({
                 } else if (self.chienLuocBan == "chienluocBanHeikin") {
                     if (self.isBanMin() && self.isBanHeikin())
                         self.orderBan(price);
+                }else if (self.chienLuocBan == "chienLuocBanMinTrailingStop") {
+                    if(self.isBanMin()){
+                        var stopLoss = parseFloat(self.last) - parseFloat(self.last * self.minGain / 100);
+                        if(stopLoss > self.stopLoss){
+                            self.stopLoss = stopLoss;
+                        }
+                    }
+                    if (self.isStopLoss() || (self.isBanMin() && (self.chienLuocBanRSI() || self.isBanMACD())))
+                        self.orderBan(price);
+                    
                 }
             }
         },
@@ -331,6 +351,12 @@ var Market = new SchemaObject({
             }
             return false;
         },
+        isStopLoss:function(){
+            var self = this;
+            if (self.last > self.stopLoss)
+                return false;
+            return true;
+        },
         chienLuocBanRSI: function () {
             var self = this;
             /*
@@ -428,6 +454,8 @@ var Market = new SchemaObject({
                 var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1[1].close + "</p><p>Check Price:" + candle2[1].high + "</p><p style='color:green;'>Percent:" + percent + "</p>";
                 Mail.sendmail("[PUMP]" + self.MarketName + " PUMP", html);
                 io.emit("hotMarket", {symbol: self.MarketName, last: self.last, type: 1});
+                self.orderMuaHotMarket();
+                self.save_db_hotMarket(0);
                 return;
             }
 
@@ -440,7 +468,34 @@ var Market = new SchemaObject({
                 var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1[1].close + "</p><p>Check Price:" + candle2[1].low + "</p><p style='color:red;'>Percent:" + percent + "</p>";
                 Mail.sendmail("[DUMP]" + self.MarketName + " DUMP", html);
                 io.emit("hotMarket", {symbol: self.MarketName, last: self.last, type: 2});
+                self.save_db_hotMarket(1);
                 return;
+            }
+        },
+        save_db_hotMarket:function(is_Dump){
+            var self = this;
+            var time = moment().valueOf();
+            var insert = {
+                MarketName: self.MarketName,
+                timestamp: time,
+                price: self.last,
+                is_Dump:is_Dump
+            };
+            return mysql.createConnection(options_sql).then(function (conn) {
+                var result = conn.query('INSERT INTO hot_market SET ?', insert);
+                conn.end();
+                return result;
+            }).catch(function (error) {
+                return false;
+            }).then(function () {
+                return true;
+            });
+        },
+        setOptions:function(obj){
+            var self = this;
+            for(var key in obj){
+                var value = obj[key];
+                self[key] = value;
             }
         },
         save_db_quantity: function () {
