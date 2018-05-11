@@ -269,6 +269,7 @@ function marketdynamic() {
                     tooltips: {
                         callbacks: {
                             label: function (tooltipItem, data) {
+                                console.log(data);
                                 var label = data.datasets[tooltipItem.datasetIndex].label || '';
                                 return label;
                             },
@@ -285,8 +286,11 @@ function marketdynamic() {
                         }
                     },
                     events: ['click', "mousemove"],
-                    onClick: function (a, b, c, d) {
-                        console.log(b);
+                    onClick: function (a, b) {
+                        var firstPoint = b[0];
+                        var symbol = scatterChart.data.datasets[firstPoint._datasetIndex].label;
+                        var value = scatterChart.data.datasets[firstPoint._datasetIndex].data[firstPoint._index];
+                        $(".fancybox[data-symbol='" + symbol + "']").first().trigger("click");
                     }
                 }
             });

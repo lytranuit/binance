@@ -3,11 +3,6 @@ $(document).ready(function () {
     $("#marketdynamic").click(function () {
         marketdynamic();
     });
-    $(document).off("click", "#scatterChart canvas").on("click", "#scatterChart canvas", function (evt) {
-//        console.log(evt);
-//        var points = scatterChart.getPointsAtEvent(evt);
-//        alert(scatterChart.datasets[0].points.indexOf(points[0]));
-    });
     $('#history').DataTable();
     $('#tickets').DataTable({
         "lengthMenu": [
@@ -45,7 +40,7 @@ $(document).ready(function () {
     });
     $("#volumn .ticket-card").dblclick(function () {
         var symbol = $(this).attr("data-symbol");
-        $("body").append('<a class="fancybox d-none" data-toggle="modal" data-target="#myModal"  href="#" data-symbol="' + symbol + '"></a>')
+        $("body").append('<a class="fancybox d-none" data-toggle="modal" data-target="#myModal"  href="" data-symbol="' + symbol + '"></a>')
         $(".fancybox[data-symbol='" + symbol + "']").first().trigger("click");
     });
     $("#refreshcheck").dblclick(function () {

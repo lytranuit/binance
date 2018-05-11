@@ -170,6 +170,7 @@ var Market = new SchemaObject({
             }
             self.priceBuyAvg = parseFloat(sumcoin / sumamount);
             self.minPriceSell = parseFloat(self.priceBuyAvg) + parseFloat(self.priceBuyAvg * self.minGain / 100);
+            self.stopLoss = parseFloat(self.priceBuyAvg) - parseFloat(self.priceBuyAvg * self.minGain * 2 / 100);
             io.emit("market_update", {market: self});
         },
         checkban: function (price) {
