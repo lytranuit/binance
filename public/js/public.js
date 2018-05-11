@@ -232,7 +232,7 @@ function marketdynamic() {
         success: function (scatterChartData) {
             $("#scatterChart").html("<canvas></canvas>");
             var scatterChartCanvas = $("#scatterChart canvas").get(0).getContext("2d");
-            var scatterChart = new Chart(scatterChartCanvas, {
+            scatterChart = new Chart(scatterChartCanvas, {
                 type: 'scatter',
                 data: scatterChartData,
                 options: {
@@ -250,7 +250,8 @@ function marketdynamic() {
                                 ticks: {
                                     callback: function (value, index, values) {
                                         return value + '%';
-                                    }
+                                    },
+                                    stepSize: 5
                                 }
                             }], xAxes: [{
                                 scaleLabel: {
@@ -260,15 +261,14 @@ function marketdynamic() {
                                 ticks: {
                                     callback: function (value, index, values) {
                                         return value + '%';
-                                    }
+                                    },
+                                    stepSize: 5
                                 }
                             }]
                     },
                     tooltips: {
                         callbacks: {
                             label: function (tooltipItem, data) {
-                                console.log(data);
-                                console.log(tooltipItem);
                                 var label = data.datasets[tooltipItem.datasetIndex].label || '';
                                 return label;
                             },
@@ -283,6 +283,10 @@ function marketdynamic() {
                                 return label;
                             },
                         }
+                    },
+                    events: ['click', "mousemove"],
+                    onClick: function (a, b, c, d) {
+                        console.log(b);
                     }
                 }
             });

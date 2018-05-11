@@ -36,6 +36,7 @@ var Market = new SchemaObject({
     priceSellAvg: numberType,
     minPriceSell: numberType,
     maxPriceSell: numberType,
+    stopLoss: numberType,
     mocPriceSell: {type: Number, default: 500000},
     mocPriceBuy: numberType,
     chienLuocMua: {type: String, default: "chienluocMuaHeikin"}, /// chienLuocMuaMoc,chienLuocMuaDay
@@ -59,7 +60,7 @@ var Market = new SchemaObject({
             if (markets['BTCUSDT']['indicator_5m']['mfi'] < 35) {
                 if (currentTime != markets['BTCUSDT'].periodTime)
                     // console.log(clc.black.bgYellow('Down'), " MFI:" + markets['BTCUSDT']['indicator_5m']['mfi']);
-                return;
+                    return;
             }
             if (self.indicator_1h.td || self.indicator_1h.dt) {
                 return;
@@ -98,7 +99,7 @@ var Market = new SchemaObject({
             /*
              * VAO LENH
              */
-             if (process.env.NODE_ENV == "production") {
+            if (process.env.NODE_ENV == "production") {
                 var amount = Math.ceil(self.amountbuy / price);
                 self.onOrder = true;
                 binance.buy(self.MarketName, amount, price, (error, response) => {
@@ -115,14 +116,14 @@ var Market = new SchemaObject({
                 self.save_db_mua(price, 1);
             }
         },
-        orderMuaHotMarket:function(){
+        orderMuaHotMarket: function () {
             var self = this
-            console.log(clc.green('Order Hot'), self.MarketName + " price:" + price);
+            console.log(clc.green('Order Hot'), self.MarketName + " price:" + self.last);
 
-            self.setOptions({minGain:2,chienLuocBan:'chienLuocBanMinTrailingStop'});
+            self.setOptions({minGain: 2, chienLuocBan: 'chienLuocBanMinTrailingStop'});
             if (process.env.NODE_ENV == "production") {
 
-            }else{
+            } else {
                 self.save_db_mua(self.last, 1);
             }
         },
@@ -186,8 +187,8 @@ var Market = new SchemaObject({
                 if (self.onOrder)
                     return;
                 /*
-                * CHeck chien luoc
-                */
+                 * CHeck chien luoc
+                 */
 
                 if (self.chienLuocBan == "chienLuocBanMin") {
                     if (self.isBanMin() && (self.chienLuocBanRSI() || self.isBanMACD()))
@@ -198,16 +199,16 @@ var Market = new SchemaObject({
                 } else if (self.chienLuocBan == "chienluocBanHeikin") {
                     if (self.isBanMin() && self.isBanHeikin())
                         self.orderBan(price);
-                }else if (self.chienLuocBan == "chienLuocBanMinTrailingStop") {
-                    if(self.isBanMin()){
+                } else if (self.chienLuocBan == "chienLuocBanMinTrailingStop") {
+                    if (self.isBanMin()) {
                         var stopLoss = parseFloat(self.last) - parseFloat(self.last * self.minGain / 100);
-                        if(stopLoss > self.stopLoss){
+                        if (stopLoss > self.stopLoss) {
                             self.stopLoss = stopLoss;
                         }
                     }
                     if (self.isStopLoss() || (self.isBanMin() && (self.chienLuocBanRSI() || self.isBanMACD())))
                         self.orderBan(price);
-                    
+
                 }
             }
         },
@@ -215,9 +216,9 @@ var Market = new SchemaObject({
             /*
              * VAO LENH
              */
-             var self = this;
-             console.log(clc.red('Order'), self.MarketName + " price:" + price);
-             if (process.env.NODE_ENV == "production") {
+            var self = this;
+            console.log(clc.red('Order'), self.MarketName + " price:" + price);
+            if (process.env.NODE_ENV == "production") {
                 self.onOrder = true;
                 binance.sell(self.MarketName, myBalances[self.altCoin].available, price, (error, response) => {
                     if (error) {
@@ -284,11 +285,11 @@ var Market = new SchemaObject({
             /*
              * RESET
              */
-             var trade_session = self.trade_session;
+            var trade_session = self.trade_session;
 
-             var sumamount_buy = 0;
-             var array_time = [];
-             for (var i in trade_session.trade_buy) {
+            var sumamount_buy = 0;
+            var array_time = [];
+            for (var i in trade_session.trade_buy) {
                 sumamount_buy += parseFloat(trade_session.trade_buy[i].amount);
                 array_time.push(moment(trade_session.trade_buy[i].time).valueOf());
             }
@@ -310,7 +311,7 @@ var Market = new SchemaObject({
                 /*
                  * SAVE SESSION
                  */
-                 var insert = {
+                var insert = {
                     MarketName: self.MarketName,
                     price_buy: self.priceBuyAvg,
                     price_sell: self.priceSellAvg,
@@ -352,7 +353,7 @@ var Market = new SchemaObject({
             }
             return false;
         },
-        isStopLoss:function(){
+        isStopLoss: function () {
             var self = this;
             if (self.last > self.stopLoss)
                 return false;
@@ -363,7 +364,7 @@ var Market = new SchemaObject({
             /*
              * RSI > 80
              */
-             if (!self.isCheckRsiBan || self.indicator_5m.rsi < 80)
+            if (!self.isCheckRsiBan || self.indicator_5m.rsi < 80)
                 return false;
             return true;
         },
@@ -372,7 +373,7 @@ var Market = new SchemaObject({
             /*
              * MACD < 0
              */
-             if (self.isCheckMACDBan && self.indicator_5m.MACD.histogram > 0)
+            if (self.isCheckMACDBan && self.indicator_5m.MACD.histogram > 0)
                 return false;
             return true;
         },
@@ -381,7 +382,7 @@ var Market = new SchemaObject({
             /*
              * price < min
              */
-             if (self.last < self.minPriceSell)
+            if (self.last < self.minPriceSell)
                 return false;
             return true;
         },
@@ -390,7 +391,7 @@ var Market = new SchemaObject({
             /*
              * price < moc
              */
-             if (self.last < self.mocPriceSell)
+            if (self.last < self.mocPriceSell)
                 return false;
             return true;
         },
@@ -405,7 +406,7 @@ var Market = new SchemaObject({
             /*
              * price < moc
              */
-             if (self.last > self.mocPriceBuy)
+            if (self.last > self.mocPriceBuy)
                 return false;
             return true;
         },
@@ -473,14 +474,14 @@ var Market = new SchemaObject({
                 return;
             }
         },
-        save_db_hotMarket:function(is_Dump){
+        save_db_hotMarket: function (is_Dump) {
             var self = this;
             var time = moment().valueOf();
             var insert = {
-                MarketName: self.MarketName,
+                symbol: self.MarketName,
                 timestamp: time,
                 price: self.last,
-                is_Dump:is_Dump
+                is_Dump: is_Dump
             };
             return mysql.createConnection(options_sql).then(function (conn) {
                 var result = conn.query('INSERT INTO hot_market SET ?', insert);
@@ -492,9 +493,9 @@ var Market = new SchemaObject({
                 return true;
             });
         },
-        setOptions:function(obj){
+        setOptions: function (obj) {
             var self = this;
-            for(var key in obj){
+            for (var key in obj) {
                 var value = obj[key];
                 self[key] = value;
             }
@@ -557,33 +558,33 @@ var Market = new SchemaObject({
                 }
             }, {fromId: id_trade});
         },
-        sync_candles:function(){
+        sync_candles: function () {
             var self = this;
             var market = self.MarketName;
             mysql.createConnection(options_sql).then(function (conn) {
-                var result = conn.query("SELECT timestamp FROM candles where `symbol` = '"+market+"' and `interval` ='1h' and `is_Final` = 0 ORDER BY `timestamp` DESC LIMIT 1");
+                var result = conn.query("SELECT timestamp FROM candles where `symbol` = '" + market + "' and `interval` ='1h' and `is_Final` = 0 ORDER BY `timestamp` DESC LIMIT 1");
                 conn.end();
                 return result[0]['timestamp'];
-            }).catch(function(){
+            }).catch(function () {
                 return 0;
-            }).then(function(timestamp){
-                var options = {limit:1000};
-                if(timestamp > 0)
+            }).then(function (timestamp) {
+                var options = {limit: 1000};
+                if (timestamp > 0)
                     options['startTime'] = timestamp;
-                binance.candlesticks(market,"1h", (error, ticks, symbol)=>{
+                binance.candlesticks(market, "1h", (error, ticks, symbol) => {
                     var values = [];
-                    var keys = ['symbol','interval','timestamp','open','high','low','close','volume','is_Final'];
+                    var keys = ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'is_Final'];
                     if (binance.isIterable(ticks)) {
-                        for(let tick of ticks){
+                        for (let tick of ticks) {
                             let [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = tick;
-                            let candle = {open:open, high:high, low:low, close:close, volume:volume};
+                            let candle = {open: open, high: high, low: low, close: close, volume: volume};
                             markets[symbol]['indicator_1h'].candles[time] = candle;
-                            let is_Final = ticks[ticks.length - 1][0] == time ? 0:1;
-                            values.push([symbol,'1h',time,open,high,low,close,volume,is_Final]);
+                            let is_Final = ticks[ticks.length - 1][0] == time ? 0 : 1;
+                            values.push([symbol, '1h', time, open, high, low, close, volume, is_Final]);
                         }
-                        markets[symbol]['indicator_1h'].save_db_candles(keys,values);
+                        markets[symbol]['indicator_1h'].save_db_candles(keys, values);
                     }
-                },options);
+                }, options);
             })
         }
     }
