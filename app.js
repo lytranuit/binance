@@ -265,7 +265,7 @@ module.exports = app;
                 
                 markets[market] = new MarketModel(obj);
                 array_market.push(market);
-                if (process.env.NODE_ENV == "ANALYTICS") {
+                if (process.env.NODE_ENV == "ANALYTICS" ||process.env.NODE_ENV == "production") {
                 	markets[market].sync_candles();
                 }
             }
