@@ -30,6 +30,8 @@ var Mail = require("./models/mail");
  	password: process.env.DB_PASSWORD,
  	database: process.env.DB_NAME
  }
+ 
+ global.pool = mysql.createPool(options_sql);
 /******************
  *
  * END CONFIG MYSQL

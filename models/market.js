@@ -512,11 +512,7 @@ var Market = new SchemaObject({
                 count_sell: self.indicator_1h.count_sell,
                 price: self.last
             };
-            return mysql.createConnection(options_sql).then(function (conn) {
-                var result = conn.query('INSERT INTO event_quantity SET ?', insert);
-                conn.end();
-                return result;
-            }).catch(function (error) {
+            return pool.query('INSERT INTO event_quantity SET ?', insert).catch(function (error) {
                 return false;
             }).then(function () {
                 return true;
@@ -562,9 +558,7 @@ var Market = new SchemaObject({
         sync_candles: function () {
             var self = this;
             var market = self.MarketName;
-            mysql.createConnection(options_sql).then(function (conn) {
-                var result = conn.query("SELECT timestamp FROM candles where `symbol` = '" + market + "' and `interval` ='1h' and `is_Final` = 0 ORDER BY `timestamp` DESC LIMIT 1");
-                conn.end();
+            pool.query("SELECT timestamp FROM candles where `symbol` = '" + market + "' and `interval` ='1h' and `is_Final` = 0 ORDER BY `timestamp` DESC LIMIT 1").then(function (result) {
                 return result[0]['timestamp'];
             }).catch(function () {
                 return 0;
