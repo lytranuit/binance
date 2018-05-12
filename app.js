@@ -265,21 +265,21 @@ module.exports = app;
                 
                 markets[market] = new MarketModel(obj);
                 array_market.push(market);
-                if (process.env.NODE_ENV == "ANALYTICS" ||process.env.NODE_ENV == "production") {
+                if (process.env.NODE_ENV == "ANALYTICS" || process.env.NODE_ENV == "production") {
                 	markets[market].sync_candles();
                 }
             }
             binance.websockets.chart(array_market, "1h", (market, interval, results) => {
             	if (Object.keys(results).length === 0)
             		return;
-            	let tick = binance.last(results);
+            	var tick = binance.last(results);
             	var last = results[tick].close;
             	var volume = results[tick].volume;
             	markets[market]['indicator_' + interval].volume = volume;
             	if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
 
             	} else {
-                    //markets[market].save_db_quantity();
+                    //markets[market].save_db_quantity();                                
                     markets[market].refreshTrade();
                     markets[market].isHotMarket = false;
                     delete results[tick];
