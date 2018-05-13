@@ -455,7 +455,8 @@ var Market = new SchemaObject({
                 self.isHotMarket = true;
                 var percent = 100 * (candle1[1].close - candle2[1].high) / candle2[1].high;
                 var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1[1].close + "</p><p>Check Price:" + candle2[1].high + "</p><p style='color:green;'>Percent:" + percent + "</p>";
-                Mail.sendmail("[PUMP]" + self.MarketName + " PUMP", html);
+                if(process.env.NODE_ENV == "production")
+                    Mail.sendmail("[PUMP]" + self.MarketName + " PUMP", html);
                 io.emit("hotMarket", {symbol: self.MarketName, last: self.last, type: 1});
                 self.orderMuaHotMarket();
                 self.save_db_hotMarket(0);
@@ -469,7 +470,8 @@ var Market = new SchemaObject({
                 self.isHotMarket = true;
                 var percent = 100 * (candle1[1].close - candle2[1].low) / candle2[1].low;
                 var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1[1].close + "</p><p>Check Price:" + candle2[1].low + "</p><p style='color:red;'>Percent:" + percent + "</p>";
-                Mail.sendmail("[DUMP]" + self.MarketName + " DUMP", html);
+                if(process.env.NODE_ENV == "production")
+                    Mail.sendmail("[DUMP]" + self.MarketName + " DUMP", html);
                 io.emit("hotMarket", {symbol: self.MarketName, last: self.last, type: 2});
                 self.save_db_hotMarket(1);
                 return;
@@ -558,30 +560,73 @@ var Market = new SchemaObject({
         sync_candles: function () {
             var self = this;
             var market = self.MarketName;
-            pool.query("SELECT timestamp FROM candles where `symbol` = '" + market + "' and `interval` ='1h' and `is_Final` = 0 ORDER BY `timestamp` DESC LIMIT 1").then(function (result) {
+            pool.query("SELECT timestamp FROM candles where `symbol` = '" + market + "' and `interval` ='5m' and `is_Final` = 0 ORDER BY `timestamp` DESC LIMIT 1").then(function (result) {
                 return result[0]['timestamp'];
             }).catch(function () {
                 return 0;
             }).then(function (timestamp) {
                 var options = {limit: 1000};
-                if (timestamp > 0)
+                if (timestamp > 0){
                     options['startTime'] = timestamp;
-                binance.candlesticks(market, "1h", (error, ticks, symbol) => {
-                    var values = [];
-                    var keys = ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'is_Final'];
-                    if (self.isIterable(ticks)) {
-                        for (let tick of ticks) {
-                            let [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = tick;
-                            let candle = {open: open, high: high, low: low, close: close, volume: volume};
-                            markets[symbol]['indicator_1h'].candles[time] = candle;
-                            let is_Final = ticks[ticks.length - 1][0] == time ? 0 : 1;
-                            values.push([symbol, '1h', time, open, high, low, close, volume, is_Final]);
+                    binance.candlesticks(market, "5m", (error, ticks, symbol) => {
+                        var values = [];
+                        var keys = ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'is_Final'];
+                        if (self.isIterable(ticks)) {
+                            for (let tick of ticks) {
+                                let [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = tick;
+                                let is_Final = ticks[ticks.length - 1][0] == time ? 0 : 1;
+                                values.push([symbol, '5m', time, open, high, low, close, volume, is_Final]);
+                            }
+                            if(values.length > 1)
+                                self['indicator_5m'].save_db_candles(keys, values);
                         }
-                        if(values.length > 1)
-                            markets[symbol]['indicator_1h'].save_db_candles(keys, values);
-                    }
-                }, options);
-            })
+                    }, options);
+                }else{
+                    var keys = ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'is_Final'];
+                    var values = [];
+                    var count = 0;
+                    binance.candlesticks(market, "5m", (error, ticks, symbol) => {
+                        if (self.isIterable(ticks)) {
+                            for (let tick of ticks) {
+                                let [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = tick;
+                                let is_Final = ticks[ticks.length - 1][0] == time ? 0 : 1;
+                                values.push([symbol, '5m', time, open, high, low, close, volume, is_Final]);
+                            }
+                        }
+                        count++;
+                    }, options);
+                    var remainder = 5 - (moment().minute() % 5);
+                    options['endTime'] = moment().add(remainder, "minutes").valueOf() - (5 * 60 * 1000 * 1000);
+                    binance.candlesticks(market, "5m", (error, ticks, symbol) => {
+                        if (self.isIterable(ticks)) {
+                            for (let tick of ticks) {
+                                let [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = tick;
+                                let is_Final = ticks[ticks.length - 1][0] == time ? 0 : 1;
+                                values.push([symbol, '5m', time, open, high, low, close, volume, is_Final]);
+                            }
+                        }
+                        count++
+                    }, options);
+                    var remainder = 5 - (moment().minute() % 5);
+                    options['endTime'] = moment().add(remainder, "minutes").valueOf() - (5 * 60 * 1000 * 1000 * 2);
+                    binance.candlesticks(market, "5m", (error, ticks, symbol) => {
+                        if (self.isIterable(ticks)) {
+                            for (let tick of ticks) {
+                                let [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = tick;
+                                let is_Final = ticks[ticks.length - 1][0] == time ? 0 : 1;
+                                values.push([symbol, '5m', time, open, high, low, close, volume, is_Final]);
+                            }
+                        }
+                        count++;
+                    }, options);
+                    var timer = setInterval(function(){
+                        if(count == 3){
+                            clearInterval(timer);
+                            self['indicator_5m'].save_db_candles(keys, values);
+                        }
+                    },1000);
+                }
+            });
         },
         isIterable:function(obj) {
             if (obj === null) {

@@ -36,7 +36,7 @@ router.get('/updatedata', ensureAuthenticated,function (req, res, next) {
 });
 router.get('/marketdynamic', ensureAuthenticated, async function (req, res, next) {
 	var data = await mysql.createConnection(options_sql).then(function (conn) {
-		var result = conn.query("SELECT symbol,SUM(IF(TIMESTAMP = (ROUND(UNIX_TIMESTAMP() / 3600) * 3600 - (24 * 3600)) * 1000,CLOSE,0)) AS price_1day_prev,SUM(IF(TIMESTAMP = (ROUND(UNIX_TIMESTAMP() / 3600) * 3600 - (7 *24 * 3600)) * 1000,CLOSE,0)) AS price_7day_prev FROM candles WHERE is_Final = 1 GROUP BY symbol,`interval`");
+		var result = conn.query("SELECT symbol,IFNULL(SUM(IF(TIMESTAMP = (ROUND(UNIX_TIMESTAMP() / 3600) * 3600 - (24 * 3600)) * 1000,CLOSE,0)),0) AS price_1day_prev,IFNULL(SUM(IF(TIMESTAMP = (ROUND(UNIX_TIMESTAMP() / 3600) * 3600 - (7 *24 * 3600)) * 1000,CLOSE,0)),0) AS price_7day_prev FROM candles WHERE is_Final = 1 GROUP BY symbol,`interval`");
 		conn.end();
 		return result;
 	})
@@ -47,10 +47,10 @@ router.get('/marketdynamic', ensureAuthenticated, async function (req, res, next
 		var row = data[i];
 		var symbol = row.symbol;
 		var price_current = markets[symbol].last;
-		var price_24h = row.price_1day_prev;
-		var price_7day = row.price_7day_prev;
-		var percent_24h = round((price_current - price_24h) / price_24h * 100,2);
-		var percent_7day = round((price_current - price_7day) / price_7day * 100,2);
+		var price_24h = row.price_1day_prev || 0;
+		var price_7day = row.price_7day_prev || 0;
+		var percent_24h = round((price_current - price_24h) / price_24h * 100,2) ||0;
+		var percent_7day = round((price_current - price_7day) / price_7day * 100,2) || 0;
 		datasets.push({
 			label: symbol,
 			pointBackgroundColor: colorHash.hex(symbol),
