@@ -27,6 +27,13 @@ router.get('/allmarket', ensureAuthenticated,function (req, res, next) {
 	}
 	res.json({marketName:marketName});
 });
+router.get('/updatedata', ensureAuthenticated,function (req, res, next) {
+	var marketName = [];
+	for (var market in markets) {
+		markets[market].sync_candles();
+	}
+	res.json({success:1});
+});
 router.get('/marketdynamic', ensureAuthenticated, async function (req, res, next) {
 	var data = await mysql.createConnection(options_sql).then(function (conn) {
 		var result = conn.query("SELECT symbol,SUM(IF(TIMESTAMP = (ROUND(UNIX_TIMESTAMP() / 3600) * 3600 - (24 * 3600)) * 1000,CLOSE,0)) AS price_1day_prev,SUM(IF(TIMESTAMP = (ROUND(UNIX_TIMESTAMP() / 3600) * 3600 - (7 *24 * 3600)) * 1000,CLOSE,0)) AS price_7day_prev FROM candles WHERE is_Final = 1 GROUP BY symbol,`interval`");
