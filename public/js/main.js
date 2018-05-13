@@ -6,15 +6,15 @@ $(document).ready(function () {
     $('#history').DataTable();
     $('#tickets').DataTable({
         "lengthMenu": [
-            [10, 25, 50, -1],
-            [10, 25, 50, "All"]
+        [10, 25, 50, -1],
+        [10, 25, 50, "All"]
         ],
         "iDisplayLength": -1
     });
     $('#BTC-market').DataTable({
         "lengthMenu": [
-            [10, 25, 50, -1],
-            [10, 25, 50, "All"]
+        [10, 25, 50, -1],
+        [10, 25, 50, "All"]
         ],
         "iDisplayLength": -1
     });
@@ -356,5 +356,8 @@ $(document).ready(function () {
             dataType: "JSON",
             success: function (data) {}
         });
+    });
+    $("#toggle-sidebar").click(function(){
+        $(".page-body-wrapper").toggleClass("full-page");
     })
 });
