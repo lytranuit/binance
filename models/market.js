@@ -560,72 +560,35 @@ var Market = new SchemaObject({
         sync_candles: function () {
             var self = this;
             var market = self.MarketName;
-            pool.query("SELECT timestamp FROM candles where `symbol` = '" + market + "' and `interval` ='5m' and `is_Final` = 0 ORDER BY `timestamp` DESC LIMIT 1").then(function (result) {
-                return result[0]['timestamp'];
+            pool.query("SELECT MAX(TIMESTAMP) AS max_time,MIN(TIMESTAMP) AS min_time,COUNT(1) AS count_row FROM candles WHERE `symbol` = '"+market+"' AND `interval` ='5m' GROUP BY symbol , `interval`").then(function (result) {
+                if(result.length)
+                    return result[0];
+                else
+                    throw "No data";
             }).catch(function () {
-                return 0;
-            }).then(function (timestamp) {
+                return {};
+            }).then(function (result) {
                 var options = {limit: 1000};
-                if (timestamp > 0){
-                    options['startTime'] = timestamp;
-                    binance.candlesticks(market, "5m", (error, ticks, symbol) => {
-                        var values = [];
-                        var keys = ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'is_Final'];
-                        if (self.isIterable(ticks)) {
-                            for (let tick of ticks) {
-                                let [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = tick;
-                                let is_Final = ticks[ticks.length - 1][0] == time ? 0 : 1;
-                                values.push([symbol, '5m', time, open, high, low, close, volume, is_Final]);
-                            }
-                            if(values.length > 1)
-                                self['indicator_5m'].save_db_candles(keys, values);
-                        }
-                    }, options);
-                }else{
-                    var keys = ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'is_Final'];
-                    var values = [];
-                    var count = 0;
-                    binance.candlesticks(market, "5m", (error, ticks, symbol) => {
-                        if (self.isIterable(ticks)) {
-                            for (let tick of ticks) {
-                                let [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = tick;
-                                let is_Final = ticks[ticks.length - 1][0] == time ? 0 : 1;
-                                values.push([symbol, '5m', time, open, high, low, close, volume, is_Final]);
-                            }
-                        }
-                        count++;
-                    }, options);
-                    var remainder = 5 - (moment().minute() % 5);
-                    options['endTime'] = moment().add(remainder, "minutes").valueOf() - (5 * 60 * 1000 * 1000);
-                    binance.candlesticks(market, "5m", (error, ticks, symbol) => {
-                        if (self.isIterable(ticks)) {
-                            for (let tick of ticks) {
-                                let [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = tick;
-                                let is_Final = ticks[ticks.length - 1][0] == time ? 0 : 1;
-                                values.push([symbol, '5m', time, open, high, low, close, volume, is_Final]);
-                            }
-                        }
-                        count++
-                    }, options);
-                    var remainder = 5 - (moment().minute() % 5);
-                    options['endTime'] = moment().add(remainder, "minutes").valueOf() - (5 * 60 * 1000 * 1000 * 2);
-                    binance.candlesticks(market, "5m", (error, ticks, symbol) => {
-                        if (self.isIterable(ticks)) {
-                            for (let tick of ticks) {
-                                let [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = tick;
-                                let is_Final = ticks[ticks.length - 1][0] == time ? 0 : 1;
-                                values.push([symbol, '5m', time, open, high, low, close, volume, is_Final]);
-                            }
-                        }
-                        count++;
-                    }, options);
-                    var timer = setInterval(function(){
-                        if(count == 3){
-                            clearInterval(timer);
-                            self['indicator_5m'].save_db_candles(keys, values);
-                        }
-                    },1000);
+                if (result.max_time){
+                    options['startTime'] = result.max_time;
                 }
+                if(result.count_row == 1000 || result.count_row == 1999){
+                    delete options['startTime'];
+                    options['endTime'] = result.min_time;
+                }
+                binance.candlesticks(market, "5m", (error, ticks, symbol) => {
+                    var values = [];
+                    var keys = ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'is_Final'];
+                    if (self.isIterable(ticks)) {
+                        for (let tick of ticks) {
+                            let [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = tick;
+                            let is_Final = ticks[ticks.length - 1][0] == time && options['startTime'] > 0 ? 0 : 1;
+                            values.push([symbol, '5m', time, open, high, low, close, volume, is_Final]);
+                        }
+                        if(values.length > 1)
+                            self['indicator_5m'].save_db_candles(keys, values);
+                    }
+                }, options);
             });
         },
         isIterable:function(obj) {
