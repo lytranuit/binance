@@ -6,15 +6,15 @@ $(document).ready(function () {
     $('#history').DataTable();
     $('#tickets').DataTable({
         "lengthMenu": [
-        [10, 25, 50, -1],
-        [10, 25, 50, "All"]
+            [10, 25, 50, -1],
+            [10, 25, 50, "All"]
         ],
         "iDisplayLength": -1
     });
     $('#BTC-market').DataTable({
         "lengthMenu": [
-        [10, 25, 50, -1],
-        [10, 25, 50, "All"]
+            [10, 25, 50, -1],
+            [10, 25, 50, "All"]
         ],
         "iDisplayLength": -1
     });
@@ -117,7 +117,7 @@ $(document).ready(function () {
     $(".order_by_trade").click(function (e) {
         e.preventDefault();
         var interval = $(this).attr("data-interval");
-        var parents = $("#BTC-market tbody");
+        var parents = $("#BTC-market > tbody");
         parents.children(".tr_market").sort(function (a, b) {
             var volumea = parseFloat($(a).attr("data-volume_" + interval));
             var volumeb = parseFloat($(b).attr("data-volume_" + interval));
@@ -130,7 +130,7 @@ $(document).ready(function () {
     })
     $(".order_by_change").click(function (e) {
         e.preventDefault();
-        var parents = $("#BTC-market tbody");
+        var parents = $("#BTC-market > tbody");
         parents.children(".tr_market").sort(function (a, b) {
             var volumea = parseFloat($(a).attr("data-order"));
             var volumeb = parseFloat($(b).attr("data-order"));
@@ -357,7 +357,7 @@ $(document).ready(function () {
             success: function (data) {}
         });
     });
-    $("#toggle-sidebar").click(function(){
+    $("#toggle-sidebar").click(function () {
         $(".page-body-wrapper").toggleClass("full-page");
     })
 });

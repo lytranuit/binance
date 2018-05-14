@@ -3,7 +3,8 @@ const moment = require('moment');
 const mysql = require('promise-mysql');
 var router = express.Router();
 /* GET home page. */
-router.get('/', ensureAuthenticated,async function (req, res, next) {
+router.get('/', ensureAuthenticated, async function (req, res, next) {
+    await set_change();
     var lastBTC = markets['BTCUSDT'].last;
     var marketBuy = [];
     var marketHot = {"BTCUSDT": markets['BTCUSDT']};
@@ -18,16 +19,16 @@ router.get('/', ensureAuthenticated,async function (req, res, next) {
         marketName.push(market);
     }
 
-    marketBuy.sort(function(a, b){
+    marketBuy.sort(function (a, b) {
         var timeBuyNexta = a.timeBuyNext;
         var timeBuyNextb = b.timeBuyNext;
-        if(timeBuyNexta == timeBuyNextb)
+        if (timeBuyNexta == timeBuyNextb)
             return 0;
         return timeBuyNexta < timeBuyNextb ? 1 : -1;
     });
     var sumBTC = 0;
     var sumUSDT = 0;
-    if(process.env.NODE_ENV == "production"){
+    if (process.env.NODE_ENV == "production") {
         for (var coin in myBalances) {
             var ava = myBalances[coin].available;
             var order = myBalances[coin].onOrder;
@@ -42,22 +43,24 @@ router.get('/', ensureAuthenticated,async function (req, res, next) {
         sumUSDT = sumBTC * lastBTC;
     }
     /*
-    * HISTORY
-    */
+     * HISTORY
+     */
     var where = "WHERE 1=1 and deleted = 0";
     var rows = await mysql.createConnection(options_sql).then(function (conn) {
         var result = conn.query("SELECT *,ROUND(100 * (price_sell-price_buy) / price_buy,2) as percent,FROM_UNIXTIME(FLOOR(TIMESTAMP / 1000)) as timestamp FROM trade_session  ORDER BY timestamp desc");
         conn.end();
         return result;
     })
-    res.render('index', {title: 'Express',marketName:marketName, sumBTC: sumBTC, sumUSDT: sumUSDT, marketHot: marketHot, marketBuy: marketBuy, rows: rows});
+    res.render('index', {title: 'Express', marketName: marketName, sumBTC: sumBTC, sumUSDT: sumUSDT, marketHot: marketHot, marketBuy: marketBuy, rows: rows});
 });
 
 router.get('/login', function (req, res, next) {
     res.render('login');
 });
 function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) { return next(); }
-  res.redirect('/login');
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/login');
 }
 module.exports = router;
