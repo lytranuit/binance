@@ -1,6 +1,18 @@
 .full-page .sidebar{
-	display: none;
+    display: none;
 }
 .full-page .main-panel{
-	width: 100%;
+    width: 100%;
+}
+.bg-success-dark{
+    background: #01730a !important;
+}
+.bg-success-light{
+    background: #08d4196b!important
+}
+.bg-danger-dark{
+    background: #980101c4 !important
+}
+.bg-danger-light{
+    background: #ff00176e !important
 }

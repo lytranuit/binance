@@ -45,14 +45,14 @@ router.get('/', ensureAuthenticated, async function (req, res, next) {
     /*
      * HISTORY
      */
-     var where = "WHERE 1=1 and deleted = 0";
-     var rows = await mysql.createConnection(options_sql).then(function (conn) {
+    var where = "WHERE 1=1 and deleted = 0";
+    var rows = await mysql.createConnection(options_sql).then(function (conn) {
         var result = conn.query("SELECT *,ROUND(100 * (price_sell-price_buy) / price_buy,2) as percent,FROM_UNIXTIME(FLOOR(TIMESTAMP / 1000)) as timestamp FROM trade_session  ORDER BY timestamp desc");
         conn.end();
         return result;
     })
-     res.render('index', {title: 'Express', marketName: marketName, sumBTC: sumBTC, sumUSDT: sumUSDT, marketHot: marketHot, marketBuy: marketBuy, rows: rows});
- });
+    res.render('index', {title: 'Express', marketName: marketName, sumBTC: sumBTC, sumUSDT: sumUSDT, marketHot: marketHot, marketBuy: marketBuy, rows: rows});
+});
 
 router.get('/login', function (req, res, next) {
     res.render('login');
@@ -68,11 +68,11 @@ var set_change = async function (start) {
     var start = start || moment().valueOf();
     var last = Math.floor(start / 300000) * 300000 - 300000;
     var array = [
-    {interval: '5m', time: 0},
-    {interval: '15m', time: 15 * 60 * 1000},
-    {interval: '30m', time: 30 * 60 * 1000},
-    {interval: '1h', time: 60 * 60 * 1000},
-    {interval: '1d', time: 24 * 60 * 60 * 1000}
+        {interval: '5m', time: 0},
+        {interval: '15m', time: 15 * 60 * 1000},
+        {interval: '30m', time: 30 * 60 * 1000},
+        {interval: '1h', time: 60 * 60 * 1000},
+        {interval: '1d', time: 24 * 60 * 60 * 1000}
     ];
     var subsql = "";
     for (var i in array) {
@@ -98,6 +98,33 @@ var set_change = async function (start) {
                 row['change_volume_' + arr.interval] = round((volume - volume_prev) / volume_prev * 100, 2) || 0;
                 row['change_price_' + arr.interval] = round((close - close_prev) / close_prev * 100, 2) || 0;
                 row['change_highlow_' + arr.interval] = round((high - low) / low * 100, 2) || 0;
+                row['bg_price_' + arr.interval] = "bg-danger-light";
+                row['bg_price_' + arr.interval] = "bg-danger-light";
+                if (row['change_price_' + arr.interval] > 0 && row['change_price_' + arr.interval] < 2)
+                    row['bg_price_' + arr.interval] = "bg-success-light";
+                else if (row['change_price_' + arr.interval] > 2 && row['change_price_' + arr.interval] < 10)
+                    row['bg_price_' + arr.interval] = "bg-success";
+                else if (row['change_price_' + arr.interval] > 10)
+                    row['bg_price_' + arr.interval] = "bg-success-dark";
+                else if (row['change_price_' + arr.interval] < -10)
+                    row['bg_price_' + arr.interval] = "bg-danger-dark";
+                else if (row['change_price_' + arr.interval] > -10 && row['change_price_' + arr.interval] < -2)
+                    row['bg_price_' + arr.interval] = "bg-danger";
+                else if (row['change_price_' + arr.interval] > -2 && row['change_price_' + arr.interval] < 0)
+                    row['bg_price_' + arr.interval] = "bg-danger-light";
+
+                if (row['change_volume_' + arr.interval] > 0 && row['change_volume_' + arr.interval] < 100)
+                    row['bg_volume_' + arr.interval] = "bg-success-light";
+                else if (row['change_volume_' + arr.interval] > 100 && row['change_volume_' + arr.interval] < 500)
+                    row['bg_volume_' + arr.interval] = "bg-success";
+                else if (row['change_volume_' + arr.interval] > 500)
+                    row['bg_volume_' + arr.interval] = "bg-success-dark";
+                else if (row['change_volume_' + arr.interval] < -500)
+                    row['bg_volume_' + arr.interval] = "bg-danger-dark";
+                else if (row['change_volume_' + arr.interval] > -500 && row['change_volume_' + arr.interval] < -100)
+                    row['bg_volume_' + arr.interval] = "bg-danger";
+                else if (row['change_volume_' + arr.interval] > -100 && row['change_volume_' + arr.interval] < 0)
+                    row['bg_volume_' + arr.interval] = "bg-danger-light";
             }
             markets[symbol].combined = row;
         }
