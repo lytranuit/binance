@@ -361,7 +361,7 @@ function loadTrade(){
                     tr_class.push("table-danger");
                 }
                 if(luongmua > luongban)
-                    td_tile.push("text-sucess");
+                    td_tile.push("text-success");
                 else
                     td_tile.push("text-danger");
                 append += "<tr class='"+tr_class.join(" ")+"'><td>"+change+"</td><td>"+price+"</td><td>"+luongmua+"</td><td>"+luongban+"</td><td>"+chechlech+"</td><td class='"+td_tile.join(" ")+"'>"+tilemua+"</td><tr>";
