@@ -24,7 +24,7 @@ var Mail = require("./models/mail");
  * CONFIG MYSQL
  * 
  *****************/
-global.options_sql = {
+ global.options_sql = {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -38,25 +38,25 @@ global.pool = mysql.createPool(options_sql);
  * 
  *****************/
 
-passport.serializeUser(function (user, done) {
+ passport.serializeUser(function (user, done) {
     done(null, user);
 });
 
-passport.deserializeUser(function (user, done) {
+ passport.deserializeUser(function (user, done) {
     done(null, user);
 });
-passport.use(new LocalStrategy({
+ passport.use(new LocalStrategy({
     usernameField: 'username',
     passwordField: 'password',
     session: true
 },
-        function (username, password, done) {
-            if (username == "daotran" && password == "Asd1234")
-                return done(null, username);
-            else
-                return done(null, false);
-        })
-        );
+function (username, password, done) {
+    if (username == "daotran" && password == "Asd1234")
+        return done(null, username);
+    else
+        return done(null, false);
+})
+ );
 /******************
  * 
  * END CONFIG MAIL
@@ -69,8 +69,8 @@ passport.use(new LocalStrategy({
  * 
  *****************/
 
-var production = process.env.NODE_ENV === 'production'
-if (!production) {
+ var production = process.env.NODE_ENV === 'production'
+ if (!production) {
     var chokidar = require('chokidar')
     var watcher = chokidar.watch('./routes');
     watcher.on('ready', function () {
@@ -150,14 +150,14 @@ module.exports = app;
  * CONFIG BINANCE
  * 
  *****************/
-binance.options({
+ binance.options({
     APIKEY: process.env.APIKEY,
     APISECRET: process.env.APISECRET
 });
-global.currentTime = null;
-global.primaryCoin = ["BTC", "USDT"];
-global.myBalances = {};
-global.ignoreCoin = ["BNB", "BTC"];
+ global.currentTime = null;
+ global.primaryCoin = ["BTC", "USDT"];
+ global.myBalances = {};
+ global.ignoreCoin = ["BNB", "BTC"];
 
 
 /******************
@@ -165,10 +165,10 @@ global.ignoreCoin = ["BNB", "BTC"];
  * END CONFIG MAIL
  * 
  *****************/
-var MarketModel = require('./models/market');
-var ChisoModel = require('./models/chiso');
-global.markets = {};
-mysql.createConnection(options_sql).then(function (conn) {
+ var MarketModel = require('./models/market');
+ var ChisoModel = require('./models/chiso');
+ global.markets = {};
+ mysql.createConnection(options_sql).then(function (conn) {
     var result = conn.query("select * from options");
     conn.end();
     return result;
@@ -181,18 +181,18 @@ mysql.createConnection(options_sql).then(function (conn) {
         var value = rows[i]['value'];
         switch (key) {
             case "primaryCoin":
-                primaryCoin = value.split(",");
-                break;
+            primaryCoin = value.split(",");
+            break;
             case "ignoreCoin":
-                ignoreCoin = value.split(",");
-                break;
+            ignoreCoin = value.split(",");
+            break;
             default:
-                if (key.indexOf("stopmua") != -1) {
-                    global[key] = stringtoBoolean(value);
-                } else {
-                    global[key] = value;
-                }
-                break;
+            if (key.indexOf("stopmua") != -1) {
+                global[key] = stringtoBoolean(value);
+            } else {
+                global[key] = value;
+            }
+            break;
         }
     }
     return true;
@@ -312,36 +312,36 @@ mysql.createConnection(options_sql).then(function (conn) {
                 /*
                  * RESET 1 m
                  */
-                if (moment().format("ss") < 10) {
+                 if (moment().format("ss") < 10) {
                     markets[market]['indicator_1m'].refresh();
                 }
                 /*
                  * Tinh bid ask volume
                  */
-                let orderBook = markets[market].orderBook;
-                let orderBook_bids = orderBook.bids;
-                let orderBook_asks = orderBook.asks;
-                let orderBook_bids_sum = Object.values(orderBook_bids).reduce(function (sum, value) {
+                 let orderBook = markets[market].orderBook;
+                 let orderBook_bids = orderBook.bids;
+                 let orderBook_asks = orderBook.asks;
+                 let orderBook_bids_sum = Object.values(orderBook_bids).reduce(function (sum, value) {
                     return sum + parseFloat(value);
                 }, 0);
-                let orderBook_asks_sum = Object.values(orderBook_asks).reduce(function (sum, value) {
+                 let orderBook_asks_sum = Object.values(orderBook_asks).reduce(function (sum, value) {
                     return sum + parseFloat(value);
                 }, 0);
-                let trades = markets[market].trades;
-                let trades_bids = trades.bids;
-                let trades_asks = trades.asks;
-                let count_buy = trades_bids.length;
-                let count_sell = trades_asks.length;
-                let trades_bids_sum = trades_bids.reduce(function (sum, value) {
+                 let trades = markets[market].trades;
+                 let trades_bids = trades.bids;
+                 let trades_asks = trades.asks;
+                 let count_buy = trades_bids.length;
+                 let count_sell = trades_asks.length;
+                 let trades_bids_sum = trades_bids.reduce(function (sum, value) {
                     return sum + parseFloat(value.quantity);
                 }, 0);
-                let trades_asks_sum = trades_asks.reduce(function (sum, value) {
+                 let trades_asks_sum = trades_asks.reduce(function (sum, value) {
                     return sum + parseFloat(value.quantity);
                 }, 0);
-                markets[market]['indicator_' + interval].periodTime = tick;
-                io.to("interval").emit("interval", {symbol: market, interval: interval, time: tick, data: results[tick], count_buy: markets[market]['indicator_' + interval].count_buy, count_sell: markets[market]['indicator_' + interval].count_sell});
-                io.to("market").emit("market", {symbol: market, last: last, volume: volume, orderBook_bids_sum: orderBook_bids_sum, orderBook_asks_sum: orderBook_asks_sum, count_sell: count_sell, count_buy: count_buy, trades_bids_sum: trades_bids_sum, trades_asks_sum: trades_asks_sum});
-            });
+                 markets[market]['indicator_' + interval].periodTime = tick;
+                 io.to("interval").emit("interval", {symbol: market, interval: interval, time: tick, data: results[tick], count_buy: markets[market]['indicator_' + interval].count_buy, count_sell: markets[market]['indicator_' + interval].count_sell});
+                 io.to("market").emit("market", {symbol: market, last: last, volume: volume, orderBook_bids_sum: orderBook_bids_sum, orderBook_asks_sum: orderBook_asks_sum, count_sell: count_sell, count_buy: count_buy, trades_bids_sum: trades_bids_sum, trades_asks_sum: trades_asks_sum});
+             });
 
             binance.websockets.trades(array_market, (trades) => {
                 let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
@@ -403,7 +403,7 @@ mysql.createConnection(options_sql).then(function (conn) {
             });
             console.log("Price of BTC: ", ticker.BTCUSDT);
         });
-    });
+});
 }).catch(function (err) {
     console.log(err);
 });
@@ -416,11 +416,11 @@ mysql.createConnection(options_sql).then(function (conn) {
  * CONFIG APACHE
  * 
  *****************/
-var port = process.env.PORT || 3000;
-app.set('port', port);
-var server = http.createServer(app);
-global.io = require('socket.io')(server);
-io.on('connection', function (socket) {
+ var port = process.env.PORT || 3000;
+ app.set('port', port);
+ var server = http.createServer(app);
+ global.io = require('socket.io')(server);
+ io.on('connection', function (socket) {
     console.log('a user connected');
     socket.emit("start");
     socket.on("join", function (data) {
@@ -442,34 +442,34 @@ io.on('connection', function (socket) {
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+ server.listen(port);
+ server.on('error', onError);
+ server.on('listening', onListening);
 /*
  * Event listener for HTTP server "error" event.
  */
 
-function onError(error) {
+ function onError(error) {
     if (error.syscall !== 'listen') {
         throw error;
     }
 
     var bind = typeof port === 'string'
-            ? 'Pipe ' + port
-            : 'Port ' + port;
+    ? 'Pipe ' + port
+    : 'Port ' + port;
 
     // handle specific listen errors with friendly messages
     switch (error.code) {
         case 'EACCES':
-            console.error(bind + ' requires elevated privileges');
-            process.exit(1);
-            break;
+        console.error(bind + ' requires elevated privileges');
+        process.exit(1);
+        break;
         case 'EADDRINUSE':
-            console.error(bind + ' is already in use');
-            process.exit(1);
-            break;
+        console.error(bind + ' is already in use');
+        process.exit(1);
+        break;
         default:
-            throw error;
+        throw error;
     }
 }
 
@@ -477,11 +477,11 @@ function onError(error) {
  * Event listener for HTTP server "listening" event.
  */
 
-function onListening() {
+ function onListening() {
     var addr = server.address();
     var bind = typeof addr === 'string'
-            ? 'pipe ' + addr
-            : 'port ' + addr.port;
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
     console.log('Listening on ' + bind);
 }
 
@@ -490,20 +490,20 @@ function onListening() {
  * END CONFIG APACHE
  *
  *****************/
-function stringtoBoolean(value) {
+ function stringtoBoolean(value) {
     if (!value)
         return value
     switch (value) {
         case "1":
         case "true":
         case "yes":
-            return true;
-            break;
+        return true;
+        break;
         case "0":
         case "false":
         case "no":
-            return false;
-            break;
+        return false;
+        break;
     }
 }
 
@@ -566,48 +566,6 @@ function execution_update(data) {
     }
     console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);
 }
-global.set_change = async function (start) {
-    var start = start || moment().valueOf();
-    var last = Math.floor(start / 300000) * 300000 - 300000;
-    var array = [
-        {interval: '5m', time: 0},
-        {interval: '15m', time: 15 * 60 * 1000},
-        {interval: '30m', time: 30 * 60 * 1000},
-        {interval: '1h', time: 60 * 60 * 1000},
-        {interval: '1d', time: 24 * 60 * 60 * 1000}
-    ];
-    var subsql = "";
-    for (var i in array) {
-        var row = array[i];
-        var first = last - row.time;
-        var last_prev = first - 300000;
-        var first_prev = last_prev - row.time;
-        subsql += ",SUM(IF(TIMESTAMP >= '" + first + "' AND TIMESTAMP <= '" + last + "',`volume`,0)) AS volume_" + row.interval + ",SUM(IF(TIMESTAMP >= '" + first_prev + "' AND TIMESTAMP <= '" + last_prev + "',`volume`,0)) AS volume_prev_" + row.interval + ", MAX(IF(TIMESTAMP >= '" + first + "' AND TIMESTAMP <= '" + last + "',`high`,NULL)) AS high_" + row.interval + ",MAX(IF(TIMESTAMP >= '" + first_prev + "' AND TIMESTAMP <= '" + last_prev + "',`high`,NULL)) as high_prev_" + row.interval + ", MIN(IF(TIMESTAMP >= '" + first + "' AND TIMESTAMP <= '" + last + "',`low`,NULL)) AS low_" + row.interval + ",MIN(IF(TIMESTAMP >= '" + first_prev + "' AND TIMESTAMP <= '" + last_prev + "',`low`,NULL)) as low_prev_" + row.interval + ", SUM(IF(TIMESTAMP = '" + last + "',`close`,0)) AS close_" + row.interval + ",SUM(IF(TIMESTAMP = '" + last_prev + "',`close`,0)) as close_prev_" + row.interval;
-    }
-    var sql = "SELECT symbol " + subsql + " FROM candles WHERE timestamp >= '" + first_prev + "' AND TIMESTAMP <= '" + last + "' GROUP BY symbol";
-//    console.log(sql);
-    await pool.query(sql).then(function (results) {
-        for (var row of results) {
-            var symbol = row.symbol;
-            for (var i in array) {
-                var arr = array[i];
-                var volume = row['volume_' + arr.interval];
-                var volume_prev = row['volume_prev_' + arr.interval];
-                var close = row['close_' + arr.interval];
-                var close_prev = row['close_prev_' + arr.interval];
-                row['change_volume_' + arr.interval] = round((volume - volume_prev) / volume_prev * 100, 2) || 0;
-                row['change_price_' + arr.interval] = round((close - close_prev) / close_prev * 100, 2) || 0;
-            }
-            markets[symbol].combined = row;
-        }
-    }).catch(function (err) {
-        console.log("loi");
-    }).then(function () {
-        return true;
-    });
-}
-
 function round(value, decimals) {
     return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
 }
-;

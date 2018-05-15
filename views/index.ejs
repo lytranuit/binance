@@ -66,33 +66,33 @@
                                                     </thead>
                                                     <tbody>
                                                         <% for(i in marketBuy) { %>
-                                                        <% var market = marketBuy[i]['MarketName']; %> 
-                                                        <% var self = marketBuy[i]; %> 
-                                                        <% var i_1h = self.indicator_1h; %>
-                                                        <% var i_5m = self.indicator_5m; %>
-                                                        <% var stopmuaMaket = self.stopmua; %>
-                                                        <% var pattern_1h = i_1h.pattern.pattern; %>
-                                                        <% var probability_1h = Math.round(i_1h.pattern.probability); %>
-                                                        <% var pattern_5m = i_5m.pattern.pattern; %>
-                                                        <% var probability_5m = Math.round(i_5m.pattern.probability); %>
-                                                        <% var count_buy_1h = i_1h.count_buy; %>
-                                                        <% var count_sell_1h = i_1h.count_sell; %>
-                                                        <% var rate_1h = i_1h.rate; %>
-                                                        <% var count_buy_5m = i_5m.count_buy; %>
-                                                        <% var count_sell_5m = i_5m.count_sell; %>
-                                                        <% var rate_5m = i_5m.rate; %>
-                                                        <% var price_buy = self.priceBuyAvg; %>
-                                                        <% var bids_q = 0; %>
-                                                        <% var asks_q = 0; %>
-                                                        <% var rate = 0; %>
-                                                        <% var profit = self.last - price_buy; %>
-                                                        <% var percent = profit / price_buy * 100; %>
-                                                        <% var classess = ''; %>
-                                                        <% if(percent > 0){ %> 
-                                                        <% classess = 'text-success'; %> 
-                                                        <% }else{ %> 
-                                                        <% classess = 'text-danger'; %> 
-                                                        <% } %>
+                                                    <% var market = marketBuy[i]['MarketName']; %> 
+                                                    <% var self = marketBuy[i]; %> 
+                                                    <% var i_1h = self.indicator_1h; %>
+                                                    <% var i_5m = self.indicator_5m; %>
+                                                    <% var stopmuaMaket = self.stopmua; %>
+                                                    <% var pattern_1h = i_1h.pattern.pattern; %>
+                                                    <% var probability_1h = Math.round(i_1h.pattern.probability); %>
+                                                    <% var pattern_5m = i_5m.pattern.pattern; %>
+                                                    <% var probability_5m = Math.round(i_5m.pattern.probability); %>
+                                                    <% var count_buy_1h = i_1h.count_buy; %>
+                                                    <% var count_sell_1h = i_1h.count_sell; %>
+                                                    <% var rate_1h = i_1h.rate; %>
+                                                    <% var count_buy_5m = i_5m.count_buy; %>
+                                                    <% var count_sell_5m = i_5m.count_sell; %>
+                                                    <% var rate_5m = i_5m.rate; %>
+                                                    <% var price_buy = self.priceBuyAvg; %>
+                                                    <% var bids_q = 0; %>
+                                                    <% var asks_q = 0; %>
+                                                    <% var rate = 0; %>
+                                                    <% var profit = self.last - price_buy; %>
+                                                    <% var percent = profit / price_buy * 100; %>
+                                                    <% var classess = ''; %>
+                                                    <% if(percent > 0){ %> 
+                                                    <% classess = 'text-success'; %> 
+                                                    <% }else{ %> 
+                                                    <% classess = 'text-danger'; %> 
+                                                    <% } %>
                                                         <tr data-symbol="<%= market %>">
                                                             <td>
                                                                 <%= i++ %>
@@ -260,35 +260,35 @@
                                                     </thead>
                                                     <tbody>
                                                         <% var i =1; %>
-                                                        <% for(market in markets) { %>
-                                                        <% var self = markets[market]; %> 
-                                                        <% var i_1h = self.indicator_1h; %>
-                                                        <% var i_5m = self.indicator_5m; %>
-                                                        <% var stopmuaMaket = self.stopmua; %>
-                                                        <% var pattern_1h = i_1h.pattern.pattern; %>
-                                                        <% var probability_1h = Math.round(i_1h.pattern.probability); %>
-                                                        <% var pattern_5m = i_5m.pattern.pattern; %>
-                                                        <% var probability_5m = Math.round(i_5m.pattern.probability); %>
-                                                        <% var count_buy_1h = i_1h.count_buy; %>
-                                                        <% var count_sell_1h = i_1h.count_sell; %>
-                                                        <% var rate_1h = i_1h.rate; %>
-                                                        <% var count_buy_5m = i_5m.count_buy; %>
-                                                        <% var count_sell_5m = i_5m.count_sell; %>
-                                                        <% var rate_5m = i_5m.rate; %>
-                                                        <% var price_check = self.price_check; %>
-                                                        <% var bids_q = 0; %>
-                                                        <% var asks_q = 0; %>
-                                                        <% var rate = 0; %>
-                                                        <% var profit = self.last - price_check; %>
-                                                        <% var percent = profit / price_check * 100; %>
-                                                        <% var percent_prev = (self.last - self.combined.close_5m) / self.combined.close_5m * 100; %>
-                                                        <% var percent_volume_prev = (self.indicator_5m.volume - self.combined.volume_5m) / self.combined.volume_5m * 100; %>
-                                                        <% var classess = ''; %>
-                                                        <% if(percent > 0){ %> 
-                                                        <% classess = 'text-success'; %> 
-                                                        <% }else{ %> 
-                                                        <% classess = 'text-danger'; %> 
-                                                        <% } %>
+                                                <% for(market in markets) { %>
+                                                <% var self = markets[market]; %> 
+                                                <% var i_1h = self.indicator_1h; %>
+                                                <% var i_5m = self.indicator_5m; %>
+                                                <% var stopmuaMaket = self.stopmua; %>
+                                                <% var pattern_1h = i_1h.pattern.pattern; %>
+                                                <% var probability_1h = Math.round(i_1h.pattern.probability); %>
+                                                <% var pattern_5m = i_5m.pattern.pattern; %>
+                                                <% var probability_5m = Math.round(i_5m.pattern.probability); %>
+                                                <% var count_buy_1h = i_1h.count_buy; %>
+                                                <% var count_sell_1h = i_1h.count_sell; %>
+                                                <% var rate_1h = i_1h.rate; %>
+                                                <% var count_buy_5m = i_5m.count_buy; %>
+                                                <% var count_sell_5m = i_5m.count_sell; %>
+                                                <% var rate_5m = i_5m.rate; %>
+                                                <% var price_check = self.price_check; %>
+                                                <% var bids_q = 0; %>
+                                                <% var asks_q = 0; %>
+                                                <% var rate = 0; %>
+                                                <% var profit = self.last - price_check; %>
+                                                <% var percent = profit / price_check * 100; %>
+                                                <% var percent_prev = (self.last - self.combined.close_5m) / self.combined.close_5m * 100; %>
+                                                <% var percent_volume_prev = (self.indicator_5m.volume - self.combined.volume_5m) / self.combined.volume_5m * 100; %>
+                                                <% var classess = ''; %>
+                                                <% if(percent > 0){ %> 
+                                                <% classess = 'text-success'; %> 
+                                                <% }else{ %> 
+                                                <% classess = 'text-danger'; %> 
+                                                <% } %>
                                                         <tr class="tr_market" data-order="<%= round(percent,2) %>" data-symbol="<%= market %>">
                                                             <td>
                                                                 <a class="fancybox" data-symbol="<%= market %>" data-target="#myModal" data-toggle="modal" href="">
@@ -309,11 +309,10 @@
                                                                 </span>
                                                             </td>
                                                             <td>
-                                                                <table class='table-bordered' style="width: 100%;">
+                                                                <table class="table-bordered" style="width: 100%;">
                                                                     <thead class="thead-light">
                                                                         <tr>
                                                                             <th>
-
                                                                             </th>
                                                                             <th>
                                                                                 Realtime
@@ -343,22 +342,72 @@
                                                                     </thead>
                                                                     <tbody>
                                                                         <tr>
-                                                                            <td>Volume:</td>
-                                                                            <td class="text-white percent_volume <%= percent_volume_prev < 0 ? 'bg-danger' : 'bg-success' %>" data-symbol="<%= market %>"><%= round(percent_volume_prev,2) %>%</td>
-                                                                            <td class="text-white <%= self.combined.change_volume_5m < 0 ? 'bg-danger' : 'bg-success' %>"><%= self.combined.change_volume_5m %>%</td>
-                                                                            <td class="text-white <%= self.combined.change_volume_15m < 0 ? 'bg-danger' : 'bg-success' %>"><%= self.combined.change_volume_15m %>%</td>
-                                                                            <td class="text-white <%= self.combined.change_volume_30m < 0 ? 'bg-danger' : 'bg-success' %>"><%= self.combined.change_volume_30m %>%</td>
-                                                                            <td class="text-white <%= self.combined.change_volume_1h < 0 ? 'bg-danger' : 'bg-success' %>"><%= self.combined.change_volume_1h %>%</td>
-                                                                            <td class="text-white <%= self.combined.change_volume_1d < 0 ? 'bg-danger' : 'bg-success' %>"><%= self.combined.change_volume_1d %>%</td>
+                                                                            <td>
+                                                                                Volume:
+                                                                            </td>
+                                                                            <td class="text-white percent_volume <%= percent_volume_prev < 0 ? 'bg-danger' : 'bg-success' %>" data-symbol="<%= market %>">
+                                                                                <%= round(percent_volume_prev,2) %>%
+                                                                            </td>
+                                                                            <td class="text-white <%= self.combined.change_volume_5m < 0 ? 'bg-danger' : 'bg-success' %>">
+                                                                                <%= self.combined.change_volume_5m %>%
+                                                                            </td>
+                                                                            <td class="text-white <%= self.combined.change_volume_15m < 0 ? 'bg-danger' : 'bg-success' %>">
+                                                                                <%= self.combined.change_volume_15m %>%
+                                                                            </td>
+                                                                            <td class="text-white <%= self.combined.change_volume_30m < 0 ? 'bg-danger' : 'bg-success' %>">
+                                                                                <%= self.combined.change_volume_30m %>%
+                                                                            </td>
+                                                                            <td class="text-white <%= self.combined.change_volume_1h < 0 ? 'bg-danger' : 'bg-success' %>">
+                                                                                <%= self.combined.change_volume_1h %>%
+                                                                            </td>
+                                                                            <td class="text-white <%= self.combined.change_volume_1d < 0 ? 'bg-danger' : 'bg-success' %>">
+                                                                                <%= self.combined.change_volume_1d %>%
+                                                                            </td>
                                                                         </tr>
                                                                         <tr>
-                                                                            <td>Price</td>
-                                                                            <td class="text-white profit_prev <%= percent_prev < 0 ? 'bg-danger' : 'bg-success' %>" data-symbol="<%= market %>"><%= round(percent_prev,2) %>%</td>
-                                                                            <td class="text-white <%= self.combined.change_price_5m < 0 ? 'bg-danger' : 'bg-success' %>"><%= self.combined.change_price_5m %>%</td>
-                                                                            <td class="text-white <%= self.combined.change_price_15m < 0 ? 'bg-danger' : 'bg-success' %>"><%= self.combined.change_price_15m %>%</td>
-                                                                            <td class="text-white <%= self.combined.change_price_30m < 0 ? 'bg-danger' : 'bg-success' %>"><%= self.combined.change_price_30m %>%</td>
-                                                                            <td class="text-white <%= self.combined.change_price_1h < 0 ? 'bg-danger' : 'bg-success' %>"><%= self.combined.change_price_1h %>%</td>
-                                                                            <td class="text-white <%= self.combined.change_price_1d < 0 ? 'bg-danger' : 'bg-success' %>"><%= self.combined.change_price_1d %>%</td>
+                                                                            <td>
+                                                                                Exec.:
+                                                                            </td>
+                                                                            <td>
+                                                                            </td>
+                                                                            <td>
+                                                                                <%= round(self.combined.change_highlow_5m,2) %>%
+                                                                            </td>
+                                                                            <td>
+                                                                                <%= round(self.combined.change_highlow_15m,2) %>%
+                                                                            </td>
+                                                                            <td>
+                                                                                <%= round(self.combined.change_highlow_30m,2) %>%
+                                                                            </td>
+                                                                            <td>
+                                                                                <%= round(self.combined.change_highlow_1h,2) %>%
+                                                                            </td>
+                                                                            <td>
+                                                                                <%= round(self.combined.change_highlow_1d,2) %>%
+                                                                            </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>
+                                                                                Price
+                                                                            </td>
+                                                                            <td class="text-white profit_prev <%= percent_prev < 0 ? 'bg-danger' : 'bg-success' %>" data-symbol="<%= market %>">
+                                                                                <%= round(percent_prev,2) %>%
+                                                                            </td>
+                                                                            <td class="text-white <%= self.combined.change_price_5m < 0 ? 'bg-danger' : 'bg-success' %>">
+                                                                                <%= self.combined.change_price_5m %>%
+                                                                            </td>
+                                                                            <td class="text-white <%= self.combined.change_price_15m < 0 ? 'bg-danger' : 'bg-success' %>">
+                                                                                <%= self.combined.change_price_15m %>%
+                                                                            </td>
+                                                                            <td class="text-white <%= self.combined.change_price_30m < 0 ? 'bg-danger' : 'bg-success' %>">
+                                                                                <%= self.combined.change_price_30m %>%
+                                                                            </td>
+                                                                            <td class="text-white <%= self.combined.change_price_1h < 0 ? 'bg-danger' : 'bg-success' %>">
+                                                                                <%= self.combined.change_price_1h %>%
+                                                                            </td>
+                                                                            <td class="text-white <%= self.combined.change_price_1d < 0 ? 'bg-danger' : 'bg-success' %>">
+                                                                                <%= self.combined.change_price_1d %>%
+                                                                            </td>
                                                                         </tr>
                                                                     </tbody>
                                                                 </table>
@@ -400,17 +449,17 @@
                                         <div class="btn-group btn-group-toggle" data-toggle="buttons" id="interval">
                                             <label class="btn btn-secondary">
                                                 <input autocomplete="off" name="options" type="radio" value="5m">
-                                                5m
+                                                    5m
                                                 </input>
                                             </label>
                                             <label class="btn btn-secondary active">
                                                 <input autocomplete="off" checked="" name="options" type="radio" value="1h">
-                                                1h
+                                                    1h
                                                 </input>
                                             </label>
                                             <label class="btn btn-secondary">
                                                 <input autocomplete="off" name="options" type="radio" value="1d">
-                                                1d
+                                                    1d
                                                 </input>
                                             </label>
                                         </div>
@@ -649,17 +698,17 @@
                                     </div>
                                     <div class="col-12 m-3">
                                         <input checked="" class="form-check-input" id="chienLuocMuaDay" name="chienLuocMua" type="radio" value="chienLuocMuaDay">
-                                        <label class="form-check-label" for="chienLuocMuaDay">
-                                            Mua BB & RSI
-                                        </label>
+                                            <label class="form-check-label" for="chienLuocMuaDay">
+                                                Mua BB & RSI
+                                            </label>
                                         </input>
                                     </div>
                                     <div class="col-12 m-3">
                                         <div aria-controls="mocPriceBuy" aria-expanded="false" data-target="#mocPriceBuy" data-toggle="collapse">
                                             <input class="form-check-input" id="chienLuocMuaMoc" name="chienLuocMua" type="radio" value="chienLuocMuaMoc">
-                                            <label class="form-check-label" for="chienLuocMuaMoc">
-                                                Mua Mốc
-                                            </label>
+                                                <label class="form-check-label" for="chienLuocMuaMoc">
+                                                    Mua Mốc
+                                                </label>
                                             </input>
                                         </div>
                                         <div class="collapse" data-parent="#settingMua" id="mocPriceBuy">
@@ -676,28 +725,28 @@
                                     <div class="col-12 m-3">
                                         <div aria-controls="collapseOne" aria-expanded="true" data-target="#collapseOne" data-toggle="collapse">
                                             <input checked="" class="form-check-input" id="chienLuocBanMin" name="chienLuocBan" type="radio" value="chienLuocBanMin">
-                                            <label class="form-check-label" for="chienLuocBanMin">
-                                                Bán Gain
-                                            </label>
-                                            >=
-                                            <input class="form-control d-inline-block" name="minGain" style="width:50px" value="">
-                                            %
-                                            </input>
+                                                <label class="form-check-label" for="chienLuocBanMin">
+                                                    Bán Gain
+                                                </label>
+                                                >=
+                                                <input class="form-control d-inline-block" name="minGain" style="width:50px" value="">
+                                                    %
+                                                </input>
                                             </input>
                                         </div>
                                         <div aria-labelledby="headingOne" class="collapse show ml-3" data-parent="#settingBan" id="collapseOne">
                                             <div class="col-12">
                                                 <input class="form-check-input" id="isCheckRsiBan" name="isCheckRsiBan" type="checkbox" value="1">
-                                                <label class="form-check-label" for="isCheckRsiBan">
-                                                    Kiểm tra RSI > 80
-                                                </label>
+                                                    <label class="form-check-label" for="isCheckRsiBan">
+                                                        Kiểm tra RSI > 80
+                                                    </label>
                                                 </input>
                                             </div>
                                             <div class="col-12">
                                                 <input class="form-check-input" id="isCheckMACDBan" name="isCheckMACDBan" type="checkbox" value="1">
-                                                <label class="form-check-label" for="isCheckMACDBan">
-                                                    Kiểm tra MACD
-                                                </label>
+                                                    <label class="form-check-label" for="isCheckMACDBan">
+                                                        Kiểm tra MACD
+                                                    </label>
                                                 </input>
                                             </div>
                                         </div>
@@ -705,9 +754,9 @@
                                     <div class="col-12 m-3">
                                         <div aria-controls="mocPriceSell" aria-expanded="false" data-target="#mocPriceSell" data-toggle="collapse">
                                             <input class="form-check-input" id="chienLuocBanMoc" name="chienLuocBan" type="radio" value="chienLuocBanMoc">
-                                            <label class="form-check-label" for="chienLuocBanMoc">
-                                                Bán mốc
-                                            </label>
+                                                <label class="form-check-label" for="chienLuocBanMoc">
+                                                    Bán mốc
+                                                </label>
                                             </input>
                                         </div>
                                         <div class="collapse" data-parent="#settingBan" id="mocPriceSell">
@@ -765,14 +814,14 @@
                             </thead>
                             <tbody>
                                 <% for(var i in rows) { %>
-                                <% var price_sell = rows[i].price_sell; %>
-                                <% var price_buy = rows[i].price_buy; %>
-                                <% var amount = rows[i].amount; %>
-                                <% var market = rows[i].MarketName; %>
-                                <% var timestamp = rows[i].timestamp.toISOString(); %>
-                                <% var BTC_buy = price_buy * amount; %>
-                                <% var BTC_sell = price_sell * amount; %>
-                                <% var percent = rows[i].percent; %>
+                        <% var price_sell = rows[i].price_sell; %>
+                        <% var price_buy = rows[i].price_buy; %>
+                        <% var amount = rows[i].amount; %>
+                        <% var market = rows[i].MarketName; %>
+                        <% var timestamp = rows[i].timestamp.toISOString(); %>
+                        <% var BTC_buy = price_buy * amount; %>
+                        <% var BTC_sell = price_sell * amount; %>
+                        <% var percent = rows[i].percent; %>
                                 <tr>
                                     <td>
                                         <%= i %>

@@ -61,7 +61,7 @@ var Market = new SchemaObject({
             if (markets['BTCUSDT']['indicator_5m']['mfi'] < 35) {
                 if (currentTime != markets['BTCUSDT'].periodTime)
                     // console.log(clc.black.bgYellow('Down'), " MFI:" + markets['BTCUSDT']['indicator_5m']['mfi']);
-                    return;
+                return;
             }
             if (self.indicator_1h.td || self.indicator_1h.dt) {
                 return;
@@ -100,7 +100,7 @@ var Market = new SchemaObject({
             /*
              * VAO LENH
              */
-            if (process.env.NODE_ENV == "production") {
+             if (process.env.NODE_ENV == "production") {
                 var amount = Math.ceil(self.amountbuy / price);
                 self.onOrder = true;
                 binance.buy(self.MarketName, amount, price, (error, response) => {
@@ -192,7 +192,7 @@ var Market = new SchemaObject({
                  * CHeck chien luoc
                  */
 
-                if (self.chienLuocBan == "chienLuocBanMin") {
+                 if (self.chienLuocBan == "chienLuocBanMin") {
                     if (self.isBanMin() && (self.chienLuocBanRSI() || self.isBanMACD()))
                         self.orderBan(price);
                 } else if (self.chienLuocBan == "chienLuocBanMoc") {
@@ -218,9 +218,9 @@ var Market = new SchemaObject({
             /*
              * VAO LENH
              */
-            var self = this;
-            console.log(clc.red('Order'), self.MarketName + " price:" + price);
-            if (process.env.NODE_ENV == "production") {
+             var self = this;
+             console.log(clc.red('Order'), self.MarketName + " price:" + price);
+             if (process.env.NODE_ENV == "production") {
                 self.onOrder = true;
                 binance.sell(self.MarketName, myBalances[self.altCoin].available, price, (error, response) => {
                     if (error) {
@@ -287,11 +287,11 @@ var Market = new SchemaObject({
             /*
              * RESET
              */
-            var trade_session = self.trade_session;
+             var trade_session = self.trade_session;
 
-            var sumamount_buy = 0;
-            var array_time = [];
-            for (var i in trade_session.trade_buy) {
+             var sumamount_buy = 0;
+             var array_time = [];
+             for (var i in trade_session.trade_buy) {
                 sumamount_buy += parseFloat(trade_session.trade_buy[i].amount);
                 array_time.push(moment(trade_session.trade_buy[i].time).valueOf());
             }
@@ -313,7 +313,7 @@ var Market = new SchemaObject({
                 /*
                  * SAVE SESSION
                  */
-                var insert = {
+                 var insert = {
                     MarketName: self.MarketName,
                     price_buy: self.priceBuyAvg,
                     price_sell: self.priceSellAvg,
@@ -366,7 +366,7 @@ var Market = new SchemaObject({
             /*
              * RSI > 80
              */
-            if (!self.isCheckRsiBan || self.indicator_5m.rsi < 80)
+             if (!self.isCheckRsiBan || self.indicator_5m.rsi < 80)
                 return false;
             return true;
         },
@@ -375,7 +375,7 @@ var Market = new SchemaObject({
             /*
              * MACD < 0
              */
-            if (self.isCheckMACDBan && self.indicator_5m.MACD.histogram > 0)
+             if (self.isCheckMACDBan && self.indicator_5m.MACD.histogram > 0)
                 return false;
             return true;
         },
@@ -384,7 +384,7 @@ var Market = new SchemaObject({
             /*
              * price < min
              */
-            if (self.last < self.minPriceSell)
+             if (self.last < self.minPriceSell)
                 return false;
             return true;
         },
@@ -393,7 +393,7 @@ var Market = new SchemaObject({
             /*
              * price < moc
              */
-            if (self.last < self.mocPriceSell)
+             if (self.last < self.mocPriceSell)
                 return false;
             return true;
         },
@@ -408,7 +408,7 @@ var Market = new SchemaObject({
             /*
              * price < moc
              */
-            if (self.last > self.mocPriceBuy)
+             if (self.last > self.mocPriceBuy)
                 return false;
             return true;
         },
@@ -559,7 +559,7 @@ var Market = new SchemaObject({
             }, {fromId: id_trade});
         },
         sync_candles: function () {
-            if (process.env.NODE_ENV != "ANALYTICS" && process.env.NODE_ENV == "production")
+            if (process.env.NODE_ENV != "ANALYTICS" && process.env.NODE_ENV != "production")
                 return
             var self = this;
             var market = self.MarketName;
