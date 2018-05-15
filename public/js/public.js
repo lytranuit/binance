@@ -117,9 +117,9 @@ function drawTradingview(symbol, element) {
         "enable_publishing": false,
         "hide_side_toolbar": false,
         "studies": [
-            "BB@tv-basicstudies",
-            "RSI@tv-basicstudies",
-            "MACD@tv-basicstudies"
+        "BB@tv-basicstudies",
+        "RSI@tv-basicstudies",
+        "MACD@tv-basicstudies"
         ],
         "allow_symbol_change": true,
         "container_id": element
@@ -132,19 +132,23 @@ function initpopup(symbol) {
     /*
      * RESET
      */
-    $("#buy_price").val("");
-    $("#sell_price").val("");
-    $("#myModal [data-symbol]").attr("data-symbol", symbol).text("");
+     $("#buy_price").val("");
+     $("#sell_price").val("");
+     $("#myModal [data-symbol]").attr("data-symbol", symbol).text("");
 
-    $(".price_buy[data-symbol=" + symbol + "]").text(price_buy);
+     $(".price_buy[data-symbol=" + symbol + "]").text(price_buy);
     /*
      * Lay my Balances
      */
-    getBalances(symbol);
+     getBalances(symbol);
     /*
      * Ve Chart
      */
-    drawTradingview(symbol, "tradingview");
+     drawTradingview(symbol, "tradingview");
+    /*
+    * Load Trade
+    */
+    loadTrade();
 }
 function applyForm(form, data) {
     $('input, select, textarea', form).each(function () {
@@ -154,27 +158,27 @@ function applyForm(form, data) {
             value = data[$(this).attr('name')];
         switch (type) {
             case 'checkbox':
-                $(this).prop('checked', false);
-                if (value == true || value == 'true' || value == 1) {
-                    $(this).prop('checked', true);
-                }
-                break;
+            $(this).prop('checked', false);
+            if (value == true || value == 'true' || value == 1) {
+                $(this).prop('checked', true);
+            }
+            break;
             case 'text':
             case 'number':
             case 'email':
             case 'email':
-                $(this).val(value);
-                break;
+            $(this).val(value);
+            break;
             case 'radio':
-                $(this).removeAttr('checked', 'checked');
-                var rdvalue = $(this).val();
-                if (rdvalue == value) {
-                    $(this).prop('checked', true);
-                }
-                break;
+            $(this).removeAttr('checked', 'checked');
+            var rdvalue = $(this).val();
+            if (rdvalue == value) {
+                $(this).prop('checked', true);
+            }
+            break;
             default:
-                $(this).val(value);
-                break;
+            $(this).val(value);
+            break;
         }
     });
 }
@@ -225,6 +229,9 @@ function thenotification(title, body, tag, icon) {
 function round(value, decimals) {
     return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
 }
+function floor(value, decimals) {
+    return Number(Math.floor(value + 'e' + decimals) + 'e-' + decimals);
+}
 function marketdynamic() {
     $.ajax({
         url: "/api/marketdynamic",
@@ -242,29 +249,29 @@ function marketdynamic() {
                     },
                     scales: {
                         yAxes: [{
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: '24h Changed',
-                                    suffix: '%'
+                            scaleLabel: {
+                                display: true,
+                                labelString: '24h Changed',
+                                suffix: '%'
+                            },
+                            ticks: {
+                                callback: function (value, index, values) {
+                                    return value + '%';
                                 },
-                                ticks: {
-                                    callback: function (value, index, values) {
-                                        return value + '%';
-                                    },
-                                    stepSize: 5
-                                }
-                            }], xAxes: [{
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: '7 days Changed'
+                                stepSize: 5
+                            }
+                        }], xAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: '7 days Changed'
+                            },
+                            ticks: {
+                                callback: function (value, index, values) {
+                                    return value + '%';
                                 },
-                                ticks: {
-                                    callback: function (value, index, values) {
-                                        return value + '%';
-                                    },
-                                    stepSize: 5
-                                }
-                            }]
+                                stepSize: 5
+                            }
+                        }]
                     },
                     tooltips: {
                         callbacks: {
@@ -294,6 +301,72 @@ function marketdynamic() {
                     }
                 }
             });
+        }
+    });
+}
+function loadTrade(){
+    var symbol = $("#myModal").data("symbol");
+    var time = $("#khunggio").val();
+    $.ajax({
+        url: "/api/aggtrade",
+        data:{symbol:symbol,time:time},
+        dataType: "JSON",
+        success: function (data) {
+            var cur_price = parseFloat($(".price_last[data-symbol='"+symbol+"']").first().text());
+            var data_table = {};
+            var max_luongmua = 0;
+            var max_luongban = 0;
+            for(var i in data){
+                var row = data[i];
+                var price = row.p;
+                var quantity = row.q;
+                var marker = row.m;
+                var change = floor((price - cur_price) / cur_price * 100 ,0);
+                if (!data_table[change]) {
+                    data_table[change] = {luongmua:0,luongban:0,price:price};
+                }
+                if(marker){
+                    data_table[change].luongban += parseFloat(quantity * price) ;
+                    if(data_table[change].luongban > max_luongban)
+                        max_luongban = data_table[change].luongban;
+                }else{
+                    data_table[change].luongmua += parseFloat(quantity * price);
+                    if(data_table[change].luongmua > max_luongmua)
+                        max_luongmua = data_table[change].luongmua;
+                }
+            }
+            var append = "";
+            console.log(data_table);
+            console.log(Object.keys(data_table).sort(function(a,b){
+                return parseInt(b) - parseInt(a);
+            }));
+            var ordered = {};
+            Object.keys(data_table).sort(function(a,b){
+                return parseInt(b) - parseInt(a);
+            }).forEach(function(key) {
+                var row = data_table[key];
+                var change = key;
+                var price = row.price;
+                var luongmua = round(row.luongmua,2);
+                var luongban = round(row.luongban,2);
+                var chechlech = round(luongmua - luongban,2);
+                var tilemua = round(luongmua / (luongmua + luongban) * 100,2);
+                var tr_class = [];
+                var td_tile = [];
+                if(change == 0){
+                    tr_class.push("table-dark");
+                }else if(row.luongmua == max_luongmua){
+                    tr_class.push("table-success");
+                }else if(row.luongban == max_luongban){
+                    tr_class.push("table-danger");
+                }
+                if(luongmua > luongban)
+                    td_tile.push("text-sucess");
+                else
+                    td_tile.push("text-danger");
+                append += "<tr class='"+tr_class.join(" ")+"'><td>"+change+"</td><td>"+price+"</td><td>"+luongmua+"</td><td>"+luongban+"</td><td>"+chechlech+"</td><td class='"+td_tile.join(" ")+"'>"+tilemua+"</td><tr>";
+            });
+            $("#tableTrade tbody").html(append);
         }
     });
 }

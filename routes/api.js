@@ -64,6 +64,38 @@ router.get('/marketdynamic', ensureAuthenticated, async function (req, res, next
 	}
 	res.json({datasets:datasets});
 });
+router.get('/aggtrade', ensureAuthenticated,function (req, res, next) {
+	var symbol = req.query.symbol || "BTCUSDT";
+	var time = req.query.time || 1800000;
+	var current_time = moment().valueOf();
+	var first_time  = current_time - time;
+	var options1;
+	if(time > 3600000){
+		first_time = current_time - 3600000;
+		options1 = {startTime:first_time - 3600000,endTime:first_time};
+	}
+	var options = {startTime:first_time,endTime:current_time};
+	binance.aggTrades(symbol,options,function(error,data){
+		if(error){
+			console.log(error);
+			res.json([]);
+			return;
+		}
+		if(!options1){
+			res.json(data);
+			return
+		}
+		binance.aggTrades(symbol,options1,function(error,data2){
+			if(error){
+				console.log(error);
+				res.json(data);
+				return;
+			}
+			data = data.concat(data2);
+			res.json(data);
+		});
+	})
+});
 router.get('/candle',ensureAuthenticated, async function (req, res, next) {
 	var symbol = req.query.symbol || "BTCUSDT";
 	var interval = req.query.interval || "1d";

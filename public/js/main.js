@@ -79,6 +79,9 @@ $(document).ready(function () {
                 }
             }
         });
+    });
+    $("#khunggio").change(function(){
+        loadTrade();
     })
     $("#refreshOrder").click(function () {
         var symbol = $("#myModal").data("symbol");
