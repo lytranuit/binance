@@ -338,6 +338,9 @@
                                                                             <th>
                                                                                 1d
                                                                             </th>
+                                                                            <th>
+                                                                                1w
+                                                                            </th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -363,6 +366,9 @@
                                                                             <td class="text-white <%= self.combined.bg_volume_1d %>">
                                                                                 <%= self.combined.change_volume_1d %>%
                                                                             </td>
+                                                                            <td class="text-white <%= self.combined.bg_volume_1w %>">
+                                                                                <%= self.combined.change_volume_1w %>%
+                                                                            </td>
                                                                         </tr>
                                                                         <tr>
                                                                             <td>
@@ -384,6 +390,9 @@
                                                                             </td>
                                                                             <td>
                                                                                 <%= round(self.combined.change_highlow_1d,2) %>%
+                                                                            </td>
+                                                                            <td>
+                                                                                <%= round(self.combined.change_highlow_1w,2) %>%
                                                                             </td>
                                                                         </tr>
                                                                         <tr>
@@ -407,6 +416,9 @@
                                                                             </td>
                                                                             <td class="text-white <%= self.combined.bg_price_1d %>">
                                                                                 <%= self.combined.change_price_1d %>%
+                                                                            </td>
+                                                                            <td class="text-white <%= self.combined.bg_price_1w %>">
+                                                                                <%= self.combined.change_price_1w %>%
                                                                             </td>
                                                                         </tr>
                                                                     </tbody>

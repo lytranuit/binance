@@ -72,7 +72,8 @@ var set_change = async function (start) {
     {interval: '15m', time: 15 * 60 * 1000},
     {interval: '30m', time: 30 * 60 * 1000},
     {interval: '1h', time: 60 * 60 * 1000},
-    {interval: '1d', time: 24 * 60 * 60 * 1000}
+    {interval: '1d', time: 24 * 60 * 60 * 1000},
+    {interval: '1w', time: 7 * 24 * 60 * 60 * 1000}
     ];
     var subsql = "";
     for (var i in array) {
