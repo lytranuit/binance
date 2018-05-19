@@ -441,7 +441,7 @@ var Market = new SchemaObject({
             if (self.MarketName == "BTCUSDT")
                 return;
             var entries = Object.values(candles);
-            if(entries.length <= 1)
+            if(entries.length <= 144)
                 return;
             var array_144_candle = entries.splice(-144);
             var current_volume = array_144_candle.pop();
@@ -466,6 +466,7 @@ var Market = new SchemaObject({
 
             var candle1 = entries[entries.length - 1];
             var candle2 = entries[entries.length - 2];
+            
             var is_volume_large = candle1.volume > candle2.volume * 2;
             var input = {
                 close: [candle1.close],
