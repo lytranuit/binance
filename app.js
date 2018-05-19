@@ -239,15 +239,9 @@ module.exports = app;
                 }
                 if (primary == "")
                     continue;
-                // var chiso1y = new ChisoModel({interval:1,type_interval:"y"});
-                // var chiso6M = new ChisoModel({interval:6,type_interval:"M"});
-                // var chiso3M = new ChisoModel({interval:3,type_interval:"M"});
-                // var chiso1M = new ChisoModel({interval:1,type_interval:"M"});
-                // var chiso1w = new ChisoModel({interval:1,type_interval:"w"});
-                // var chiso1d = new ChisoModel({interval:1,type_interval:"d"});
-                var chiso1h = new ChisoModel({interval: 1, type_interval: "h"});
-                var chiso5m = new ChisoModel({interval: 5, type_interval: "m"});
-                var chiso1m = new ChisoModel({interval: 1, type_interval: "m"});
+                var chiso1h = new ChisoModel({symbol:market,time:60 * 60 * 1000,type:'1h'});
+                var chiso5m = new ChisoModel({symbol:market,time:5 * 60 * 1000,type:'5m'});
+                var chiso1m = new ChisoModel({symbol:market,time:60 * 1000,type:'1m'});
                 var obj = {
                     MarketName: market,
                     last: last,
@@ -269,80 +263,61 @@ module.exports = app;
                 array_market.push(market);
                 markets[market].sync_candles();
             }
-            binance.websockets.chart(array_market, "1h", (market, interval, results) => {
-                if (Object.keys(results).length === 0)
-                    return;
-                var tick = binance.last(results);
-                var last = results[tick].close;
-                var volume = results[tick].volume;
-                markets[market]['indicator_' + interval].volume = volume;
-                if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
+            binance.websockets.candlesticks(array_market, "5m", (candlesticks) => {
+                let { e:eventType, E:eventTime, s:symbol, k:ticks } = candlesticks;
+                let { o:open, h:high, l:low, c:close, v:volume, n:trades, i:interval, x:isFinal, q:quoteVolume, V:buyVolume, Q:quoteBuyVolume, t:time } = ticks;
+                
+                // console.log(symbol+" "+interval+" candlestick update");
+                // console.log("time: "+time);
+                // console.log("open: "+open);
+                // console.log("high: "+high);
+                // console.log("low: "+low);
+                // console.log("close: "+close);
+                // console.log("volume: "+volume);
+                // console.log("isFinal: "+isFinal);
+
+                markets[symbol]['indicator_5m'].volume = volume;
+                markets[symbol]['indicator_5m'].candles[time] = {
+                    high:high,
+                    low:low,
+                    close:close,
+                    open:open,
+                    volume:volume,
+                    isFinal:isFinal
+                };
+                markets[symbol].last = close;
+                markets[symbol].checkmua(close);
+                markets[symbol].checkban(close);
+                markets[symbol].checkHotMarket();
+                if (markets[symbol]['indicator_5m'].periodTime && markets[symbol]['indicator_5m'].periodTime == time && !isFinal) {
 
                 } else {
-                    //markets[market].save_db_quantity();                                
-                    markets[market].refreshTrade();
-                    markets[market].isHotMarket = false;
-                    delete results[tick];
-                    markets[market]['indicator_' + interval].setIndicator(results);
-                }
-                markets[market]['indicator_' + interval].periodTime = tick;
-                io.to("interval").emit("interval", {symbol: market, interval: interval, time: tick, data: results[tick], count_buy: markets[market]['indicator_' + interval].count_buy, count_sell: markets[market]['indicator_' + interval].count_sell});
-            });
-            binance.websockets.chart(array_market, "5m", (market, interval, results) => {
-                if (Object.keys(results).length === 0)
-                    return;
-                let tick = binance.last(results);
-                var last = results[tick].close;
-                var volume = results[tick].volume;
-                markets[market]['indicator_' + interval].volume = volume;
-                if (markets[market]['indicator_' + interval].periodTime && markets[market]['indicator_' + interval].periodTime == tick && !results[tick].isFinal) {
-                    markets[market].last = last;
-                    markets[market].checkmua(last);
-                    markets[market].checkban(last);
-                    markets[market].checkHotMarket(results);
-                } else {
-                    if (currentTime != tick) {
-                        global.currentTime = tick;
-                        console.log("Bắt đầu phiên:", moment(tick, "x").format());
+                    markets[symbol]['indicator_5m'].periodTime = time;
+                    if (currentTime < time) {
+                        global.currentTime = time;
+                        console.log("Bắt đầu phiên:", moment(time, "x").format());
                     }
-                    delete results[tick];
-                    markets[market]['indicator_' + interval].setIndicator(results);
-                    markets[market].sync_candles();
+                    markets[symbol]['indicator_5m'].setIndicator();
+                    markets[symbol].sync_candles();
                 }
                 /*
                  * RESET 1 m
                  */
                  if (moment().format("ss") < 10) {
-                    markets[market]['indicator_1m'].refresh();
+                    markets[symbol]['indicator_1m'].refresh();
                 }
                 /*
-                 * Tinh bid ask volume
-                 */
-                 let orderBook = markets[market].orderBook;
-                 let orderBook_bids = orderBook.bids;
-                 let orderBook_asks = orderBook.asks;
-                 let orderBook_bids_sum = Object.values(orderBook_bids).reduce(function (sum, value) {
-                    return sum + parseFloat(value);
-                }, 0);
-                 let orderBook_asks_sum = Object.values(orderBook_asks).reduce(function (sum, value) {
-                    return sum + parseFloat(value);
-                }, 0);
-                 let trades = markets[market].trades;
-                 let trades_bids = trades.bids;
-                 let trades_asks = trades.asks;
-                 let count_buy = trades_bids.length;
-                 let count_sell = trades_asks.length;
-                 let trades_bids_sum = trades_bids.reduce(function (sum, value) {
-                    return sum + parseFloat(value.quantity);
-                }, 0);
-                 let trades_asks_sum = trades_asks.reduce(function (sum, value) {
-                    return sum + parseFloat(value.quantity);
-                }, 0);
-                 markets[market]['indicator_' + interval].periodTime = tick;
-                 io.to("interval").emit("interval", {symbol: market, interval: interval, time: tick, data: results[tick], count_buy: markets[market]['indicator_' + interval].count_buy, count_sell: markets[market]['indicator_' + interval].count_sell});
-                 io.to("market").emit("market", {symbol: market, last: last, volume: volume, orderBook_bids_sum: orderBook_bids_sum, orderBook_asks_sum: orderBook_asks_sum, count_sell: count_sell, count_buy: count_buy, trades_bids_sum: trades_bids_sum, trades_asks_sum: trades_asks_sum});
-             });
-
+                * 1h
+                */
+                var time_1h = Math.floor(time /60 * 60 * 1000) * 60 * 60 * 1000
+                if(time_1h != markets[symbol]['indicator_1h'].periodTime){
+                    markets[symbol]['indicator_1h'].periodTime = time_1h;
+                    markets[symbol].refreshTrade();
+                    markets[symbol].isHotMarket = false;
+                    markets[symbol]['indicator_1h'].setIndicator();
+                }
+                io.to("market").emit("market", {symbol: symbol, last: close, volume: volume});
+            });
             binance.websockets.trades(array_market, (trades) => {
                 let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
                 if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {

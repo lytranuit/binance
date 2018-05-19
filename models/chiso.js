@@ -12,14 +12,15 @@ var NotEmptyString = {type: String, minLength: 1};
 var numberType = {type: Number, default: 0};
 var booleanType = {type: Boolean, default: false};
 var Chiso = new SchemaObject({
+    symbol:NotEmptyString,
     count_buy: numberType,
     count_sell: numberType,
     rate:numberType,
     periodTime: numberType,
-    interval: {type: Number, default: 1},
-    type_interval: {type: String, default: "m"},
+    time: {type: Number, default: 1000},
+    type:{type: String, default: "5m"},
     pattern: Object,
-    candles: Array,
+    candles: {type: Object, invisible: true},
     volume:numberType,
     hs: booleanType,
     ihs: booleanType,
@@ -35,43 +36,45 @@ var Chiso = new SchemaObject({
     bb: Object
 }, {
     methods: {
-        setIndicator: async function (results) {
+        setIndicator: async function () {
             var self = this;
+            var candles = await self.get_candles();
+            // if(self.type == "1h")
+            //     console.log(candles);
             var argh = [];
             var argl = [];
             var argv = [];
             var argc = [];
             var argo = [];
-            for (var key in results) {
-                argh.push(parseFloat(results[key]['high']));
-                argl.push(parseFloat(results[key]['low']));
-                argv.push(parseFloat(results[key]['volume']));
-                argc.push(parseFloat(results[key]['close']));
-                argo.push(parseFloat(results[key]['open']));
-                
+            for (var key in candles) {
+                argh.push(parseFloat(candles[key]['high']));
+                argl.push(parseFloat(candles[key]['low']));
+                argv.push(parseFloat(candles[key]['volume']));
+                argc.push(parseFloat(candles[key]['close']));
+                argo.push(parseFloat(candles[key]['open']));
             }
-            if (argc.length > 250) {
-                var input = {
-                    values: argc
-                };
-                var pattern = await technical.predictPattern(input);
-                var hs = await technical.hasHeadAndShoulder(input);
-                var ihs = await technical.hasInverseHeadAndShoulder(input);
-                var db = await technical.hasDoubleBottom(input);
-                var dt = await technical.hasDoubleTop(input);
-                var tu = await technical.isTrendingUp(input);
+            // if (argc.length > 250) {
+            //     var input = {
+            //         values: argc
+            //     };
+            //     var pattern = await technical.predictPattern(input);
+            //     var hs = await technical.hasHeadAndShoulder(input);
+            //     var ihs = await technical.hasInverseHeadAndShoulder(input);
+            //     var db = await technical.hasDoubleBottom(input);
+            //     var dt = await technical.hasDoubleTop(input);
+            //     var tu = await technical.isTrendingUp(input);
 
-                var td = await technical.isTrendingDown(input);
-                self.pattern = pattern;
-                self.hs = hs;
-                self.ihs = ihs;
-                self.db = db;
-                self.dt = dt;
-                self.tu = tu;
-                self.td = td;
-            } else {
-                self.td = true;
-            }
+            //     var td = await technical.isTrendingDown(input);
+            //     self.pattern = pattern;
+            //     self.hs = hs;
+            //     self.ihs = ihs;
+            //     self.db = db;
+            //     self.dt = dt;
+            //     self.tu = tu;
+            //     self.td = td;
+            // } else {
+            //     self.td = true;
+            // }
             /*
             * MACD
             */
@@ -162,6 +165,46 @@ var Chiso = new SchemaObject({
             }else{
                 self.can_sell = false;
             }
+            // console.log("SET Indicator "+self.type+" DONE! symbol",self.symbol)
+        },
+        get_candles:async function(){
+            var self = this;
+            var time_current = moment().valueOf();
+            var last_time_final = Math.floor(time_current / self.time) * self.time - self.time;
+            if(self.candles && self.candles[last_time_final] && self.candles[last_time_final].isFinal)
+                return self.candles;
+            else if(self.candles && self.candles[last_time_final]){
+                var sql = "SELECT * FROM candles WHERE symbol = '"+self.symbol+"' WHERE timestamp >= '"+last_time_final+"' ORDER BY timestamp ASC";
+                if(self.type != '5m'){
+                    sql = "SELECT a.*,b.close,c.open FROM(SELECT symbol,FLOOR(TIMESTAMP / "+self.time+") * "+self.time+" AS 'timestamp',MIN(is_Final) as is_Final,SUM(`volume`) AS volume,MAX(high) AS high,MIN(low) AS low,MIN(TIMESTAMP) AS 'min_row',MAX(TIMESTAMP) AS 'max_row' FROM`candles` WHERE `symbol` = '"+self.symbol+"' GROUP BY symbol,`timestamp`) AS a JOIN candles AS b ON a.symbol = b.`symbol` AND a.max_row = b.`timestamp` JOIN candles AS c ON a.symbol = c.`symbol` AND a.min_row = c.`timestamp` WHERE a.timestamp >= '"+last_time_final+"' ORDER BY a.timestamp";
+                }
+            }else{
+                var sql = "SELECT * FROM candles WHERE symbol = '"+self.symbol+"' ORDER BY timestamp ASC";
+                if(self.type != '5m'){
+                    sql = "SELECT a.*,b.close,c.open FROM(SELECT symbol,FLOOR(TIMESTAMP / "+self.time+") * "+self.time+" AS 'timestamp',MIN(is_Final) as is_Final,SUM(`volume`) AS volume,MAX(high) AS high,MIN(low) AS low,MIN(TIMESTAMP) AS 'min_row',MAX(TIMESTAMP) AS 'max_row' FROM`candles` WHERE `symbol` = '"+self.symbol+"' GROUP BY symbol,`timestamp`) AS a JOIN candles AS b ON a.symbol = b.`symbol` AND a.max_row = b.`timestamp` JOIN candles AS c ON a.symbol = c.`symbol` AND a.min_row = c.`timestamp` ORDER BY a.timestamp";
+                    // console.log(sql)
+                }
+            }
+            return pool.query(sql).then(function(results){
+                for(var row of results){
+                    var time = row['timestamp'];
+                    var high = row['high'];
+                    var low = row['low'];
+                    var close = row['close'];
+                    var open = row['open'];
+                    var volume = row['volume'];
+                    var is_Final = row['is_Final'];
+                    self.candles[time] = {
+                        high:high,
+                        low:low,
+                        close:close,
+                        open:open,
+                        volume:volume,
+                        isFinal:is_Final
+                    }
+                }
+                return self.candles;
+            });
         },
         refresh:function(){
             var self = this;
