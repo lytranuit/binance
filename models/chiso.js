@@ -174,14 +174,14 @@ var Chiso = new SchemaObject({
             if(self.candles && self.candles[last_time_final] && self.candles[last_time_final].isFinal)
                 return self.candles;
             else if(self.candles && self.candles[last_time_final]){
-                var sql = "SELECT * FROM candles WHERE symbol = '"+self.symbol+"' WHERE timestamp >= '"+last_time_final+"' ORDER BY timestamp ASC";
+                var sql = "SELECT * FROM candles WHERE symbol = '"+self.symbol+"' AND timestamp >= '"+last_time_final+"' ORDER BY timestamp ASC";
                 if(self.type != '5m'){
-                    sql = "SELECT a.*,b.close,c.open FROM(SELECT symbol,FLOOR(TIMESTAMP / "+self.time+") * "+self.time+" AS 'timestamp',MIN(is_Final) as is_Final,SUM(`volume`) AS volume,MAX(high) AS high,MIN(low) AS low,MIN(TIMESTAMP) AS 'min_row',MAX(TIMESTAMP) AS 'max_row' FROM`candles` WHERE `symbol` = '"+self.symbol+"' GROUP BY symbol,`timestamp`) AS a JOIN candles AS b ON a.symbol = b.`symbol` AND a.max_row = b.`timestamp` JOIN candles AS c ON a.symbol = c.`symbol` AND a.min_row = c.`timestamp` WHERE a.timestamp >= '"+last_time_final+"' ORDER BY a.timestamp";
+                    sql = "SELECT a.*,b.close,c.open FROM(SELECT symbol,FLOOR(TIMESTAMP / "+self.time+") * "+self.time+" AS 'timestamp',MIN(is_Final) as is_Final,SUM(`volume`) AS volume,MAX(high) AS high,MIN(low) AS low,MIN(TIMESTAMP) AS 'min_row',MAX(TIMESTAMP) AS 'max_row' FROM`candles` WHERE `symbol` = '"+self.symbol+"' GROUP BY symbol,`timestamp`) AS a JOIN candles AS b ON a.symbol = b.`symbol` AND a.max_row = b.`timestamp` JOIN candles AS c ON a.symbol = c.`symbol` AND a.min_row = c.`timestamp` WHERE a.timestamp >= '"+last_time_final+"' ORDER BY a.timestamp ASC";
                 }
             }else{
                 var sql = "SELECT * FROM candles WHERE symbol = '"+self.symbol+"' ORDER BY timestamp ASC";
                 if(self.type != '5m'){
-                    sql = "SELECT a.*,b.close,c.open FROM(SELECT symbol,FLOOR(TIMESTAMP / "+self.time+") * "+self.time+" AS 'timestamp',MIN(is_Final) as is_Final,SUM(`volume`) AS volume,MAX(high) AS high,MIN(low) AS low,MIN(TIMESTAMP) AS 'min_row',MAX(TIMESTAMP) AS 'max_row' FROM`candles` WHERE `symbol` = '"+self.symbol+"' GROUP BY symbol,`timestamp`) AS a JOIN candles AS b ON a.symbol = b.`symbol` AND a.max_row = b.`timestamp` JOIN candles AS c ON a.symbol = c.`symbol` AND a.min_row = c.`timestamp` ORDER BY a.timestamp";
+                    sql = "SELECT a.*,b.close,c.open FROM(SELECT symbol,FLOOR(TIMESTAMP / "+self.time+") * "+self.time+" AS 'timestamp',MIN(is_Final) as is_Final,SUM(`volume`) AS volume,MAX(high) AS high,MIN(low) AS low,MIN(TIMESTAMP) AS 'min_row',MAX(TIMESTAMP) AS 'max_row' FROM`candles` WHERE `symbol` = '"+self.symbol+"' GROUP BY symbol,`timestamp`) AS a JOIN candles AS b ON a.symbol = b.`symbol` AND a.max_row = b.`timestamp` JOIN candles AS c ON a.symbol = c.`symbol` AND a.min_row = c.`timestamp` ORDER BY a.timestamp ASC";
                     // console.log(sql)
                 }
             }
