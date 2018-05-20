@@ -56,7 +56,7 @@ socket.on("market", function (data) {
     $(".profit_prev[data-symbol=" + symbol + "]").text(round(profit_prev, 2) + "%");
     $(".percent_volume[data-symbol=" + symbol + "]").text(round(percent_volume, 2) + "%");
     $(".price_last[data-symbol=" + symbol + "]").text(last);
-    $(".tr_market[data-symbol=" + symbol + "]").attr("data-volume_1m", count_sell + count_buy).attr('data-order', round(profit_check, 2));
+    $(".tr_market[data-symbol=" + symbol + "]").attr('data-order', round(profit_check, 2));
 })
 // socket.on("interval", function (data) {
 //     var symbol = data.symbol;
