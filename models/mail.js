@@ -5,7 +5,6 @@
  * 
  *****************/
  const nodemailer = require('nodemailer');
- const telegram = require("./telegram");
  const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -27,6 +26,5 @@ var sendmail = function (subject, html) {
             console.log('Email sent: ' + info.response);
         }
     });
-    telegram.send(html);
 }
 module.exports.sendmail = sendmail;

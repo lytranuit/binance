@@ -7,6 +7,7 @@ const binance = require('node-binance-api');
 var SchemaObject = require('node-schema-object');
 const mysql = require('promise-mysql');
 var Mail = require("./mail");
+var Telegram = require("./telegram");
 var NotEmptyString = {type: String, minLength: 1};
 var numberType = {type: Number, default: 0};
 var Market = new SchemaObject({
@@ -455,6 +456,7 @@ var Market = new SchemaObject({
                     var percent = self.round(100 * (current_volume - max_volume) / max_volume, 2);
                     var html = "<p>" + self.MarketName + "</p><p>Current Volume:" + current_volume + "</p><p>Max Volume Previous:" + max_volume + "</p><p style='color:green;'>Percent:" + percent + "</p>";
                     Mail.sendmail("[Big Volume]" + self.MarketName, html);
+                    Telegram.send(self.MarketName + " \n Current Volume:" + current_volume + " \n Max Volume Previous:" + max_volume + " \n <b>Percent:" + percent + "</b>")
                 } else {
                     console.log(clc.green('Big Volume'), self.MarketName);
                 }
@@ -483,6 +485,8 @@ var Market = new SchemaObject({
                     var percent = self.round(100 * (candle1.close - candle2.high) / candle2.high, 2);
                     var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1.close + "</p><p>Check Price:" + candle2.high + "</p><p style='color:green;'>Percent:" + percent + "</p>";
                     Mail.sendmail("[PUMP]" + self.MarketName + " PUMP", html);
+                    Telegram.send(self.MarketName + " \n Current Price:" + candle1.close + " \n Check Price:" + candle2.high + " \n <b>Percent:" + percent + "</b>")
+
                 } else {
                     console.log(clc.green('PUMP'), self.MarketName);
                 }
@@ -501,6 +505,8 @@ var Market = new SchemaObject({
                     var percent = self.round(100 * (candle1.close - candle2.low) / candle2.low, 2);
                     var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1.close + "</p><p>Check Price:" + candle2.low + "</p><p style='color:red;'>Percent:" + percent + "</p>";
                     Mail.sendmail("[DUMP]" + self.MarketName + " DUMP", html);
+                    Telegram.send(self.MarketName + " \n Current Price:" + candle1.close + " \n Check Price:" + candle2.low + " \n <b>Percent:" + percent + "</b>")
+                    
                 } else {
                     console.log(clc.red('DUMP'), self.MarketName);
                 }

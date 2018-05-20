@@ -18,6 +18,7 @@ require('dotenv').config();
 var http = require('http');
 
 var Mail = require("./models/mail");
+var Telegram = require("./models/telegram");
 /******************
  * 
  * CONFIG MYSQL
@@ -513,7 +514,7 @@ function execution_update(data) {
             var percent = 100 * profit / price_buy;
             var html = "<p>" + symbol + "</p><p>Price Buy:" + price_buy + "</p><p>Price Sell:" + priceMarket + "</p><p style='color:green;'>Profit:" + percent.toFixed(2) + "%</p>";
             Mail.sendmail("[Sell]" + symbol, html);
-
+            Telegram.send(symbol + "\n Price Buy:" + price_buy + "\n Price Sell:" + priceMarket + "\n <b>Profit:" + percent.toFixed(2) + "%</b>");
             markets[symbol].save_db_ban(priceMarket, quantity, tradeId);
         } else if (orderType == "LIMIT" && side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
 
@@ -522,19 +523,22 @@ function execution_update(data) {
             var percent = 100 * profit / price_buy;
             var html = "<p>" + symbol + "</p><p>Price Buy:" + price_buy + "</p><p>Price Sell:" + price + "</p><p style='color:green;'>Profit:" + percent.toFixed(2) + "%</p>";
             Mail.sendmail("[Sell]" + symbol, html);
-
+            Telegram.send(symbol + "\n Price Buy:" + price_buy + "\n Price Sell:" + price + "\n <b>Profit:" + percent.toFixed(2) + "%</b>");
+            
             markets[symbol].save_db_ban(price, quantity, tradeId);
         } else if (orderType == "MARKET" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
 
             var html = "<p>" + symbol + "</p><p>Price:" + priceMarket + "</p>";
             Mail.sendmail("[Buy]" + symbol, html);
-
+            Telegram.send(symbol + "\n Price :" + priceMarket);
+            
             markets[symbol].save_db_mua(priceMarket, quantity, tradeId);
         } else if (orderType == "LIMIT" && side == "BUY" && executionType == "TRADE" && orderStatus == "FILLED") {
 
             var html = "<p>" + symbol + "</p><p>Price:" + price + "</p>";
             Mail.sendmail("[Buy]" + symbol, html);
-
+            Telegram.send(symbol + "\n Price :" + price);
+            
             markets[symbol].save_db_mua(priceMarket, quantity, tradeId);
         }
     }
