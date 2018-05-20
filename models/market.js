@@ -445,11 +445,11 @@ var Market = new SchemaObject({
             if(entries.length <= 144)
                 return;
             var array_144_candle = entries.splice(-144);
-            var current_volume = array_144_candle.pop();
             var array_144_volume = array_144_candle.map(function (item) {
                 return item.volume;
             });
-            var max_volume = Math.max(array_144_volume);
+            var current_volume = array_144_volume.pop();
+            var max_volume = Math.max(...array_144_volume);
             if (current_volume > max_volume * 2) {
                 self.isHotMarket = true;
                 if (process.env.NODE_ENV == "production") {
@@ -506,7 +506,7 @@ var Market = new SchemaObject({
                     var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1.close + "</p><p>Check Price:" + candle2.low + "</p><p style='color:red;'>Percent:" + percent + "</p>";
                     Mail.sendmail("[DUMP]" + self.MarketName + " DUMP", html);
                     Telegram.send(self.MarketName + " \n Current Price:" + candle1.close + " \n Check Price:" + candle2.low + " \n <b>Percent:" + percent + "</b>")
-                    
+
                 } else {
                     console.log(clc.red('DUMP'), self.MarketName);
                 }
