@@ -27,6 +27,6 @@ var sendmail = function (subject, html) {
             console.log('Email sent: ' + info.response);
         }
     });
-    telegram.send(html);
+    telegram.send(html,{parse_mode : "HTML"});
 }
 module.exports.sendmail = sendmail;
