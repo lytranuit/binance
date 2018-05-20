@@ -18,7 +18,6 @@ require('dotenv').config();
 var http = require('http');
 
 var Mail = require("./models/mail");
-
 /******************
  * 
  * CONFIG MYSQL
