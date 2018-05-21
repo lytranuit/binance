@@ -341,6 +341,7 @@ mysql.createConnection(options_sql).then(function (conn) {
                      */
                     model.sync_db_candles(10000).then(function () {
                         console.log("SYNC DB DONE!");
+                        model.set_change();
                         for (var symbol in markets) {
                             if (is_1h_new) {
                                 markets[symbol]['indicator_1h'].setIndicator();
@@ -544,7 +545,7 @@ function execution_update(data) {
         if (orderType == "MARKET" && side == "SELL" && executionType == "TRADE" && orderStatus == "FILLED") {
             var price_buy = markets[symbol].priceBuyAvg;
             var profit = (priceMarket - price_buy);
-            var percent = 100 * profit / price_buy;
+            var percent = model.round(100 * profit / price_buy, 2);
             var html = "<p>" + symbol + "</p><p>Price Buy:" + price_buy + "</p><p>Price Sell:" + priceMarket + "</p><p style='color:green;'>Profit:" + percent.toFixed(2) + "%</p>";
             Mail.sendmail("[Sell]" + symbol, html);
             Telegram.send(symbol + "\n Price Buy:" + price_buy + "\n Price Sell:" + priceMarket + "\n <b>Profit:" + percent.toFixed(2) + "%</b>");
@@ -553,7 +554,7 @@ function execution_update(data) {
 
             var price_buy = markets[symbol].priceBuyAvg;
             var profit = (price - price_buy);
-            var percent = 100 * profit / price_buy;
+            var percent = model.round(100 * profit / price_buy, 2);
             var html = "<p>" + symbol + "</p><p>Price Buy:" + price_buy + "</p><p>Price Sell:" + price + "</p><p style='color:green;'>Profit:" + percent.toFixed(2) + "%</p>";
             Mail.sendmail("[Sell]" + symbol, html);
             Telegram.send(symbol + "\n Price Buy:" + price_buy + "\n Price Sell:" + price + "\n <b>Profit:" + percent.toFixed(2) + "%</b>");
@@ -576,7 +577,4 @@ function execution_update(data) {
         }
     }
     console.log(symbol + "\t" + side + " " + executionType + " " + orderType + " ORDER #" + orderId);
-}
-function round(value, decimals) {
-    return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
 }

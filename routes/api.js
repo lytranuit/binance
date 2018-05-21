@@ -51,8 +51,8 @@ router.get('/marketdynamic', ensureAuthenticated, async function (req, res, next
         var price_current = markets[symbol].last;
         var price_24h = row.price_1day_prev || 0;
         var price_7day = row.price_7day_prev || 0;
-        var percent_24h = round((price_current - price_24h) / price_24h * 100, 2) || 0;
-        var percent_7day = round((price_current - price_7day) / price_7day * 100, 2) || 0;
+        var percent_24h = model.round((price_current - price_24h) / price_24h * 100, 2) || 0;
+        var percent_7day = model.round((price_current - price_7day) / price_7day * 100, 2) || 0;
         datasets.push({
             label: symbol,
             pointBackgroundColor: colorHash.hex(symbol),
@@ -374,9 +374,4 @@ function ensureAuthenticated(req, res, next) {
     }
     res.json({success: 0, code: 500, error: 'No Access'});
 }
-
-function round(value, decimals) {
-    return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
-}
-;
 module.exports = router;
