@@ -60,9 +60,7 @@ var Market = new SchemaObject({
             if (!self.hasDataChiso())
                 return;
             if (markets['BTCUSDT']['indicator_5m']['mfi'] < 35) {
-                if (currentTime != markets['BTCUSDT'].periodTime)
-                    // console.log(clc.black.bgYellow('Down'), " MFI:" + markets['BTCUSDT']['indicator_5m']['mfi']);
-                    return;
+                return;
             }
             if (self.indicator_1h.td || self.indicator_1h.dt) {
                 return;
