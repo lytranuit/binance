@@ -62,7 +62,7 @@ var Market = new SchemaObject({
             if (markets['BTCUSDT']['indicator_5m']['mfi'] < 35) {
                 if (currentTime != markets['BTCUSDT'].periodTime)
                     // console.log(clc.black.bgYellow('Down'), " MFI:" + markets['BTCUSDT']['indicator_5m']['mfi']);
-                return;
+                    return;
             }
             if (self.indicator_1h.td || self.indicator_1h.dt) {
                 return;
@@ -101,7 +101,7 @@ var Market = new SchemaObject({
             /*
              * VAO LENH
              */
-             if (process.env.NODE_ENV == "production") {
+            if (process.env.NODE_ENV == "production") {
                 var amount = Math.ceil(self.amountbuy / price);
                 self.onOrder = true;
                 binance.buy(self.MarketName, amount, price, (error, response) => {
@@ -193,7 +193,7 @@ var Market = new SchemaObject({
                  * CHeck chien luoc
                  */
 
-                 if (self.chienLuocBan == "chienLuocBanMin") {
+                if (self.chienLuocBan == "chienLuocBanMin") {
                     if (self.isBanMin() && (self.chienLuocBanRSI() || self.isBanMACD()))
                         self.orderBan(price);
                 } else if (self.chienLuocBan == "chienLuocBanMoc") {
@@ -219,9 +219,9 @@ var Market = new SchemaObject({
             /*
              * VAO LENH
              */
-             var self = this;
-             console.log(clc.red('Order'), self.MarketName + " price:" + price);
-             if (process.env.NODE_ENV == "production") {
+            var self = this;
+            console.log(clc.red('Order'), self.MarketName + " price:" + price);
+            if (process.env.NODE_ENV == "production") {
                 self.onOrder = true;
                 binance.sell(self.MarketName, myBalances[self.altCoin].available, price, (error, response) => {
                     if (error) {
@@ -288,11 +288,11 @@ var Market = new SchemaObject({
             /*
              * RESET
              */
-             var trade_session = self.trade_session;
+            var trade_session = self.trade_session;
 
-             var sumamount_buy = 0;
-             var array_time = [];
-             for (var i in trade_session.trade_buy) {
+            var sumamount_buy = 0;
+            var array_time = [];
+            for (var i in trade_session.trade_buy) {
                 sumamount_buy += parseFloat(trade_session.trade_buy[i].amount);
                 array_time.push(moment(trade_session.trade_buy[i].time).valueOf());
             }
@@ -314,7 +314,7 @@ var Market = new SchemaObject({
                 /*
                  * SAVE SESSION
                  */
-                 var insert = {
+                var insert = {
                     MarketName: self.MarketName,
                     price_buy: self.priceBuyAvg,
                     price_sell: self.priceSellAvg,
@@ -367,7 +367,7 @@ var Market = new SchemaObject({
             /*
              * RSI > 80
              */
-             if (!self.isCheckRsiBan || self.indicator_5m.rsi < 80)
+            if (!self.isCheckRsiBan || self.indicator_5m.rsi < 80)
                 return false;
             return true;
         },
@@ -376,7 +376,7 @@ var Market = new SchemaObject({
             /*
              * MACD < 0
              */
-             if (self.isCheckMACDBan && self.indicator_5m.MACD.histogram > 0)
+            if (self.isCheckMACDBan && self.indicator_5m.MACD.histogram > 0)
                 return false;
             return true;
         },
@@ -385,7 +385,7 @@ var Market = new SchemaObject({
             /*
              * price < min
              */
-             if (self.last < self.minPriceSell)
+            if (self.last < self.minPriceSell)
                 return false;
             return true;
         },
@@ -394,7 +394,7 @@ var Market = new SchemaObject({
             /*
              * price < moc
              */
-             if (self.last < self.mocPriceSell)
+            if (self.last < self.mocPriceSell)
                 return false;
             return true;
         },
@@ -409,7 +409,7 @@ var Market = new SchemaObject({
             /*
              * price < moc
              */
-             if (self.last > self.mocPriceBuy)
+            if (self.last > self.mocPriceBuy)
                 return false;
             return true;
         },
@@ -442,39 +442,18 @@ var Market = new SchemaObject({
             if (self.MarketName == "BTCUSDT")
                 return;
             var entries = Object.values(candles);
-            if(entries.length <= 144)
+            if (entries.length <= 144)
                 return;
-            var array_144_candle = entries.splice(-144);
-            var array_144_volume = array_144_candle.map(function (item) {
-                return item.volume;
-            });
-            var current_volume = array_144_volume.pop();
-            var max_volume = Math.max(...array_144_volume);
-            if (current_volume > max_volume * 2) {
-                self.isHotMarket = true;
-                if (process.env.NODE_ENV == "production") {
-                    var percent = self.round(100 * (current_volume - max_volume) / max_volume, 2);
-                    var html = "<p>" + self.MarketName + "</p><p>Current Volume:" + current_volume + "</p><p>Max Volume Previous:" + max_volume + "</p><p style='color:green;'>Percent:" + percent + "</p>";
-                    Mail.sendmail("[Big Volume]" + self.MarketName, html);
-                    Telegram.send(self.MarketName + " \n Current Volume:" + current_volume + " \n Max Volume Previous:" + max_volume + " \n <b>Percent:" + percent + "</b>")
-                } else {
-                    console.log(clc.green('Big Volume'), self.MarketName);
-                }
-                io.emit("hotMarket", {symbol: self.MarketName, last: self.last, type: 1});
-                self.orderMuaHotMarket();
-                // self.save_db_hotMarket(0);
-                return;
-            }
 
             var candle1 = entries[entries.length - 1];
             var candle2 = entries[entries.length - 2];
-            
+
             var is_volume_large = candle1.volume > candle2.volume * 2;
             var input = {
                 close: [candle1.close],
                 open: [candle1.open],
                 high: [candle1.high],
-                low: [candle1.low],
+                low: [candle1.low]
             }
 
             var is_bullishmarubozu = technical.bullishmarubozu(input);
@@ -483,9 +462,9 @@ var Market = new SchemaObject({
                 self.isHotMarket = true;
                 if (process.env.NODE_ENV == "production") {
                     var percent = self.round(100 * (candle1.close - candle2.high) / candle2.high, 2);
-                    var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1.close + "</p><p>Check Price:" + candle2.high + "</p><p style='color:green;'>Percent:" + percent + "</p>";
-                    Mail.sendmail("[PUMP]" + self.MarketName + " PUMP", html);
-                    Telegram.send(self.MarketName + " \n Current Price:" + candle1.close + " \n Check Price:" + candle2.high + " \n <b>Percent:" + percent + "</b>")
+//                    var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1.close + "</p><p>Check Price:" + candle2.high + "</p><p style='color:green;'>Percent:" + percent + "</p>";
+//                    Mail.sendmail("[PUMP]" + self.MarketName + " PUMP", html);
+                    Telegram.send("[PUMP] <b>" + self.MarketName + "</b> \n Current Price:" + candle1.close + " \n Check Price:" + candle2.high + " \n <b>Percent:" + percent + "</b>")
 
                 } else {
                     console.log(clc.green('PUMP'), self.MarketName);
@@ -503,9 +482,9 @@ var Market = new SchemaObject({
                 self.isHotMarket = true;
                 if (process.env.NODE_ENV == "production") {
                     var percent = self.round(100 * (candle1.close - candle2.low) / candle2.low, 2);
-                    var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1.close + "</p><p>Check Price:" + candle2.low + "</p><p style='color:red;'>Percent:" + percent + "</p>";
-                    Mail.sendmail("[DUMP]" + self.MarketName + " DUMP", html);
-                    Telegram.send(self.MarketName + " \n Current Price:" + candle1.close + " \n Check Price:" + candle2.low + " \n <b>Percent:" + percent + "</b>")
+//                    var html = "<p>" + self.MarketName + "</p><p>Current Price:" + candle1.close + "</p><p>Check Price:" + candle2.low + "</p><p style='color:red;'>Percent:" + percent + "</p>";
+//                    Mail.sendmail("[DUMP]" + self.MarketName + " DUMP", html);
+                    Telegram.send("[DUMP]<b>" + self.MarketName + "</b> \n Current Price:" + candle1.close + " \n Check Price:" + candle2.low + " \n <b>Percent:" + percent + "</b>")
 
                 } else {
                     console.log(clc.red('DUMP'), self.MarketName);
@@ -514,6 +493,29 @@ var Market = new SchemaObject({
                 self.save_db_hotMarket(1);
                 return;
             }
+            var array_144_candle = entries.splice(-144);
+            var array_144_volume = array_144_candle.map(function (item) {
+                return item.volume;
+            });
+            var current_volume = array_144_volume.pop();
+            var max_volume = Math.max(...array_144_volume);
+            var percent_price = self.round(100 * (candle1.close - candle1.open) / candle1.open, 2);
+            if (current_volume > max_volume * 2 && percent_price > 0 && percent_price < 2) {
+                self.isHotMarket = true;
+                if (process.env.NODE_ENV == "production") {
+                    var percent = self.round(100 * (current_volume - max_volume) / max_volume, 2);
+//                    var html = "<p>" + self.MarketName + "</p><p>Current Volume:" + current_volume + "</p><p>Max Volume Previous:" + max_volume + "</p><p style='color:green;'>Percent:" + percent + "</p>";
+//                    Mail.sendmail("[Big Volume]" + self.MarketName, html);
+                    Telegram.send("[Big Volume] <b>" + self.MarketName + "</b> \n Current Volume:" + current_volume + " \n Max Volume Previous:" + max_volume + " \n <b>Percent Volume:" + percent + "</b> \n <b>Percent price:" + percent_price + "</b>");
+                } else {
+                    console.log(clc.green('Big Volume'), self.MarketName);
+                }
+                io.emit("hotMarket", {symbol: self.MarketName, last: self.last, type: 3});
+                self.orderMuaHotMarket();
+                // self.save_db_hotMarket(0);
+                return;
+            }
+
         },
         save_db_hotMarket: function (is_Dump) {
             var self = this;
@@ -628,10 +630,10 @@ var Market = new SchemaObject({
                             values.push([symbol, '5m', time, open, high, low, close, volume, is_Final]);
                         }
                         if (values.length > 1)
-                            self['indicator_5m'].save_db_candles(keys, values).then(function(){
+                            self['indicator_5m'].save_db_candles(keys, values).then(function () {
                                 var periodTime_5m = self['indicator_5m'].periodTime;
                                 var periodTime_1h = self['indicator_1h'].periodTime + (5 * 60 * 1000);
-                                if(periodTime_5m == periodTime_1h){
+                                if (periodTime_5m == periodTime_1h) {
                                     self['indicator_1h'].setIndicator();
                                 }
                                 self['indicator_5m'].setIndicator();
