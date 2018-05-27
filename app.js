@@ -28,7 +28,7 @@ var ChisoModel = require('./models/chiso');
  * CONFIG MYSQL
  * 
  *****************/
-global.options_sql = {
+ global.options_sql = {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -42,25 +42,25 @@ global.pool = mysql.createPool(options_sql);
  * 
  *****************/
 
-passport.serializeUser(function (user, done) {
+ passport.serializeUser(function (user, done) {
     done(null, user);
 });
 
-passport.deserializeUser(function (user, done) {
+ passport.deserializeUser(function (user, done) {
     done(null, user);
 });
-passport.use(new LocalStrategy({
+ passport.use(new LocalStrategy({
     usernameField: 'username',
     passwordField: 'password',
     session: true
 },
-        function (username, password, done) {
-            if (username == "daotran" && password == "Asd1234")
-                return done(null, username);
-            else
-                return done(null, false);
-        })
-        );
+function (username, password, done) {
+    if (username == "daotran" && password == "Asd1234")
+        return done(null, username);
+    else
+        return done(null, false);
+})
+ );
 /******************
  * 
  * END CONFIG MAIL
@@ -73,8 +73,8 @@ passport.use(new LocalStrategy({
  * 
  *****************/
 
-var production = process.env.NODE_ENV === 'production'
-if (!production) {
+ var production = process.env.NODE_ENV === 'production'
+ if (!production) {
     var chokidar = require('chokidar')
     var watcher = chokidar.watch('./routes');
     watcher.on('ready', function () {
@@ -154,15 +154,16 @@ module.exports = app;
  * CONFIG BINANCE
  * 
  *****************/
-binance.options({
+ binance.options({
     APIKEY: process.env.APIKEY,
     APISECRET: process.env.APISECRET
 });
-global.currentTime5m = null;
-global.currentTime1h = null;
-global.primaryCoin = ["BTC", "USDT"];
-global.myBalances = {};
-global.ignoreCoin = ["BNB", "BTC"];
+ global.currentTime5m = null;
+ global.currentTime1h = null;
+ global.currentTime1w = null;
+ global.primaryCoin = ["BTC", "USDT"];
+ global.myBalances = {};
+ global.ignoreCoin = ["BNB", "BTC"];
 
 
 /******************
@@ -173,12 +174,12 @@ global.ignoreCoin = ["BNB", "BTC"];
 /*
  * 4h SAVE JSON CANDLES
  */
-setInterval(function () {
+ setInterval(function () {
     model.save_db_candles();
 }, 4 * 3600000);
 
-global.markets = {};
-mysql.createConnection(options_sql).then(function (conn) {
+ global.markets = {};
+ mysql.createConnection(options_sql).then(function (conn) {
     var result = conn.query("select * from options");
     conn.end();
     return result;
@@ -191,18 +192,18 @@ mysql.createConnection(options_sql).then(function (conn) {
         var value = rows[i]['value'];
         switch (key) {
             case "primaryCoin":
-                primaryCoin = value.split(",");
-                break;
+            primaryCoin = value.split(",");
+            break;
             case "ignoreCoin":
-                ignoreCoin = value.split(",");
-                break;
+            ignoreCoin = value.split(",");
+            break;
             default:
-                if (key.indexOf("stopmua") != -1) {
-                    global[key] = stringtoBoolean(value);
-                } else {
-                    global[key] = value;
-                }
-                break;
+            if (key.indexOf("stopmua") != -1) {
+                global[key] = stringtoBoolean(value);
+            } else {
+                global[key] = value;
+            }
+            break;
         }
     }
     return true;
@@ -253,9 +254,12 @@ mysql.createConnection(options_sql).then(function (conn) {
                 var candles_5m = {};
                 try {
                     candles_1h = jsonfile.readFileSync('./candles/indicator_1h/' + market + '.json');
-                    candles_5m = jsonfile.readFileSync('./candles/indicator_5m/' + market + '.json');
                 } catch (readOrJsonErr) {
                     candles_1h = {};
+                }
+                try {
+                    candles_5m = jsonfile.readFileSync('./candles/indicator_5m/' + market + '.json');
+                } catch (readOrJsonErr) {
                     candles_5m = {};
                 }
                 var chiso1h = new ChisoModel({symbol: market, candles: candles_1h, time: 60 * 60 * 1000, type: '1h'});
@@ -281,18 +285,13 @@ mysql.createConnection(options_sql).then(function (conn) {
                 markets[market] = new MarketModel(obj);
                 array_market.push(market);
             }
+            // model.sync_db_candles();
+            // return
+            model.setFabonacci();
             binance.websockets.candlesticks(array_market, "5m", (candlesticks) => {
                 let {e: eventType, E: eventTime, s: symbol, k: ticks} = candlesticks;
                 let {o: open, h: high, l: low, c: close, v: volume, n: trades, i: interval, x: isFinal, q: quoteVolume, V: buyVolume, Q: quoteBuyVolume, t: time} = ticks;
 
-                // console.log(symbol+" "+interval+" candlestick update");
-                // console.log("time: "+time);
-                // console.log("open: "+open);
-                // console.log("high: "+high);
-                // console.log("low: "+low);
-                // console.log("close: "+close);
-                // console.log("volume: "+volume);
-                // console.log("isFinal: "+isFinal);
 
                 markets[symbol]['indicator_5m'].volume = volume;
                 markets[symbol]['indicator_5m'].candles[time] = {
@@ -315,14 +314,15 @@ mysql.createConnection(options_sql).then(function (conn) {
                 /*
                  * RESET 1 m
                  */
-                if (moment().format("ss") < 10) {
+                 if (moment().format("ss") < 10) {
                     markets[symbol]['indicator_1m'].refresh();
                 }
                 /*
                  * 1h
                  */
-                var time_1h = Math.floor(time / 60 * 60 * 1000) * 60 * 60 * 1000
-                if (time_1h != markets[symbol]['indicator_1h'].periodTime) {
+                 var timestamp_1h = 60 * 60 * 1000;
+                 var time_1h = Math.floor(time /timestamp_1h) * timestamp_1h
+                 if (time_1h != markets[symbol]['indicator_1h'].periodTime) {
                     markets[symbol]['indicator_1h'].periodTime = time_1h;
                     markets[symbol].refreshTrade();
                     markets[symbol].isHotMarket = false;
@@ -332,6 +332,11 @@ mysql.createConnection(options_sql).then(function (conn) {
                     global.currentTime1h = time_1h;
                     is_1h_new = true;
                 }
+
+                /*
+                * SYNC
+                */
+
                 if (currentTime5m < time) {
                     global.currentTime5m = time;
                     console.log("Bắt đầu phiên:", moment(time, "x").format());
@@ -339,8 +344,7 @@ mysql.createConnection(options_sql).then(function (conn) {
                     /*
                      * SYNC ALL SYMBOL CANDLES
                      */
-                    model.sync_db_candles(10000).then(function () {
-                        console.log("SYNC DB DONE!");
+                     model.sync_db_candles(10000).then(function () {
                         model.set_change();
                         for (var symbol in markets) {
                             if (is_1h_new) {
@@ -349,9 +353,9 @@ mysql.createConnection(options_sql).then(function (conn) {
                             markets[symbol]['indicator_5m'].setIndicator();
                         }
                     });
-                }
-                io.to("market").emit("market", {symbol: symbol, last: close, volume: volume});
-            });
+                 }
+                 io.to("market").emit("market", {symbol: symbol, last: close, volume: volume});
+             });
             binance.websockets.trades(array_market, (trades) => {
                 let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
                 if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
@@ -412,7 +416,7 @@ mysql.createConnection(options_sql).then(function (conn) {
             });
             console.log("Price of BTC: ", ticker.BTCUSDT);
         });
-    });
+});
 }).catch(function (err) {
     console.log(err);
 });
@@ -425,11 +429,11 @@ mysql.createConnection(options_sql).then(function (conn) {
  * CONFIG APACHE
  * 
  *****************/
-var port = process.env.PORT || 3000;
-app.set('port', port);
-var server = http.createServer(app);
-global.io = require('socket.io')(server);
-io.on('connection', function (socket) {
+ var port = process.env.PORT || 3000;
+ app.set('port', port);
+ var server = http.createServer(app);
+ global.io = require('socket.io')(server);
+ io.on('connection', function (socket) {
     console.log('a user connected');
     socket.emit("start");
     socket.on("join", function (data) {
@@ -451,34 +455,34 @@ io.on('connection', function (socket) {
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+ server.listen(port);
+ server.on('error', onError);
+ server.on('listening', onListening);
 /*
  * Event listener for HTTP server "error" event.
  */
 
-function onError(error) {
+ function onError(error) {
     if (error.syscall !== 'listen') {
         throw error;
     }
 
     var bind = typeof port === 'string'
-            ? 'Pipe ' + port
-            : 'Port ' + port;
+    ? 'Pipe ' + port
+    : 'Port ' + port;
 
     // handle specific listen errors with friendly messages
     switch (error.code) {
         case 'EACCES':
-            console.error(bind + ' requires elevated privileges');
-            process.exit(1);
-            break;
+        console.error(bind + ' requires elevated privileges');
+        process.exit(1);
+        break;
         case 'EADDRINUSE':
-            console.error(bind + ' is already in use');
-            process.exit(1);
-            break;
+        console.error(bind + ' is already in use');
+        process.exit(1);
+        break;
         default:
-            throw error;
+        throw error;
     }
 }
 
@@ -486,11 +490,11 @@ function onError(error) {
  * Event listener for HTTP server "listening" event.
  */
 
-function onListening() {
+ function onListening() {
     var addr = server.address();
     var bind = typeof addr === 'string'
-            ? 'pipe ' + addr
-            : 'port ' + addr.port;
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
     console.log('Listening on ' + bind);
 }
 
@@ -499,20 +503,20 @@ function onListening() {
  * END CONFIG APACHE
  *
  *****************/
-function stringtoBoolean(value) {
+ function stringtoBoolean(value) {
     if (!value)
         return value
     switch (value) {
         case "1":
         case "true":
         case "yes":
-            return true;
-            break;
+        return true;
+        break;
         case "0":
         case "false":
         case "no":
-            return false;
-            break;
+        return false;
+        break;
     }
 }
 

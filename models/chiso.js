@@ -53,6 +53,12 @@ var Chiso = new SchemaObject({
                 argc.push(parseFloat(candles[key]['close']));
                 argo.push(parseFloat(candles[key]['open']));
             }
+            /*
+            * FABONACCI
+            */
+            if(self.type == "1w"){
+                
+            }
             // if (argc.length > 250) {
             //     var input = {
             //         values: argc
@@ -78,8 +84,8 @@ var Chiso = new SchemaObject({
             /*
              * MACD
              */
-            var MACD = technical.MACD;
-            var input = {
+             var MACD = technical.MACD;
+             var input = {
                 values: argc,
                 fastPeriod: 12,
                 slowPeriod: 26,
@@ -92,8 +98,8 @@ var Chiso = new SchemaObject({
             /*
              * RSI
              */
-            var rsi = technical.RSI;
-            var input = {
+             var rsi = technical.RSI;
+             var input = {
                 values: argc,
                 period: 14
             };
@@ -102,8 +108,8 @@ var Chiso = new SchemaObject({
             /*
              * MFI
              */
-            var mfi = technical.MFI;
-            var input = {
+             var mfi = technical.MFI;
+             var input = {
                 high: argh,
                 low: argl,
                 close: argc,
@@ -115,8 +121,8 @@ var Chiso = new SchemaObject({
             /*
              * BOLLINGER BAND 
              */
-            var bb = technical.BollingerBands;
-            var input = {
+             var bb = technical.BollingerBands;
+             var input = {
                 values: argc,
                 period: 20,
                 stdDev: 2
@@ -126,12 +132,12 @@ var Chiso = new SchemaObject({
             /*
              * Refresh
              */
-            self.refresh();
+             self.refresh();
 
             /*
              * doi chart
              */
-            var input = {
+             var input = {
                 open: argo,
                 high: argh,
                 low: argl,
