@@ -20,19 +20,20 @@ const model = {
                 throw "No data";
         }).catch(function () {
             var array = [];
-            for(var symbol in markets){
-                array.push({symbol:symbol,isFirst:true});
+            for (var symbol in markets) {
+                array.push({ symbol: symbol, isFirst: true });
             }
             return array;
         }).then(function (results) {
-            var options = {limit: 1000};
+            // console.log(results);
+            var options = { limit: 1000 };
             var time_current = moment().valueOf();
             // var time_current = 1527386700000;
             var last_time = Math.floor(time_current / (5 * 60 * 1000)) * (5 * 60 * 1000);
             var promiseAll = [];
             for (var result of results) {
                 var symbol = result.symbol;
-                if(!result.isFirst){
+                if (!result.isFirst) {
                     if (result.max_time) {
                         options['startTime'] = result.max_time;
                     }
@@ -47,31 +48,31 @@ const model = {
             }
             return self.getValueCandles(promiseAll);
         }).then(function (values) {
-            var keys = ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume','quoteVolume','buyVolume','quoteBuyVolume', 'is_Final'];
+            var keys = ['symbol', 'interval', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'quoteVolume', 'buyVolume', 'quoteBuyVolume', 'is_Final'];
             return self.save_db_candles(keys, values);
         }).then(function () {
             console.log("SYNC DB Done!");
             return true;
-        }).catch(function(err){
+        }).catch(function (err) {
             console.log(err)
             return false;
         })
     },
-    getValueCandles:async function(promiseAll){
+    getValueCandles: async function (promiseAll) {
         var self = this;
         return Promise.all(promiseAll).then(async function (results) {
             var values = [];
             var promiseAll1 = [];
             for (var result of results) {
-                if(!result.error)
+                if (!result.error)
                     values = values.concat(result.data);
                 else {
                     var promise = self.candle_from_server(result.symbol, "5m", result.options);
                     promiseAll1.push(promise);
                 }
             }
-            if(promiseAll1.length){
-                var value_promise = await self.getValueCandles(promiseAll1).catch(function(err){
+            if (promiseAll1.length) {
+                var value_promise = await self.getValueCandles(promiseAll1).catch(function (err) {
                     return [];
                 });
                 values = values.concat(value_promise);
@@ -83,19 +84,19 @@ const model = {
         var self = this;
         return new Promise((resolve, reject) => {
             binance.candlesticks(symbol, interval, (error, ticks, symbol) => {
-                if(error){
+                if (error) {
                     // console.log({error:error,symbol:symbol,options:options});
-                    resolve({error:error,symbol:symbol,options:options});
+                    resolve({ error: error, symbol: symbol, options: options });
                 }
                 var values = [];
                 if (self.isIterable(ticks)) {
                     for (let tick of ticks) {
                         let [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = tick;
                         let is_Final = ticks[ticks.length - 1][0] == time && options['startTime'] > 0 ? 0 : 1;
-                        values.push([symbol, interval, time, open, high, low, close, volume,assetVolume,buyBaseVolume,buyAssetVolume, is_Final]);
+                        values.push([symbol, interval, time, open, high, low, close, volume, assetVolume, buyBaseVolume, buyAssetVolume, is_Final]);
                     }
                 }
-                resolve({error:null,symbol:symbol,data:values});
+                resolve({ error: null, symbol: symbol, data: values });
             }, options);
         })
 
@@ -122,12 +123,12 @@ const model = {
         var start = start || moment().valueOf();
         var last = Math.floor(start / 300000) * 300000 - 300000;
         var array = [
-        {interval: '5m', time: 0},
-        {interval: '15m', time: 15 * 60 * 1000},
-        {interval: '30m', time: 30 * 60 * 1000},
-        {interval: '1h', time: 60 * 60 * 1000},
-        {interval: '1d', time: 24 * 60 * 60 * 1000},
-        {interval: '1w', time: 7 * 24 * 60 * 60 * 1000}
+            { interval: '5m', time: 0 },
+            { interval: '15m', time: 15 * 60 * 1000 },
+            { interval: '30m', time: 30 * 60 * 1000 },
+            { interval: '1h', time: 60 * 60 * 1000 },
+            { interval: '1d', time: 24 * 60 * 60 * 1000 },
+            { interval: '1w', time: 7 * 24 * 60 * 60 * 1000 }
         ];
         var subsql = "";
         for (var i in array) {
@@ -142,6 +143,9 @@ const model = {
         await pool.query(sql).then(function (results) {
             for (var row of results) {
                 var symbol = row.symbol;
+                if (!(symbol in markets)) {
+                    continue;
+                }
                 for (var i in array) {
                     var arr = array[i];
                     var volume = row['volume_' + arr.interval];
@@ -181,6 +185,7 @@ const model = {
                     else if (row['change_volume_' + arr.interval] >= -100 && row['change_volume_' + arr.interval] < 0)
                         row['bg_volume_' + arr.interval] = "bg-danger-light";
                 }
+
                 markets[symbol].combined = row;
             }
         }).catch(function (err) {
@@ -192,13 +197,13 @@ const model = {
         });
     },
 
-    setFabonacci:async function(start){
+    setFabonacci: async function (start) {
         console.log("SET. FABONACCI");
         var self = this;
         var start = start || moment().valueOf();
         var last = Math.floor(start / 300000) * 300000 - 300000;
         var array = [
-        {interval: '1w', time: 7 * 24 * 60 * 60 * 1000}
+            { interval: '1w', time: 7 * 24 * 60 * 60 * 1000 }
         ];
         var subsql = "";
         for (var i in array) {
@@ -211,23 +216,26 @@ const model = {
         await pool.query(sql).then(function (results) {
             for (var row of results) {
                 var symbol = row.symbol;
+                if (!(symbol in markets)) {
+                    continue;
+                }
                 var high = row.high_1w;
                 var low = row.low_1w;
                 var obj_fabonacci = {
                     fabonacci_box: [
-                    {rate_min:0,rate_max:0.236},
-                    {rate_min:0.236,rate_max:0.382},
-                    {rate_min:0.382,rate_max:0.5},
-                    {rate_min:0.5,rate_max:0.618},
-                    {rate_min:0.618,rate_max:0.786},
-                    {rate_min:0.786,rate_max:1},
-                    {rate_min:1,rate_max:1.618}
+                        { rate_min: 0, rate_max: 0.236 },
+                        { rate_min: 0.236, rate_max: 0.382 },
+                        { rate_min: 0.382, rate_max: 0.5 },
+                        { rate_min: 0.5, rate_max: 0.618 },
+                        { rate_min: 0.618, rate_max: 0.786 },
+                        { rate_min: 0.786, rate_max: 1 },
+                        { rate_min: 1, rate_max: 1.618 }
                     ],
-                    current_box:-1
+                    current_box: -1
                 }
                 obj_fabonacci.min = low;
                 obj_fabonacci.max = high;
-                for(var key in obj_fabonacci.fabonacci_box){
+                for (var key in obj_fabonacci.fabonacci_box) {
                     obj_fabonacci.fabonacci_box[key].min = obj_fabonacci.fabonacci_box[key].rate_min * (high - low) + low;
                     obj_fabonacci.fabonacci_box[key].max = obj_fabonacci.fabonacci_box[key].rate_max * (high - low) + low;
                 }

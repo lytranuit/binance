@@ -28,7 +28,7 @@ var ChisoModel = require('./models/chiso');
  * CONFIG MYSQL
  * 
  *****************/
- global.options_sql = {
+global.options_sql = {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -42,25 +42,25 @@ global.pool = mysql.createPool(options_sql);
  * 
  *****************/
 
- passport.serializeUser(function (user, done) {
+passport.serializeUser(function (user, done) {
     done(null, user);
 });
 
- passport.deserializeUser(function (user, done) {
+passport.deserializeUser(function (user, done) {
     done(null, user);
 });
- passport.use(new LocalStrategy({
+passport.use(new LocalStrategy({
     usernameField: 'username',
     passwordField: 'password',
     session: true
 },
-function (username, password, done) {
-    if (username == "daotran" && password == "Asd1234")
-        return done(null, username);
-    else
-        return done(null, false);
-})
- );
+    function (username, password, done) {
+        if (username == "daotran" && password == "Asd1234")
+            return done(null, username);
+        else
+            return done(null, false);
+    })
+);
 /******************
  * 
  * END CONFIG MAIL
@@ -73,8 +73,8 @@ function (username, password, done) {
  * 
  *****************/
 
- var production = process.env.NODE_ENV === 'production'
- if (!production) {
+var production = process.env.NODE_ENV === 'production'
+if (!production) {
     var chokidar = require('chokidar')
     var watcher = chokidar.watch('./routes');
     watcher.on('ready', function () {
@@ -100,9 +100,9 @@ app.set('view engine', 'ejs');
 
 //app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({extended: false}));
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public'), {maxAge: 31557600}));
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600 }));
 app.use(session({
     secret: "secret",
     saveUninitialized: true,
@@ -154,16 +154,16 @@ module.exports = app;
  * CONFIG BINANCE
  * 
  *****************/
- binance.options({
+binance.options({
     APIKEY: process.env.APIKEY,
     APISECRET: process.env.APISECRET
 });
- global.currentTime5m = null;
- global.currentTime1h = null;
- global.currentTime1w = null;
- global.primaryCoin = ["BTC", "USDT"];
- global.myBalances = {};
- global.ignoreCoin = ["BNB", "BTC"];
+global.currentTime5m = null;
+global.currentTime1h = null;
+global.currentTime1w = null;
+global.primaryCoin = ["BTC", "USDT"];
+global.myBalances = {};
+global.ignoreCoin = ["BNB"];
 
 
 /******************
@@ -174,12 +174,12 @@ module.exports = app;
 /*
  * 4h SAVE JSON CANDLES
  */
- setInterval(function () {
-    model.save_db_candles();
-}, 4 * 3600000);
+setInterval(function () {
+    model.save_cache_candles();
+}, 60 * 10);
 
- global.markets = {};
- mysql.createConnection(options_sql).then(function (conn) {
+global.markets = {};
+mysql.createConnection(options_sql).then(function (conn) {
     var result = conn.query("select * from options");
     conn.end();
     return result;
@@ -192,18 +192,18 @@ module.exports = app;
         var value = rows[i]['value'];
         switch (key) {
             case "primaryCoin":
-            primaryCoin = value.split(",");
-            break;
+                primaryCoin = value.split(",");
+                break;
             case "ignoreCoin":
-            ignoreCoin = value.split(",");
-            break;
+                ignoreCoin = value.split(",");
+                break;
             default:
-            if (key.indexOf("stopmua") != -1) {
-                global[key] = stringtoBoolean(value);
-            } else {
-                global[key] = value;
-            }
-            break;
+                if (key.indexOf("stopmua") != -1) {
+                    global[key] = stringtoBoolean(value);
+                } else {
+                    global[key] = value;
+                }
+                break;
         }
     }
     return true;
@@ -230,8 +230,14 @@ module.exports = app;
             if (error) {
                 return console.error(error);
             }
+            // console.log(ticker);
+
             var array_market = [];
+            // var count = 0;
             for (var i in ticker) {
+                // count++;
+                // if (count > 100)
+                //     break;
                 var market = i;
                 var last = ticker[i];
                 var primary = "";
@@ -244,11 +250,12 @@ module.exports = app;
                             alt = market.replace(coin, "");
                         }
                     }
+
                 } else {
                     primary = "USDT";
                     alt = "BTC";
                 }
-                if (primary == "")
+                if (primary == "" || ignoreCoin.indexOf(alt) != -1)//
                     continue;
                 var candles_1h = {};
                 var candles_5m = {};
@@ -262,9 +269,9 @@ module.exports = app;
                 } catch (readOrJsonErr) {
                     candles_5m = {};
                 }
-                var chiso1h = new ChisoModel({symbol: market, candles: candles_1h, time: 60 * 60 * 1000, type: '1h'});
-                var chiso5m = new ChisoModel({symbol: market, candles: candles_5m, time: 5 * 60 * 1000, type: '5m'});
-                var chiso1m = new ChisoModel({symbol: market, time: 60 * 1000, type: '1m'});
+                var chiso1h = new ChisoModel({ symbol: market, candles: candles_1h, time: 60 * 60 * 1000, type: '1h' });
+                var chiso5m = new ChisoModel({ symbol: market, candles: candles_5m, time: 5 * 60 * 1000, type: '5m' });
+                var chiso1m = new ChisoModel({ symbol: market, time: 60 * 1000, type: '1m' });
                 var obj = {
                     MarketName: market,
                     last: last,
@@ -285,12 +292,12 @@ module.exports = app;
                 markets[market] = new MarketModel(obj);
                 array_market.push(market);
             }
-            // model.sync_db_candles();
+            // console.log(array_market);
             // return
             model.setFabonacci();
             binance.websockets.candlesticks(array_market, "5m", (candlesticks) => {
-                let {e: eventType, E: eventTime, s: symbol, k: ticks} = candlesticks;
-                let {o: open, h: high, l: low, c: close, v: volume, n: trades, i: interval, x: isFinal, q: quoteVolume, V: buyVolume, Q: quoteBuyVolume, t: time} = ticks;
+                let { e: eventType, E: eventTime, s: symbol, k: ticks } = candlesticks;
+                let { o: open, h: high, l: low, c: close, v: volume, n: trades, i: interval, x: isFinal, q: quoteVolume, V: buyVolume, Q: quoteBuyVolume, t: time } = ticks;
 
 
                 markets[symbol]['indicator_5m'].volume = volume;
@@ -314,15 +321,15 @@ module.exports = app;
                 /*
                  * RESET 1 m
                  */
-                 if (moment().format("ss") < 10) {
+                if (moment().format("ss") < 10) {
                     markets[symbol]['indicator_1m'].refresh();
                 }
                 /*
                  * 1h
                  */
-                 var timestamp_1h = 60 * 60 * 1000;
-                 var time_1h = Math.floor(time /timestamp_1h) * timestamp_1h
-                 if (time_1h != markets[symbol]['indicator_1h'].periodTime) {
+                var timestamp_1h = 60 * 60 * 1000;
+                var time_1h = Math.floor(time / timestamp_1h) * timestamp_1h
+                if (time_1h != markets[symbol]['indicator_1h'].periodTime) {
                     markets[symbol]['indicator_1h'].periodTime = time_1h;
                     markets[symbol].refreshTrade();
                     markets[symbol].isHotMarket = false;
@@ -344,7 +351,7 @@ module.exports = app;
                     /*
                      * SYNC ALL SYMBOL CANDLES
                      */
-                     model.sync_db_candles(10000).then(function () {
+                    model.sync_db_candles(10000).then(function () {
                         model.set_change();
                         for (var symbol in markets) {
                             if (is_1h_new) {
@@ -353,19 +360,19 @@ module.exports = app;
                             markets[symbol]['indicator_5m'].setIndicator();
                         }
                     });
-                 }
-                 io.to("market").emit("market", {symbol: symbol, last: close, volume: volume});
-             });
+                }
+                io.to("market").emit("market", { symbol: symbol, last: close, volume: volume });
+            });
             binance.websockets.trades(array_market, (trades) => {
-                let {e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId} = trades;
+                let { e: eventType, E: eventTime, s: symbol, p: price, q: quantity, m: maker, a: tradeId } = trades;
                 if (markets[symbol] && markets[symbol]['indicator_1h'] && markets[symbol]['indicator_5m']) {
                     if (maker) {
-                        markets[symbol].trades.asks.push({price: price, quantity: quantity});
+                        markets[symbol].trades.asks.push({ price: price, quantity: quantity });
                         markets[symbol]['indicator_1h'].count_sell++;
                         markets[symbol]['indicator_5m'].count_sell++;
                         markets[symbol]['indicator_1m'].count_sell++;
                     } else {
-                        markets[symbol].trades.bids.push({price: price, quantity: quantity});
+                        markets[symbol].trades.bids.push({ price: price, quantity: quantity });
                         markets[symbol]['indicator_1h'].count_buy++;
                         markets[symbol]['indicator_5m'].count_buy++;
                         markets[symbol]['indicator_1m'].count_buy++;
@@ -373,7 +380,7 @@ module.exports = app;
                 }
             });
             binance.websockets.depth(array_market, (depth) => {
-                let {e: eventType, E: eventTime, s: symbol, u: updateId, b: bidDepth, a: askDepth} = depth;
+                let { e: eventType, E: eventTime, s: symbol, u: updateId, b: bidDepth, a: askDepth } = depth;
                 if (typeof bidDepth !== 'undefined') {
                     for (var obj of bidDepth) {
                         if (obj[1] === '0.00000000') {
@@ -416,7 +423,7 @@ module.exports = app;
             });
             console.log("Price of BTC: ", ticker.BTCUSDT);
         });
-});
+    });
 }).catch(function (err) {
     console.log(err);
 });
@@ -429,11 +436,11 @@ module.exports = app;
  * CONFIG APACHE
  * 
  *****************/
- var port = process.env.PORT || 3000;
- app.set('port', port);
- var server = http.createServer(app);
- global.io = require('socket.io')(server);
- io.on('connection', function (socket) {
+var port = process.env.PORT || 3000;
+app.set('port', port);
+var server = http.createServer(app);
+global.io = require('socket.io')(server);
+io.on('connection', function (socket) {
     console.log('a user connected');
     socket.emit("start");
     socket.on("join", function (data) {
@@ -455,34 +462,34 @@ module.exports = app;
  * Listen on provided port, on all network interfaces.
  */
 
- server.listen(port);
- server.on('error', onError);
- server.on('listening', onListening);
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
 /*
  * Event listener for HTTP server "error" event.
  */
 
- function onError(error) {
+function onError(error) {
     if (error.syscall !== 'listen') {
         throw error;
     }
 
     var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
+        ? 'Pipe ' + port
+        : 'Port ' + port;
 
     // handle specific listen errors with friendly messages
     switch (error.code) {
         case 'EACCES':
-        console.error(bind + ' requires elevated privileges');
-        process.exit(1);
-        break;
+            console.error(bind + ' requires elevated privileges');
+            process.exit(1);
+            break;
         case 'EADDRINUSE':
-        console.error(bind + ' is already in use');
-        process.exit(1);
-        break;
+            console.error(bind + ' is already in use');
+            process.exit(1);
+            break;
         default:
-        throw error;
+            throw error;
     }
 }
 
@@ -490,11 +497,11 @@ module.exports = app;
  * Event listener for HTTP server "listening" event.
  */
 
- function onListening() {
+function onListening() {
     var addr = server.address();
     var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
+        ? 'pipe ' + addr
+        : 'port ' + addr.port;
     console.log('Listening on ' + bind);
 }
 
@@ -503,20 +510,20 @@ module.exports = app;
  * END CONFIG APACHE
  *
  *****************/
- function stringtoBoolean(value) {
+function stringtoBoolean(value) {
     if (!value)
         return value
     switch (value) {
         case "1":
         case "true":
         case "yes":
-        return true;
-        break;
+            return true;
+            break;
         case "0":
         case "false":
         case "no":
-        return false;
-        break;
+            return false;
+            break;
     }
 }
 
@@ -524,10 +531,10 @@ module.exports = app;
 function balance_update(data) {
     console.log("Balance Update");
     for (let obj of data.B) {
-        let {a: asset, f: available, l: onOrder} = obj;
+        let { a: asset, f: available, l: onOrder } = obj;
         myBalances[asset].available = available;
         myBalances[asset].onOrder = onOrder;
-        io.emit("coin_update", {coin: asset, available: available, onOrder: onOrder});
+        io.emit("coin_update", { coin: asset, available: available, onOrder: onOrder });
         if (available == "0.00000000" && onOrder == "0.00000000")
             continue;
         console.log(asset + "\tavailable: " + available + " (" + onOrder + " on order)");
@@ -535,7 +542,7 @@ function balance_update(data) {
 }
 function execution_update(data) {
     console.log(data);
-    let {x: executionType, s: symbol, p: price, q: quantity, S: side, o: orderType, i: orderId, X: orderStatus, L: priceMarket, t: tradeId} = data;
+    let { x: executionType, s: symbol, p: price, q: quantity, S: side, o: orderType, i: orderId, X: orderStatus, L: priceMarket, t: tradeId } = data;
     if (executionType == "NEW") {
         if (orderStatus == "REJECTED") {
             console.log("Order Failed! Reason: " + data.r);

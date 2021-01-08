@@ -20,21 +20,21 @@ router.get('/marketbalance', ensureAuthenticated, function (req, res, next) {
     var altCoin = markets[symbol].altCoin;
     var primaryCoin = markets[symbol].primaryCoin;
 
-    res.json({isHotMarket: markets[symbol].isHotMarket, primaryCoin: {name: primaryCoin, value: myBalances[primaryCoin]}, altCoin: {name: altCoin, value: myBalances[altCoin]}});
+    res.json({ isHotMarket: markets[symbol].isHotMarket, primaryCoin: { name: primaryCoin, value: myBalances[primaryCoin] }, altCoin: { name: altCoin, value: myBalances[altCoin] } });
 });
 router.get('/allmarket', ensureAuthenticated, function (req, res, next) {
     var marketName = [];
     for (var market in markets) {
         marketName.push(market);
     }
-    res.json({marketName: marketName});
+    res.json({ marketName: marketName });
 });
 router.get('/updatedata', ensureAuthenticated, function (req, res, next) {
     var marketName = [];
     for (var market in markets) {
         markets[market].sync_candles();
     }
-    res.json({success: 1});
+    res.json({ success: 1 });
 });
 router.get('/marketdynamic', ensureAuthenticated, async function (req, res, next) {
     var data = await mysql.createConnection(options_sql).then(function (conn) {
@@ -44,10 +44,13 @@ router.get('/marketdynamic', ensureAuthenticated, async function (req, res, next
     })
     var datasets = [];
 
-    var colorHash = new ColorHash({lightness: 0.5});
+    var colorHash = new ColorHash({ lightness: 0.5 });
     for (var i in data) {
         var row = data[i];
         var symbol = row.symbol;
+        if (!(symbol in markets)) {
+            continue;
+        }
         var price_current = markets[symbol].last;
         var price_24h = row.price_1day_prev || 0;
         var price_7day = row.price_7day_prev || 0;
@@ -57,14 +60,14 @@ router.get('/marketdynamic', ensureAuthenticated, async function (req, res, next
             label: symbol,
             pointBackgroundColor: colorHash.hex(symbol),
             data: [{
-                    x: percent_7day,
-                    y: percent_24h,
-                    price_24h: price_24h,
-                    price_7day: price_7day
-                }]
+                x: percent_7day,
+                y: percent_24h,
+                price_24h: price_24h,
+                price_7day: price_7day
+            }]
         })
     }
-    res.json({datasets: datasets});
+    res.json({ datasets: datasets });
 });
 router.get('/aggtrade', ensureAuthenticated, function (req, res, next) {
     var symbol = req.query.symbol || "BTCUSDT";
@@ -74,9 +77,9 @@ router.get('/aggtrade', ensureAuthenticated, function (req, res, next) {
     var options1;
     if (time > 3600000) {
         first_time = current_time - 3600000;
-        options1 = {startTime: first_time - 3600000, endTime: first_time};
+        options1 = { startTime: first_time - 3600000, endTime: first_time };
     }
-    var options = {startTime: first_time, endTime: current_time};
+    var options = { startTime: first_time, endTime: current_time };
     binance.aggTrades(symbol, options, function (error, data) {
         if (error) {
             console.log(error);
@@ -161,12 +164,12 @@ router.get('/candle', ensureAuthenticated, async function (req, res, next) {
             data.vl.LKOH.push(parseFloat(volume));
             data.xSeries.LKOH.push(time / 1000);
         }
-        res.json({data: data, events: events});
+        res.json({ data: data, events: events });
     });
 });
 router.get('/savejson', ensureAuthenticated, function (req, res, next) {
     model.save_cache_candles();
-    res.json({success: 1});
+    res.json({ success: 1 });
 });
 /*
  * POST
@@ -175,7 +178,7 @@ router.post('/hotmarket', ensureAuthenticated, function (req, res, next) {
     var symbol = req.body.symbol;
     var value = req.body.value;
     markets[symbol].isHotMarket = stringtoBoolean(value);
-    res.json({success: 1});
+    res.json({ success: 1 });
 });
 router.post('/market', ensureAuthenticated, function (req, res, next) {
     var data = req.body;
@@ -189,19 +192,19 @@ router.post('/market', ensureAuthenticated, function (req, res, next) {
 router.post('/refreshorder', ensureAuthenticated, function (req, res, next) {
     var symbol = req.body.symbol;
     markets[symbol].refreshOrder();
-    res.json({success: 1});
+    res.json({ success: 1 });
 });
 router.post('/refreshtrade', ensureAuthenticated, function (req, res, next) {
     var symbol = req.body.symbol;
     markets[symbol].refreshTrade();
-    res.json({success: 1});
+    res.json({ success: 1 });
 });
 router.post('/buy', ensureAuthenticated, function (req, res, next) {
     var symbol = req.body.symbol;
     var price = req.body.price || 0;
     var quantity_per = req.body.quantity_per;
     if (price == 0) {
-        res.json({success: 0, error: 'Fill Price!'});
+        res.json({ success: 0, error: 'Fill Price!' });
         return;
     }
     if (process.env.NODE_ENV == "production") {
@@ -214,14 +217,14 @@ router.post('/buy', ensureAuthenticated, function (req, res, next) {
         var amount = primaryCoin_value * quantity_per / 100;
         var quantity = Math.floor(amount / price);
         if (quantity * price < 0.001) {
-            res.json({success: 0, error: 'Total must be > 0.001 BTC'});
+            res.json({ success: 0, error: 'Total must be > 0.001 BTC' });
             return;
         }
         binance.buy(symbol, quantity, price);
-        res.json({success: 1});
+        res.json({ success: 1 });
     } else {
         markets[symbol].save_db_mua(price, 1);
-        res.json({success: 1});
+        res.json({ success: 1 });
     }
 });
 router.post('/buymarket', ensureAuthenticated, function (req, res, next) {
@@ -238,14 +241,14 @@ router.post('/buymarket', ensureAuthenticated, function (req, res, next) {
         var quantity = Math.floor(amount / markets[symbol].last);
         binance.marketBuy(symbol, quantity, (error, response) => {
             if (error) {
-                res.json({success: 0, error: "Fail!"});
+                res.json({ success: 0, error: "Fail!" });
                 return;
             }
-            res.json({success: 1});
+            res.json({ success: 1 });
         });
     } else {
         markets[symbol].save_db_mua(markets[symbol].last, 1);
-        res.json({success: 1});
+        res.json({ success: 1 });
     }
 });
 router.post('/sell', ensureAuthenticated, function (req, res, next) {
@@ -253,7 +256,7 @@ router.post('/sell', ensureAuthenticated, function (req, res, next) {
     var price = req.body.price || 0;
     var quantity_per = req.body.quantity_per;
     if (price == 0) {
-        res.json({success: 0, error: 'Fill Price!'});
+        res.json({ success: 0, error: 'Fill Price!' });
         return;
     }
     if (process.env.NODE_ENV == "production") {
@@ -266,15 +269,15 @@ router.post('/sell', ensureAuthenticated, function (req, res, next) {
         var quantity = Math.floor(altcoin_value * quantity_per / 100);
         var amount = quantity * price;
         if (amount < 0.001) {
-            res.json({success: 0, error: 'Total must be > 0.001 BTC'});
+            res.json({ success: 0, error: 'Total must be > 0.001 BTC' });
             return;
         }
         binance.sell(symbol, quantity, price);
-        res.json({success: 1});
+        res.json({ success: 1 });
 
     } else {
         markets[symbol].save_db_ban(price, 1);
-        res.json({success: 1});
+        res.json({ success: 1 });
     }
 
 });
@@ -292,14 +295,14 @@ router.post('/sellmarket', ensureAuthenticated, function (req, res, next) {
         var quantity = Math.ceil(altcoin_value * quantity_per / 100);
         binance.marketSell(symbol, quantity, (error, response) => {
             if (error) {
-                res.json({success: 0, error: "Fail!"});
+                res.json({ success: 0, error: "Fail!" });
                 return;
             }
-            res.json({success: 1});
+            res.json({ success: 1 });
         });
     } else {
         markets[symbol].save_db_ban(markets[symbol].last, 1);
-        res.json({success: 1});
+        res.json({ success: 1 });
     }
 
 });
@@ -314,9 +317,9 @@ router.post('/stopmua', ensureAuthenticated, function (req, res, next) {
         conn.end();
         return result;
     }).then(function () {
-        res.json({success: 1});
+        res.json({ success: 1 });
     }).catch(function () {
-        res.json({success: 0});
+        res.json({ success: 0 });
     });
 });
 router.post('/stopmuacoin', ensureAuthenticated, function (req, res, next) {
@@ -332,9 +335,9 @@ router.post('/stopmuacoin', ensureAuthenticated, function (req, res, next) {
         conn.end();
         return result;
     }).then(function () {
-        res.json({success: 1});
+        res.json({ success: 1 });
     }).catch(function () {
-        res.json({success: 0});
+        res.json({ success: 0 });
     });
 });
 router.post('/stopmuamarket', ensureAuthenticated, function (req, res, next) {
@@ -344,13 +347,13 @@ router.post('/stopmuamarket', ensureAuthenticated, function (req, res, next) {
     var update = {
         value: value
     }
-    res.json({success: 1});
+    res.json({ success: 1 });
 });
 router.post('/refreshcheck', ensureAuthenticated, function (req, res, next) {
     for (var market in markets) {
         markets[market].price_check = markets[market].last;
     }
-    res.json({success: 1});
+    res.json({ success: 1 });
 });
 function stringtoBoolean(value) {
     if (!value)
@@ -372,6 +375,6 @@ function ensureAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         return next();
     }
-    res.json({success: 0, code: 500, error: 'No Access'});
+    res.json({ success: 0, code: 500, error: 'No Access' });
 }
 module.exports = router;
