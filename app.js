@@ -176,7 +176,7 @@ global.ignoreCoin = ["BNB"];
  */
 setInterval(function () {
     model.save_cache_candles();
-}, 60 * 10);
+}, 4 * 36000000);
 
 global.markets = {};
 mysql.createConnection(options_sql).then(function (conn) {
