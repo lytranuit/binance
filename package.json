@@ -32,7 +32,7 @@
         "passport": "^0.4.0",
         "passport-local": "^1.0.0",
         "promise-mysql": "^3.2.1",
-        "socket.io": "^2.1.0",
+        "socket.io": "^2.4.0",
         "technicalindicators": "^1.1.8"
     },
     "main": "app.js",
