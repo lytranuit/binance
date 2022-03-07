@@ -140,6 +140,7 @@ var Market = new SchemaObject({
                 timestamp: time.valueOf(),
                 isBuyer: 1
             };
+            console.log(insert);
             await mysql.createConnection(options_sql).then(function (conn) {
                 var result = conn.query('INSERT INTO trade SET ?', insert);
                 conn.end();
@@ -435,8 +436,6 @@ var Market = new SchemaObject({
         },
         checkHotMarket: async function () {
             var self = this;
-            if (self.MarketName == "BCNBTC")
-                return;
             var change_box = false;
             if (Object.keys(self.fabonacci).length !== 0) {
                 var current_box = self.fabonacci.current_box;
