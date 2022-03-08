@@ -354,6 +354,7 @@ mysql
           markets[symbol].checkmua(close);
           markets[symbol].checkban(close);
           markets[symbol].checkHotMarket();
+          // markets[symbol].checkHotMarket();
           if (
             markets[symbol]["indicator_5m"].periodTime &&
             markets[symbol]["indicator_5m"].periodTime == time &&
@@ -475,6 +476,8 @@ mysql
             }
           }
         });
+
+        ///// MUA BÁN SESSION
         var where = "where 1=1 and id_session IS NULL and deleted = 0";
         var query = mysql
           .createConnection(options_sql)
