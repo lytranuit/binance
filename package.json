@@ -16,7 +16,7 @@
         "ejs": "~2.5.7",
         "express": "~4.16.0",
         "express-session": "^1.15.6",
-        "grunt": "^1.4.1",
+        "grunt": "^1.5.2",
         "grunt-contrib-cssmin": "^2.2.1",
         "grunt-contrib-uglify": "^3.3.0",
         "http-errors": "~1.6.2",
